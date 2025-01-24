@@ -1,4 +1,5 @@
 def bar(n):
     n += 1
-    print('lol')
+    print("lol")
+
     return n
