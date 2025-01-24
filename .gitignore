@@ -1,7 +1,7 @@
 # ---- Project ignores
 .vscode
 *.code-workspace
-
+sandbox/
 
 # ---- Python ignores
 # Byte-compiled / optimized / DLL files
