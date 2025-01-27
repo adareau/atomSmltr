@@ -142,12 +142,25 @@ class AbstractLaserBeam(ABC):
         elif self.direction_type == "thetaphi" and value.size != 2:
             raise ValueError(errormsg.format(direction_type="thetaphi", size=2))
 
-        # for unit vector, normalize
+        # compute unit vector
         if self.direction_type == "vector":
-            norm = np.sqrt(np.sum(value * value))
+            norm = np.linalg.norm(value)
             if norm == 0:
                 raise ValueError("Wrong value for the unit vector: norm is zero")
-            value = value / norm
+            unit_vector = value / norm
+        elif self.direction_type == "thetaphi":
+            theta, phi = value
+            unit_vector = np.array(
+                [
+                    np.sin(theta) * np.cos(phi),  # x
+                    np.sin(theta) * np.sin(phi),  # y
+                    np.cos(theta),  # z
+                ]
+            )
+            pass
+
+        # store
+        self._unit_vector = unit_vector
         self._direction = value
 
     # -- hidden methods

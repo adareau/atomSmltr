@@ -51,15 +51,18 @@ def test_Gaussian_laser_beam_properties():
     new_direction = [0.5, 3.0]
     gaussian_beam.direction = new_direction
     assert np.array_equal(gaussian_beam.direction, new_direction)
+    # check that unit vector is well normalized
+    assert np.linalg.norm(gaussian_beam._unit_vector) == 1.0
 
     # direction > vector
     gaussian_beam.direction_type = "vector"
     new_direction = [0.1, 0.1, 0.1]
     gaussian_beam.direction = new_direction
-    new_direction_unit = np.asanyarray(new_direction)
-    new_direction_norm = np.sqrt(np.sum(new_direction_unit * new_direction_unit))
-    new_direction_unit /= new_direction_norm
-    assert np.array_equal(gaussian_beam.direction, new_direction_unit)
+    assert np.array_equal(gaussian_beam.direction, new_direction)
+    # check that unit vector is well normalized
+    assert np.linalg.norm(gaussian_beam._unit_vector) == 1.0
+    # check that unit vector is colinear to new_direction
+    assert np.allclose(np.cross(new_direction, gaussian_beam._unit_vector), np.zeros(3))
 
 
 def test_Gaussian_laser_beam_exception():
