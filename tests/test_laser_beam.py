@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 
-def test_Gaussian_laser_beam_properties():
+def test_Gaussian_laser_beam_properties_setters_and_getters():
     from atomsmltr.environment.lasers.beams import GaussianLaserBeam
 
     # - testing initialization
