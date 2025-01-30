@@ -48,7 +48,7 @@ def test_Gaussian_laser_beam_properties():
 
     # direction > thetaphi
     gaussian_beam.direction_type = "thetaphi"
-    new_direction = [0.5, 3.0]
+    new_direction = [0.5, 3]
     gaussian_beam.direction = new_direction
     assert np.array_equal(gaussian_beam.direction, new_direction)
     # check that unit vector is well normalized
@@ -63,6 +63,69 @@ def test_Gaussian_laser_beam_properties():
     assert np.linalg.norm(gaussian_beam._unit_vector) == 1.0
     # check that unit vector is colinear to new_direction
     assert np.allclose(np.cross(new_direction, gaussian_beam._unit_vector), np.zeros(3))
+
+    # check internal conversion thetaphi > vector
+    gaussian_beam.direction_type = "thetaphi"
+    # 1
+    new_direction = [0.25 * np.pi, 0]
+    expected_unit_vector = [np.sqrt(0.5), 0, np.sqrt(0.5)]
+    gaussian_beam.direction = new_direction
+    assert np.allclose(gaussian_beam._unit_vector, expected_unit_vector)
+    # 2
+    new_direction = [-0.25 * np.pi, 0]
+    expected_unit_vector = [-np.sqrt(0.5), 0, np.sqrt(0.5)]
+    gaussian_beam.direction = new_direction
+    assert np.allclose(gaussian_beam._unit_vector, expected_unit_vector)
+    # 3
+    new_direction = [0.25 * np.pi, 0.25 * np.pi]
+    expected_unit_vector = [np.sqrt(0.25), np.sqrt(0.25), np.sqrt(0.5)]
+    gaussian_beam.direction = new_direction
+    assert np.allclose(gaussian_beam._unit_vector, expected_unit_vector)
+
+    # check internal conversion vector > thetaphi
+    gaussian_beam.direction_type = "vector"
+    # 1
+    new_direction = [1, 0, 0]
+    expected_theta = 0.5 * np.pi
+    expected_phi = 0
+    gaussian_beam.direction = new_direction
+    assert np.allclose(gaussian_beam._unit_vector_phi, expected_phi)
+    assert np.allclose(gaussian_beam._unit_vector_theta, expected_theta)
+    # 2
+    new_direction = [1, 1, 0]
+    expected_theta = 0.5 * np.pi
+    expected_phi = 0.25 * np.pi
+    gaussian_beam.direction = new_direction
+    assert np.allclose(gaussian_beam._unit_vector_phi, expected_phi)
+    assert np.allclose(gaussian_beam._unit_vector_theta, expected_theta)
+    # 3
+    new_direction = [1, -1, 0]
+    expected_theta = 0.5 * np.pi
+    expected_phi = -0.25 * np.pi
+    gaussian_beam.direction = new_direction
+    assert np.allclose(gaussian_beam._unit_vector_phi, expected_phi)
+    assert np.allclose(gaussian_beam._unit_vector_theta, expected_theta)
+    # 4
+    new_direction = [np.sqrt(0.25), np.sqrt(0.25), np.sqrt(0.5)]
+    expected_theta = 0.25 * np.pi
+    expected_phi = 0.25 * np.pi
+    gaussian_beam.direction = new_direction
+    assert np.allclose(gaussian_beam._unit_vector_phi, expected_phi)
+    assert np.allclose(gaussian_beam._unit_vector_theta, expected_theta)
+    # 5
+    new_direction = [np.sqrt(0.25), np.sqrt(0.25), -np.sqrt(0.5)]
+    expected_theta = 0.75 * np.pi
+    expected_phi = 0.25 * np.pi
+    gaussian_beam.direction = new_direction
+    assert np.allclose(gaussian_beam._unit_vector_phi, expected_phi)
+    assert np.allclose(gaussian_beam._unit_vector_theta, expected_theta)
+    # 6
+    new_direction = [-np.sqrt(0.25), -np.sqrt(0.25), -np.sqrt(0.5)]
+    expected_theta = 0.75 * np.pi
+    expected_phi = -0.75 * np.pi
+    gaussian_beam.direction = new_direction
+    assert np.allclose(gaussian_beam._unit_vector_phi, expected_phi)
+    assert np.allclose(gaussian_beam._unit_vector_theta, expected_theta)
 
 
 def test_Gaussian_laser_beam_exception():

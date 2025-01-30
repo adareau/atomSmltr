@@ -144,11 +144,19 @@ class AbstractLaserBeam(ABC):
 
         # compute unit vector
         if self.direction_type == "vector":
+            # first case : a unit vector is provided
+            # 1 - normalize
             norm = np.linalg.norm(value)
             if norm == 0:
                 raise ValueError("Wrong value for the unit vector: norm is zero")
             unit_vector = value / norm
+            # 2 - compute theta and phi
+            ux, uy, uz = unit_vector
+            theta = np.arctan2(np.sqrt(ux**2 + uy**2), uz)
+            phi = np.arctan2(uy, ux)
+
         elif self.direction_type == "thetaphi":
+            # second case : theta and phi are provided
             theta, phi = value
             unit_vector = np.array(
                 [
@@ -161,6 +169,8 @@ class AbstractLaserBeam(ABC):
 
         # store
         self._unit_vector = unit_vector
+        self._unit_vector_phi = phi
+        self._unit_vector_theta = theta
         self._direction = value
 
     # -- hidden methods
@@ -185,5 +195,4 @@ class AbstractLaserBeam(ABC):
 class GaussianLaserBeam(AbstractLaserBeam):
     """docstring for GaussianLaserBeam."""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    pass
