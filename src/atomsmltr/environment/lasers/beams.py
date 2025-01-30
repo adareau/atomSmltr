@@ -67,7 +67,77 @@ class AbstractLaserBeam(ABC):
 
         super().__init__()
 
-    # -- class properties setters & getters
+    # -- COMMON METHODS DEFINED HERE
+    def _convert_coordinates_to_laser_frame(self, x, y, z):
+        """Converts lab frame cartesian coordinates to laser frame coordinates.
+        The laser frame is centered at the laser waist, and has the z axis aligned
+        with the laser propagation.
+
+        The unit vector defining laser propagation is defined with two angles, theta
+        and phi : theta is the angle between the unit vector and the z axis of the lab
+        frame, and phi is the angle of the unit vector project on the (x, y) plane of the
+        lab frame, w.r.t the x axis.
+
+        To define the new coordinates (x_laser, y_laser, z_laser) in the laser frame, we
+        proceed as follow:
+
+        1) we shift the frame to center it on the waist position:
+            (x, y, z) > (xc, yc, zc)
+        2) we perform a rotation with an angle phi around the lab frame z axis:
+            (xc, yc, zc) > (x', y', z')
+        3) we perform a rotation with an angle theta around the y' axis of the new frame:
+            (x', y', z') > (x_laser, y_laser, z_laser)
+
+        For convenience reasons, we also return polar coordinates in the laser frame
+
+        Note: in some cases (elliptical beams for instance) it might be interesting to include
+        a final rotation around the laser propagation axis in the laser frame. We decided that
+        this rotation will be handled in the `intensity()` method of the corresponding class.
+
+        Args:
+            x (float or array): x cartesian coordinate in the lab frame
+            y (float or array): y cartesian coordinate in the lab frame
+            z (float or array): z cartesian coordinate in the lab frame
+
+        Returns:
+            x_laser (float or array): x cartesian coordinate in the laser frame
+            y_laser (float or array): y cartesian coordinate in the laser frame
+            z_laser (float or array): z cartesian coordinate in the laser frame
+            rho_laser (float or array): radial polar coordinate in the laser frame
+            phi_laser (float or array): angular polar coordinate in the laser frame
+        """
+
+        # shift center
+        x0, y0, z0 = self._waist_position
+        xc = x - x0
+        yc = y - y0
+        zc = z - z0
+
+        # rotate : phi around z axis, then theta along new y axis
+        # see function docstring and documentation for rotation & frames definitions
+        theta = self._unit_vector_theta
+        phi = self._unit_vector_phi
+        x_laser = (
+            xc * np.cos(theta) * np.cos(phi)
+            + yc * np.cos(theta) * np.sin(phi)
+            - zc * np.sin(theta)
+        )
+        y_laser = -xc * np.sin(phi) + yc * np.cos(phi)
+        z_laser = (
+            xc * np.sin(theta) * np.cos(phi)
+            + yc * np.sin(theta) * np.sin(phi)
+            + zc * np.cos(theta)
+        )
+
+        # also yield cylindrical coordinates
+        rho_laser = np.sqrt(x_laser**2 + y_laser**2)
+        th_laser = np.arctan2(y_laser, x_laser)
+
+        return x_laser, y_laser, z_laser, rho_laser, th_laser
+
+    # -- REQUIRED ABSTRACT METHODS
+
+    # -- CLASS PROPERTIES GETTERS & SETTERS
     # - wavelength
     @property
     def wavelength(self) -> float:
