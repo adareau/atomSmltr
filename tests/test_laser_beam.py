@@ -5,6 +5,57 @@ import numpy as np
 # % GENERIC TESTS
 
 
+def _check_scalar_3D_function_vectorization(func, out_fmt="single"):
+    """Checks that a function yielding values of a 3D field
+    field behaves correctly with numpy arrays. Typically used to
+    check intensities.
+    """
+    # a
+    x = 1.5
+    y = np.linspace(0, 5, 100)
+    z = 0
+    res = func(x, y, z)
+    if out_fmt == "single":
+        assert res.shape == y.shape
+    elif out_fmt == "list":
+        for r in res:
+            assert r.shape == y.shape
+
+    # b
+    x = 1.5
+    y = np.linspace(0, 5, 100)
+    z = np.linspace(0, 5, 100)
+    res = func(x, y, z)
+    if out_fmt == "single":
+        assert res.shape == y.shape
+    elif out_fmt == "list":
+        for r in res:
+            assert r.shape == y.shape
+
+    # c
+    y = np.linspace(0, 5, 100)
+    y = np.linspace(0, 5, 100)
+    z = np.linspace(0, 5, 100)
+    res = func(x, y, z)
+    if out_fmt == "single":
+        assert res.shape == y.shape
+    elif out_fmt == "list":
+        for r in res:
+            assert r.shape == y.shape
+
+    # d
+    y = np.linspace(0, 5, 20)
+    y = np.linspace(0, 5, 10)
+    z = np.linspace(0, 5, 5)
+    x, y, z = np.meshgrid(x, y, z)
+    res = func(x, y, z)
+    if out_fmt == "single":
+        assert res.shape == y.shape
+    elif out_fmt == "list":
+        for r in res:
+            assert r.shape == y.shape
+
+
 def _LaserBeam_classes_generic_properties_test(LaserBeamClass):
 
     # - testing initialization
@@ -220,7 +271,7 @@ def _laserBeam_classes_generic_methods_test(LaserBeamClass):
         direction_type="vector",
     )
 
-    # - coordinate conversions
+    # -- coordinate conversions
     beam.waist_position = (1.0, -5.4, 0.5)
     beam.direction = (1, 1, 1)
 
@@ -231,62 +282,15 @@ def _laserBeam_classes_generic_methods_test(LaserBeamClass):
     assert np.allclose(expected_res, res)
 
     # 2 - testing that it works with arrays
-    # 2.a
-    x = 1.5
-    y = np.linspace(0, 5, 100)
-    z = 0
-    res = beam._convert_coordinates_to_laser_frame(x, y, z)
-    for r in res:
-        assert r.shape == y.shape
+    _check_scalar_3D_function_vectorization(
+        beam._convert_coordinates_to_laser_frame, out_fmt="list"
+    )
 
-    # 2.b
-    x = 1.5
-    y = np.linspace(0, 5, 100)
-    z = np.linspace(0, 5, 100)
-    res = beam._convert_coordinates_to_laser_frame(x, y, z)
-    for r in res:
-        assert r.shape == y.shape
-
-    # 2.c
-    y = np.linspace(0, 5, 100)
-    y = np.linspace(0, 5, 100)
-    z = np.linspace(0, 5, 100)
-    res = beam._convert_coordinates_to_laser_frame(x, y, z)
-    for r in res:
-        assert r.shape == y.shape
-
-    # 2.d
-    y = np.linspace(0, 5, 20)
-    y = np.linspace(0, 5, 10)
-    z = np.linspace(0, 5, 5)
-    xxx, yyy, zzz = np.meshgrid(x, y, z)
-    res = beam._convert_coordinates_to_laser_frame(xxx, yyy, zzz)
-    for r in res:
-        assert r.shape == xxx.shape
+    # -- intensity function
+    _check_scalar_3D_function_vectorization(beam.get_intensity, out_fmt="single")
 
 
 # % ACTUAL IMPLEMENTATION
-
-# -- Abstract class
-
-
-def test_Abstract_laser_beam_exception():
-    from atomsmltr.environment.lasers.beams import AbstractLaserBeam
-
-    _LaserBeam_classes_generic_exception_test(AbstractLaserBeam)
-
-
-def test_Abstract_laser_beam_properties_setters_and_getters():
-    from atomsmltr.environment.lasers.beams import AbstractLaserBeam
-
-    _LaserBeam_classes_generic_properties_test(AbstractLaserBeam)
-
-
-def test_Abstract_laser_beam_methods():
-    from atomsmltr.environment.lasers.beams import AbstractLaserBeam
-
-    _laserBeam_classes_generic_methods_test(AbstractLaserBeam)
-
 
 # -- Gaussian beams
 
@@ -303,9 +307,13 @@ def test_Gaussian_laser_beam_properties_setters_and_getters():
     _LaserBeam_classes_generic_properties_test(GaussianLaserBeam)
 
 
+def test_Gaussian_laser_beam_methods():
+    from atomsmltr.environment.lasers.beams import GaussianLaserBeam
+
+    _laserBeam_classes_generic_methods_test(GaussianLaserBeam)
+
+
 if __name__ == "__main__":
     test_Gaussian_laser_beam_properties_setters_and_getters()
     test_Gaussian_laser_beam_exception()
-    test_Abstract_laser_beam_properties_setters_and_getters()
-    test_Abstract_laser_beam_exception()
-    test_Abstract_laser_beam_methods()
+    test_Gaussian_laser_beam_methods()

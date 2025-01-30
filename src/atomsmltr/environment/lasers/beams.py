@@ -136,6 +136,20 @@ class AbstractLaserBeam(ABC):
         return x_laser, y_laser, z_laser, rho_laser, th_laser
 
     # -- REQUIRED ABSTRACT METHODS
+    @abstractmethod
+    def get_intensity(self, x, y, z):
+        """Returns laser intensity at point (x, y, z) in the lab frame
+        ATTENTION: x, y, z must be floats or arrays of same size !!
+
+        Args:
+            x (float or array): x cartesian coordinate in the lab frame
+            y (float or array): y cartesian coordinate in the lab frame
+            z (float or array): z cartesian coordinate in the lab frame
+
+        Returns:
+            I (float or array): laser intensity at point (x, y, z)
+        """
+        pass
 
     # -- CLASS PROPERTIES GETTERS & SETTERS
     # - wavelength
@@ -265,4 +279,26 @@ class AbstractLaserBeam(ABC):
 class GaussianLaserBeam(AbstractLaserBeam):
     """docstring for GaussianLaserBeam."""
 
-    pass
+    # -- REQUIRED METHOD FOR LASER BEAM CLASSES
+    def get_intensity(self, x, y, z):
+        """Returns laser intensity at point (x, y, z) in the lab frame
+        ATTENTION: x, y, z must be floats or arrays of same size !!
+
+        Args:
+            x (float or array): x cartesian coordinate in the lab frame
+            y (float or array): y cartesian coordinate in the lab frame
+            z (float or array): z cartesian coordinate in the lab frame
+
+        Returns:
+            I (float or array): laser intensity at point (x, y, z)
+        """
+        # - get coordinates in laser frame
+        # NB : x, y and phi are not needed here
+        _, _, z_laser, rho_laser, _ = self._convert_coordinates_to_laser_frame(x, y, z)
+
+        # - compute gaussian beam intensity
+        intensity = _intensity_gauss(
+            rho_laser, z_laser, self.waist, self.power, self.wavelength
+        )
+
+        return intensity
