@@ -18,7 +18,7 @@ POLARIZATION_TYPES_LONGNAMES = [
     "vector",
 ]
 
-POLARIZATION_TYPES_SHORTNAMES = ["V", "x", "V", "y", "lin", "R", "L", "vec"]
+POLARIZATION_TYPES_SHORTNAMES = ["V", "x", "H", "y", "lin", "R", "L", "vec"]
 
 POLARIZATION_TYPES = POLARIZATION_TYPES_LONGNAMES + POLARIZATION_TYPES_SHORTNAMES
 POLARIZATION_TYPES_UPPER = [type.upper() for type in POLARIZATION_TYPES]
@@ -74,6 +74,55 @@ class Polarization(object):
         self.angle = angle
         self.vec = vec
 
+    # -- METHODS
+    def get_polarization_vector(self):
+        """Returns the polarization vector describing the current polarization state.
+
+        See documentation for the exact definition of the vector. In short :
+
+        > p_vec = (1, 0, 0)  : linear polarization along x (vertical)
+        > p_vec = (0, 1, 0)  : linear polarization along y (horizontal)
+        > p_vec = (0, 0, 1)  : circular right polarization
+        > p_vec = (0, 0, -1) : circular left polarization
+
+        Returns:
+            p_vec: numpy array of size 3, containing the cartesian coordinates of the polarization vector
+        """
+        # get the polarization type once and for all
+        pol_type = self.type.upper()
+        # some sanity checks
+        if pol_type == "VECTOR":
+            try:
+                assert self.vec.size == 3
+            except:
+                raise ValueError(
+                    "The 'vec' property should be a vector of size 3 for 'vector' type"
+                )
+        if pol_type == "LINEAR" and not (
+            isinstance(self.angle, int) or isinstance(self.angle, float)
+        ):
+            raise ValueError("The 'angle' property should be a float for 'linear' type")
+
+        # compute vector
+        match self._type.upper():
+            case "VERTICAL":
+                p_vec = (1, 0, 0)
+            case "HORIZONTAL":
+                p_vec = (0, 1, 0)
+            case "LINEAR":
+                p_vec = (np.cos(self.angle), np.sin(self.angle), 0)
+            case "CIRCULAR LEFT":
+                p_vec = (0, 0, -1)
+            case "CIRCULAR RIGHT":
+                p_vec = (0, 0, 1)
+            case "VECTOR":
+                p_vec = self.vec
+
+        p_vec = np.array(p_vec)
+        p_vec = p_vec / np.linalg.norm(p_vec)
+
+        return p_vec
+
     # -- CLASS PROPERTIES GETTERS & SETTERS
     # - type
     @property
@@ -115,7 +164,7 @@ class Polarization(object):
     def angle(self) -> float:
         return self._angle
 
-    @type.setter
+    @angle.setter
     def angle(self, value: float) -> None:
         """The angle parameter is only needed for 'linear' polarization
         type, so we adapt the checking method.

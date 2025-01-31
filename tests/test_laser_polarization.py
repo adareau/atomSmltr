@@ -6,51 +6,85 @@ def test_polarization_properties():
     from atomsmltr.environment.lasers.polarization import Polarization
 
     # -- check some initializations
-    # a
+    # -
     pol = Polarization("v")
     assert pol.type == "VERTICAL"
-    # b
+    assert np.allclose(pol.get_polarization_vector(), (1, 0, 0))
+    # -
     pol = Polarization("x")
     assert pol.type == "VERTICAL"
-    # c
+    assert np.allclose(pol.get_polarization_vector(), (1, 0, 0))
+    # -
     pol = Polarization("y")
     assert pol.type == "HORIZONTAL"
-    # d
+    assert np.allclose(pol.get_polarization_vector(), (0, 1, 0))
+    # -
+    pol = Polarization("h")
+    assert pol.type == "HORIZONTAL"
+    assert np.allclose(pol.get_polarization_vector(), (0, 1, 0))
+    # -
     pol = Polarization("R")
     assert pol.type == "CIRCULAR RIGHT"
-    # e
+    assert np.allclose(pol.get_polarization_vector(), (0, 0, 1))
+    # -
     pol = Polarization("L")
     assert pol.type == "CIRCULAR LEFT"
-    # f
+    assert np.allclose(pol.get_polarization_vector(), (0, 0, -1))
+    # -
     pol = Polarization("vec", vec=(1, 1, 0))
     assert np.allclose(pol._vec, (1 / np.sqrt(2), 1 / np.sqrt(2), 0))
+    assert np.allclose(
+        pol.get_polarization_vector(), (1 / np.sqrt(2), 1 / np.sqrt(2), 0)
+    )
+    # -
+    pol = Polarization("lin", angle=np.pi / 4)
+    assert np.allclose(
+        pol.get_polarization_vector(), (1 / np.sqrt(2), 1 / np.sqrt(2), 0)
+    )
+    # -
+    pol = Polarization("lin", angle=np.pi / 2)
+    assert np.allclose(pol.get_polarization_vector(), (0, 1, 0))
+    # -
+    pol = Polarization("lin", angle=-np.pi / 2)
+    assert np.allclose(pol.get_polarization_vector(), (0, -1, 0))
 
     # -- check polarization setting exception
     with pytest.raises(ValueError) as excinfo:
         pol.type = "hum"
+    # -
     with pytest.raises(ValueError) as excinfo:
         pol.type = 1
-
+    # -
     with pytest.raises(ValueError) as excinfo:
         pol = Polarization("linear")
-
+    # -
     with pytest.raises(Warning) as excinfo:
         pol = Polarization("circular left", angle=5)
-
+    # -
     with pytest.raises(ValueError) as excinfo:
         pol = Polarization("circular left", angle="hum")
-
+    # -
     with pytest.raises(Warning) as excinfo:
         pol = Polarization("circular left", vec=5)
-
+    # -
     with pytest.raises(ValueError) as excinfo:
         pol = Polarization("vector", vec=5)
-
+    # -
     with pytest.raises(ValueError) as excinfo:
         pol = Polarization("vector", vec=(1, 1))
-
+    # -
     with pytest.raises(ValueError) as excinfo:
         pol = Polarization("vector", vec=(0, 0, 0))
+    # -
+    pol = Polarization("H")
+    pol.type = "vector"
+    with pytest.raises(ValueError) as excinfo:
+        pol.get_polarization_vector()
+    # -
+    pol = Polarization("H")
+    pol.type = "linear"
+    with pytest.raises(ValueError) as excinfo:
+        pol.get_polarization_vector()
 
 
 if __name__ == "__main__":
