@@ -143,6 +143,93 @@ class Polarization(object):
         v = np.arctan2(y, x)
         return u, v
 
+    def get_polarization_vector_projection(self, target: str):
+        """Returns the scalar projection of the current polarization vector on a target polarization state
+
+        The polarization Psi is defined as :
+
+            |Psi⟩ = exp(-i*v) cos(u/2) |R⟩ +  exp(i*v) sin(u/2) |L⟩
+
+        with |R⟩, |L⟩ the right- and left-handed circular polarization states. We also have
+
+            |x⟩ = |V⟩ = (1/sqrt(2)) (|L⟩ + |R⟩)
+            |y⟩ = |H⟩ = (i/sqrt(2)) (|L⟩ - |L⟩)
+
+        Target should refer to the special polarization states defined in the class :
+            'vertical', 'horizontal', 'circular left', 'circular right'
+
+        and corresponding shorthands:
+            'V' or 'x', 'H' or 'y', 'R', 'L'
+
+        Args:
+            target (str): the state on which to project (see docstring)
+
+        Returns:
+            proj (float, complex): the projection
+        """
+        # get angle values
+        u, v = self.get_polarization_vector_angles()
+        # common calculations
+        A = np.exp(-1j * v) * np.cos(u / 2)
+        B = np.exp(1j * v) * np.sin(u / 2)
+        # return projection on desired vector
+        match target.upper():
+            case "V" | "X" | "VERTICAL":
+                proj = (A + B) / np.sqrt(2)
+            case "H" | "Y" | "HORIZONTAL":
+                proj = 1j * (A - B) / np.sqrt(2)
+            case "R" | "CIRCULAR RIGHT":
+                proj = A
+            case "L" | "CIRCULAR LEFT":
+                proj = B
+            case _:
+                GOOD = ["vertical", "horizontal", "circular left", "circular right"]
+                raise ValueError(f"Wrong value for target state, shoud be in {GOOD}")
+
+        return proj
+
+    def get_polarization_vector_projection_norm(self, target: str):
+        """Returns the squared norm of scalar projection of the current polarization vector on a target polarization state
+
+        The polarization Psi is defined as :
+
+            |Psi⟩ = exp(-i*v) cos(u/2) |R⟩ +  exp(i*v) sin(u/2) |L⟩
+
+        with |R⟩, |L⟩ the right- and left-handed circular polarization states. We also have
+
+            |x⟩ = |V⟩ = (1/sqrt(2)) (|L⟩ + |R⟩)
+            |y⟩ = |H⟩ = (i/sqrt(2)) (|L⟩ - |L⟩)
+
+        Target should refer to the special polarization states defined in the class :
+            'vertical', 'horizontal', 'circular left', 'circular right'
+
+        and corresponding shorthands:
+            'V' or 'x', 'H' or 'y', 'R', 'L'
+
+        Args:
+            target (str): the state on which to project (see docstring)
+
+        Returns:
+            norm (float, real): the squared norm of the projection
+        """
+        # get angle values
+        u, v = self.get_polarization_vector_angles()
+        # return projection on desired vector
+        match target.upper():
+            case "V" | "X" | "VERTICAL":
+                norm = 0.5 * (1 + 2 * np.cos(u / 2) * np.sin(u / 2) * np.cos(2 * v))
+            case "H" | "Y" | "HORIZONTAL":
+                norm = 0.5 * (1 - 2 * np.cos(u / 2) * np.sin(u / 2) * np.cos(2 * v))
+            case "R" | "CIRCULAR RIGHT":
+                norm = np.cos(u / 2) ** 2
+            case "L" | "CIRCULAR LEFT":
+                norm = np.sin(u / 2) ** 2
+            case _:
+                GOOD = ["vertical", "horizontal", "circular left", "circular right"]
+                raise ValueError(f"Wrong value for target state, shoud be in {GOOD}")
+
+        return norm
+
     # -- CLASS PROPERTIES GETTERS & SETTERS
     # - type
     @property
