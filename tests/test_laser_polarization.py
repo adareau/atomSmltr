@@ -1,52 +1,63 @@
 import pytest
 import numpy as np
+from numpy import pi
 
 
 def test_polarization_properties():
     from atomsmltr.environment.lasers.polarization import Polarization
+
+    # -- shorthands
+    s2 = np.sqrt(2)
+    s2inv = 1 / s2
 
     # -- check some initializations
     # -
     pol = Polarization("v")
     assert pol.type == "VERTICAL"
     assert np.allclose(pol.get_polarization_vector(), (1, 0, 0))
+    assert np.allclose(pol.get_polarization_vector_angles(), (pi / 2, 0))
     # -
     pol = Polarization("x")
     assert pol.type == "VERTICAL"
     assert np.allclose(pol.get_polarization_vector(), (1, 0, 0))
+    assert np.allclose(pol.get_polarization_vector_angles(), (pi / 2, 0))
     # -
     pol = Polarization("y")
     assert pol.type == "HORIZONTAL"
     assert np.allclose(pol.get_polarization_vector(), (0, 1, 0))
+    assert np.allclose(pol.get_polarization_vector_angles(), (pi / 2, pi / 2))
     # -
     pol = Polarization("h")
     assert pol.type == "HORIZONTAL"
     assert np.allclose(pol.get_polarization_vector(), (0, 1, 0))
+    assert np.allclose(pol.get_polarization_vector_angles(), (pi / 2, pi / 2))
     # -
     pol = Polarization("R")
     assert pol.type == "CIRCULAR RIGHT"
     assert np.allclose(pol.get_polarization_vector(), (0, 0, 1))
+    assert np.allclose(pol.get_polarization_vector_angles(), (0, 0))
     # -
     pol = Polarization("L")
     assert pol.type == "CIRCULAR LEFT"
     assert np.allclose(pol.get_polarization_vector(), (0, 0, -1))
+    assert np.allclose(pol.get_polarization_vector_angles(), (pi, 0))
     # -
     pol = Polarization("vec", vec=(1, 1, 0))
-    assert np.allclose(pol._vec, (1 / np.sqrt(2), 1 / np.sqrt(2), 0))
-    assert np.allclose(
-        pol.get_polarization_vector(), (1 / np.sqrt(2), 1 / np.sqrt(2), 0)
-    )
+    assert np.allclose(pol._vec, (s2inv, s2inv, 0))
+    assert np.allclose(pol.get_polarization_vector(), (s2inv, s2inv, 0))
+    assert np.allclose(pol.get_polarization_vector_angles(), (pi / 2, pi / 4))
     # -
-    pol = Polarization("lin", angle=np.pi / 4)
-    assert np.allclose(
-        pol.get_polarization_vector(), (1 / np.sqrt(2), 1 / np.sqrt(2), 0)
-    )
+    pol = Polarization("lin", angle=pi / 4)
+    assert np.allclose(pol.get_polarization_vector(), (s2inv, s2inv, 0))
+    assert np.allclose(pol.get_polarization_vector_angles(), (pi / 2, pi / 4))
     # -
-    pol = Polarization("lin", angle=np.pi / 2)
+    pol = Polarization("lin", angle=pi / 2)
     assert np.allclose(pol.get_polarization_vector(), (0, 1, 0))
+    assert np.allclose(pol.get_polarization_vector_angles(), (pi / 2, pi / 2))
     # -
-    pol = Polarization("lin", angle=-np.pi / 2)
+    pol = Polarization("lin", angle=-pi / 2)
     assert np.allclose(pol.get_polarization_vector(), (0, -1, 0))
+    assert np.allclose(pol.get_polarization_vector_angles(), (pi / 2, -pi / 2))
 
     # -- check polarization setting exception
     with pytest.raises(ValueError) as excinfo:

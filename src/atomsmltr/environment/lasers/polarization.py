@@ -123,6 +123,26 @@ class Polarization(object):
 
         return p_vec
 
+    def get_polarization_vector_angles(self):
+        """Gives the angles describing the current polarization vector.
+
+        (see documentation for thorough description)
+
+        The polarization is decribed in the Poincarré/Bloch-like sphere as a vector.
+        This function yields the angles u (polar) and v (azimuthal)
+
+        Note that we do not use theta or phi as those angles are already used to
+        describe the orientation of the laser propagation vector in the `LaserBeam`class
+
+        Returns:
+            u (float): the u angle (polar angle)
+            v (float): the v angle (azimuthal angle)
+        """
+        x, y, z = self.get_polarization_vector()
+        u = np.arctan2(np.sqrt(x**2 + y**2), z)
+        v = np.arctan2(y, x)
+        return u, v
+
     # -- CLASS PROPERTIES GETTERS & SETTERS
     # - type
     @property
