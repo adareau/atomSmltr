@@ -230,6 +230,61 @@ class Polarization(object):
 
         return norm
 
+    def get_info_string(self):
+        """Returns an info string for the current polarization state"""
+        # - definitions
+        HEADER = ". {} :\n"
+        PARAM = "  ├── {} : {}\n"
+        LPARAM = "  └── {} : {}\n\n"
+        TITLE = "| POLARIZATION PROPERTIES |\n"
+        LINE = "─" * len(TITLE) + "\n"
+
+        # - generate info string
+        out_str = LINE
+        out_str += TITLE
+        out_str += LINE
+        # object settings
+        out_str += HEADER.format("Settings")
+        out_str += PARAM.format("type", self.type)
+        out_str += PARAM.format(
+            "angle", "None" if self.angle is None else f"{self.angle / np.pi:.2f} pi"
+        )
+        out_str += LPARAM.format("vec", self.vec)
+
+        # vector
+        u, v = self.get_polarization_vector_angles()
+        out_str += HEADER.format("Polarization vector")
+        x, y, z = self.get_polarization_vector()
+        out_str += PARAM.format("coords", f"({x:.2f}, {y:.2f}, {z:.2f})")
+        out_str += PARAM.format("polar angle u", f"{u/np.pi:.2f} pi")
+        out_str += LPARAM.format("azimt angle v", f"{u/np.pi:.2f} pi")
+
+        # Projections (amplitudes)
+        u, v = self.get_polarization_vector_angles()
+        out_str += HEADER.format("Projections (amplitudes)")
+        for target in ["vertical", "horizontal", "circular left", "circular right"]:
+            proj = self.get_polarization_vector_projection(target)
+            if target == "circular right":
+                out_str += LPARAM.format(target, f"{proj:.2f}")
+            else:
+                out_str += PARAM.format(target, f"{proj:.2f}")
+
+        # Projections (norm)
+        u, v = self.get_polarization_vector_angles()
+        out_str += HEADER.format("Projections (squared norm)")
+        for target in ["vertical", "horizontal", "circular left", "circular right"]:
+            proj = self.get_polarization_vector_projection_norm(target)
+            if target == "circular right":
+                out_str += LPARAM.format(target, f"{proj:.2f}")
+            else:
+                out_str += PARAM.format(target, f"{proj:.2f}")
+
+        return out_str
+
+    def display_info_string(self):
+        """Prints an info string for the current polarization state"""
+        print(self.get_info_string())
+
     # -- CLASS PROPERTIES GETTERS & SETTERS
     # - type
     @property

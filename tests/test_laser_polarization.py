@@ -32,6 +32,7 @@ def test_polarization_properties():
     assert np.allclose(pol.get_polarization_vector(), (1, 0, 0))
     assert np.allclose(pol.get_polarization_vector_angles(), (pi / 2, 0))
     _check_projections(pol)
+    pol.display_info_string()
     # -
     pol = Polarization("x")
     assert pol.type == "VERTICAL"
@@ -65,6 +66,7 @@ def test_polarization_properties():
     # -
     pol = Polarization("vec", vec=(1, 1, 1))
     _check_projections(pol)
+    pol.display_info_string()
     # -
     pol = Polarization("vec", vec=(1, 1, 0))
     assert np.allclose(pol._vec, (s2inv, s2inv, 0))
@@ -86,6 +88,7 @@ def test_polarization_properties():
     assert np.allclose(pol.get_polarization_vector(), (0, -1, 0))
     assert np.allclose(pol.get_polarization_vector_angles(), (pi / 2, -pi / 2))
     _check_projections(pol)
+    pol.display_info_string()
 
     # -- check polarization setting exception
     with pytest.raises(ValueError) as excinfo:
