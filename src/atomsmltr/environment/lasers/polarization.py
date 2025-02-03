@@ -27,13 +27,6 @@ class AbstractPolarization(ABC):
         following the Poincarré formalism. ATTENTION: there might be different ways of defining this vector,
         refer to the package documentation for a thorough definition.
 
-        Polarization `type`can take several values:
-
-        1) special polarizations : 'vertical', 'horizontal', 'circular left', 'circular right'
-           and corresponding shorthands: 'V' or 'x', 'H' or 'y', 'R', 'L'
-
-        2) generic polarizations : 'linear' (short 'lin') or 'vector' (short 'vec')
-
         in the case of 'linear' polarization, an additionnal argument `angle` has to be provided, that gives
         the angle of the linear polarization with respect to the x axis. Hence `angle = 0` corresponds to a
         linear polarization along x, and `angle = pi/2` to a linear polarization along y
@@ -206,11 +199,15 @@ class AbstractPolarization(ABC):
         out_str += LINE
         # object settings
         out_str += HEADER.format("Settings")
-        out_str += PARAM.format("type", self.type)
-        out_str += PARAM.format(
-            "angle", "None" if self.angle is None else f"{self.angle / np.pi:.2f} pi"
-        )
-        out_str += LPARAM.format("vec", self.vec)
+
+        if isinstance(self, Linear):
+            out_str += PARAM.format("type", self.type)
+            out_str += LPARAM.format("angle", f"{self.angle / np.pi:.2f} pi")
+        elif isinstance(self, Vector):
+            out_str += PARAM.format("type", self.type)
+            out_str += LPARAM.format("vector", self.vector)
+        else:
+            out_str += LPARAM.format("type", self.type)
 
         # vector
         u, v = self.get_polarization_vector_angles()
@@ -218,7 +215,7 @@ class AbstractPolarization(ABC):
         x, y, z = self.get_polarization_vector()
         out_str += PARAM.format("coords", f"({x:.2f}, {y:.2f}, {z:.2f})")
         out_str += PARAM.format("polar angle u", f"{u/np.pi:.2f} pi")
-        out_str += LPARAM.format("azimt angle v", f"{u/np.pi:.2f} pi")
+        out_str += LPARAM.format("azimt angle v", f"{v/np.pi:.2f} pi")
 
         # Projections (amplitudes)
         u, v = self.get_polarization_vector_angles()
@@ -322,9 +319,6 @@ class Linear(AbstractPolarization):
 
     @angle.setter
     def angle(self, value: float) -> None:
-        """The angle parameter is only needed for 'linear' polarization
-        type, so we adapt the checking method.
-        """
         # convert int into float
         if isinstance(value, int):
             value = float(value)
@@ -333,3 +327,45 @@ class Linear(AbstractPolarization):
             raise ValueError("Angle must be a float")
 
         self._angle = value
+
+
+class Vector(AbstractPolarization):
+    """Arbitrary vector polarization"""
+
+    def __init__(self, vector):
+        """Allows to define an arbitrary polarization. The polarization vector has to be given with the `vector` argument.
+        `vector` are the cartesian coordinates of the vector in the (x,y,z) basis. For instance :
+
+        > vector = (1, 0, 0)  : linear polarization along x
+        > vector = (0, 1, 0)  : linear polarization along y
+        > vector = (0, 0, 1)  : circular right polarization
+        > vector = (0, 0, -1) : circular left polarization
+
+        ATTENTION : for ease of use, the vector does not have to be normalized, but the resulting one will be.
+
+        Args:
+            vector (array, size 3): vector polarization (see documentation for its exact definition)
+        """
+        super().__init__()
+        self.type = "Linear"
+        self.vector = vector
+
+    def _get_polarization_vector(self):
+        """In this case, simply return the (normalized) provided vector"""
+        return self.vector
+
+    @property
+    def vector(self) -> npt.ArrayLike:
+        return self._vector
+
+    @vector.setter
+    def vector(self, value: npt.ArrayLike) -> None:
+        # convert to array
+        value = np.asanyarray(value)
+        if value.size != 3:
+            raise ValueError("'vector' should be of size 3")
+        # normalize
+        norm = np.linalg.norm(value)
+        if norm == 0:
+            raise ValueError("Wrong value for 'vector'': norm is zero")
+        self._vector = value / norm
