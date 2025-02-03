@@ -5,31 +5,18 @@
 # % IMPORTS
 import numpy as np
 import numpy.typing as npt
-
+from abc import ABC, abstractmethod
 
 # % GLOBAL DEFINITIONS
 
-POLARIZATION_TYPES_LONGNAMES = [
-    "vertical",
-    "horizontal",
-    "linear",
-    "circular left",
-    "circular right",
-    "vector",
-]
 
-POLARIZATION_TYPES_SHORTNAMES = ["V", "x", "H", "y", "lin", "R", "L", "vec"]
-
-POLARIZATION_TYPES = POLARIZATION_TYPES_LONGNAMES + POLARIZATION_TYPES_SHORTNAMES
-POLARIZATION_TYPES_UPPER = [type.upper() for type in POLARIZATION_TYPES]
-
-# % CLASS
+# % ABSTRACT CLASS
 
 
-class Polarization(object):
+class AbstractPolarization(ABC):
     """Handles laser polarization"""
 
-    def __init__(self, type: str, angle: float = None, vec: npt.ArrayLike = None):
+    def __init__(self):
         """An object to handle laser polarization.
 
         We define the polarization in the frame of the laser, with laser propagation along z.
@@ -39,13 +26,6 @@ class Polarization(object):
         To have a combined formalism for all polarization, in the end we define a polarization vector `p_vec`,
         following the Poincarré formalism. ATTENTION: there might be different ways of defining this vector,
         refer to the package documentation for a thorough definition.
-
-        Polarization `type`can take several values:
-
-        1) special polarizations : 'vertical', 'horizontal', 'circular left', 'circular right'
-           and corresponding shorthands: 'V' or 'x', 'H' or 'y', 'R', 'L'
-
-        2) generic polarizations : 'linear' (short 'lin') or 'vector' (short 'vec')
 
         in the case of 'linear' polarization, an additionnal argument `angle` has to be provided, that gives
         the angle of the linear polarization with respect to the x axis. Hence `angle = 0` corresponds to a
@@ -70,11 +50,9 @@ class Polarization(object):
                                    definition of the polarization vector (see docstring & documentation)
                                    Defaults to None
         """
-        self.type = type
-        self.angle = angle
-        self.vec = vec
 
     # -- METHODS
+
     def get_polarization_vector(self):
         """Returns the polarization vector describing the current polarization state.
 
@@ -88,40 +66,16 @@ class Polarization(object):
         Returns:
             p_vec: numpy array of size 3, containing the cartesian coordinates of the polarization vector
         """
-        # get the polarization type once and for all
-        pol_type = self.type.upper()
-        # some sanity checks
-        if pol_type == "VECTOR":
-            try:
-                assert self.vec.size == 3
-            except:
-                raise ValueError(
-                    "The 'vec' property should be a vector of size 3 for 'vector' type"
-                )
-        if pol_type == "LINEAR" and not (
-            isinstance(self.angle, int) or isinstance(self.angle, float)
-        ):
-            raise ValueError("The 'angle' property should be a float for 'linear' type")
+        # we keep this method public to display the docstring
+        # and hide the calculation in a private method that has to be implemented for each
+        # polarization class
+        return self._get_polarization_vector()
 
-        # compute vector
-        match self._type.upper():
-            case "VERTICAL":
-                p_vec = (1, 0, 0)
-            case "HORIZONTAL":
-                p_vec = (0, 1, 0)
-            case "LINEAR":
-                p_vec = (np.cos(self.angle), np.sin(self.angle), 0)
-            case "CIRCULAR LEFT":
-                p_vec = (0, 0, -1)
-            case "CIRCULAR RIGHT":
-                p_vec = (0, 0, 1)
-            case "VECTOR":
-                p_vec = self.vec
-
-        p_vec = np.array(p_vec)
-        p_vec = p_vec / np.linalg.norm(p_vec)
-
-        return p_vec
+    @abstractmethod
+    def _get_polarization_vector(self):
+        """Has to be implemented for each specifica class.
+        See `get_polarization_vector()`public method for more information
+        """
 
     def get_polarization_vector_angles(self):
         """Gives the angles describing the current polarization vector.
@@ -245,11 +199,15 @@ class Polarization(object):
         out_str += LINE
         # object settings
         out_str += HEADER.format("Settings")
-        out_str += PARAM.format("type", self.type)
-        out_str += PARAM.format(
-            "angle", "None" if self.angle is None else f"{self.angle / np.pi:.2f} pi"
-        )
-        out_str += LPARAM.format("vec", self.vec)
+
+        if isinstance(self, Linear):
+            out_str += PARAM.format("type", self.type)
+            out_str += LPARAM.format("angle", f"{self.angle / np.pi:.2f} pi")
+        elif isinstance(self, Vector):
+            out_str += PARAM.format("type", self.type)
+            out_str += LPARAM.format("vector", self.vector)
+        else:
+            out_str += LPARAM.format("type", self.type)
 
         # vector
         u, v = self.get_polarization_vector_angles()
@@ -257,7 +215,7 @@ class Polarization(object):
         x, y, z = self.get_polarization_vector()
         out_str += PARAM.format("coords", f"({x:.2f}, {y:.2f}, {z:.2f})")
         out_str += PARAM.format("polar angle u", f"{u/np.pi:.2f} pi")
-        out_str += LPARAM.format("azimt angle v", f"{u/np.pi:.2f} pi")
+        out_str += LPARAM.format("azimt angle v", f"{v/np.pi:.2f} pi")
 
         # Projections (amplitudes)
         u, v = self.get_polarization_vector_angles()
@@ -285,95 +243,129 @@ class Polarization(object):
         """Prints an info string for the current polarization state"""
         print(self.get_info_string())
 
-    # -- CLASS PROPERTIES GETTERS & SETTERS
-    # - type
-    @property
-    def type(self) -> str:
-        return self._type
 
-    @type.setter
-    def type(self, value: str) -> None:
-        # check that we have a string
-        if not isinstance(value, str):
-            raise ValueError("Wrong type provided for `type`, we expect a string.")
+# % ACTUAL IMPLEMENTATIONS
 
-        # check that the type is implemented
-        if value.upper() not in POLARIZATION_TYPES_UPPER:
-            msg = f"Wrong value '{value}' for polarization type.\n"
-            msg += f"Available types are : {POLARIZATION_TYPES}"
-            raise ValueError(msg)
 
-        # convert
-        if value.upper() in ["V", "X"]:
-            value = "vertical"
-        elif value.upper() in ["H", "Y"]:
-            value = "horizontal"
-        elif value.upper() == "R":
-            value = "circular right"
-        elif value.upper() == "L":
-            value = "circular left"
-        elif value.upper() == "LIN":
-            value = "linear"
-        elif value.upper() == "VEC":
-            value = "vector"
+class Vertical(AbstractPolarization):
+    """Vertical polarization (along x in the laser frame)"""
 
-        assert value.upper() in [t.upper() for t in POLARIZATION_TYPES_LONGNAMES]
+    def __init__(self):
+        super().__init__()
+        self.type = "Vertical"
 
-        self._type = value.upper()
+    def _get_polarization_vector(self):
+        """For vertical polarization (along x) > (1, 0, 0)"""
+        return (1, 0, 0)
 
-    # - angle
+
+class Horizontal(AbstractPolarization):
+    """Horizontal polarization (along y in the laser frame)"""
+
+    def __init__(self):
+        super().__init__()
+        self.type = "Horizontal"
+
+    def _get_polarization_vector(self):
+        """For horizontal polarization (along y) > (0, 1, 0)"""
+        return (0, 1, 0)
+
+
+class CircularLeft(AbstractPolarization):
+    """Circular Left polarization (observer point of vue)"""
+
+    def __init__(self):
+        super().__init__()
+        self.type = "Circular Left"
+
+    def _get_polarization_vector(self):
+        """For circular left polarization > (0, 0, -1)"""
+        return (0, 0, -1)
+
+
+class CircularRight(AbstractPolarization):
+    """Circular Right polarization (observer point of vue)"""
+
+    def __init__(self):
+        super().__init__()
+        self.type = "Circular Right"
+
+    def _get_polarization_vector(self):
+        """For circular right polarization > (0, 0, 1)"""
+        return (0, 0, 1)
+
+
+class Linear(AbstractPolarization):
+    """Arbitrary linear polarization"""
+
+    def __init__(self, angle):
+        """Arbitrary linear polarization. `angle` is the angle of the linear polarization with respect to the x axis.
+        Hence `angle = 0` corresponds to a linear polarization along x, and `angle = pi/2` to a linear polarization along y
+
+        Args:
+            angle (float): angle of the arbitrary linear polarization w.r.t the x axis
+        """
+        super().__init__()
+        self.type = "Linear"
+        self.angle = angle
+
+    def _get_polarization_vector(self):
+        """For arbitrary linear polarization > (cos(theta), sin(theta), 1)"""
+        return (np.cos(self.angle), np.sin(self.angle), 0)
+
     @property
     def angle(self) -> float:
         return self._angle
 
     @angle.setter
     def angle(self, value: float) -> None:
-        """The angle parameter is only needed for 'linear' polarization
-        type, so we adapt the checking method.
-        """
         # convert int into float
         if isinstance(value, int):
             value = float(value)
 
-        if not isinstance(value, float) and value is not None:
-            raise ValueError("Angle must be a float or None")
-
-        if self.type == "LINEAR" and not isinstance(value, float):
-            msg = "You have to provide a float value for angle when "
-            msg += "polarization type is 'linear'"
-            raise ValueError(msg)
-
-        if self.type != "LINEAR" and value is not None:
-            msg = "Polarization type is not 'linear' but angle"
-            msg += " is not None. Current value of angle won't be used in"
-            msg += " the polarization definition !!!"
-            raise Warning(msg)
+        if not isinstance(value, float):
+            raise ValueError("Angle must be a float")
 
         self._angle = value
 
-    # - vector
-    @property
-    def vec(self) -> npt.ArrayLike:
-        return self._vec
 
-    @vec.setter
-    def vec(self, value: npt.ArrayLike) -> None:
-        # if 'VECTOR' type is selected
-        if self.type == "VECTOR":
-            # convert to array
-            value = np.asanyarray(value)
-            if value.size != 3:
-                raise ValueError("'vec' should be of size 3")
-            # normalize
-            norm = np.linalg.norm(value)
-            if norm == 0:
-                raise ValueError("Wrong value for 'vec'': norm is zero")
-            self._vec = value / norm
-        # compute unit vector
-        else:
-            if value is not None:
-                msg = "Polarization type is not 'vector' but 'vec'"
-                msg += " is not None. Current value of 'vec' won't be used in"
-                msg += " the polarization definition !!!"
-                raise Warning(msg)
-            self._vec = value
+class Vector(AbstractPolarization):
+    """Arbitrary vector polarization"""
+
+    def __init__(self, vector):
+        """Allows to define an arbitrary polarization. The polarization vector has to be given with the `vector` argument.
+        `vector` are the cartesian coordinates of the vector in the (x,y,z) basis. For instance :
+
+        > vector = (1, 0, 0)  : linear polarization along x
+        > vector = (0, 1, 0)  : linear polarization along y
+        > vector = (0, 0, 1)  : circular right polarization
+        > vector = (0, 0, -1) : circular left polarization
+
+        ATTENTION : for ease of use, the vector does not have to be normalized, but the resulting one will be.
+
+        Args:
+            vector (array, size 3): vector polarization (see documentation for its exact definition)
+        """
+        super().__init__()
+        self.type = "Linear"
+        self.vector = vector
+
+    def _get_polarization_vector(self):
+        """In this case, simply return the (normalized) provided vector"""
+        return self.vector
+
+    @property
+    def vector(self) -> npt.ArrayLike:
+        return self._vector
+
+    @vector.setter
+    def vector(self, value: npt.ArrayLike) -> None:
+        # convert to array
+        value = np.asanyarray(value)
+        if value.size != 3:
+            raise ValueError("'vector' should be of size 3")
+        # normalize
+        norm = np.linalg.norm(value)
+        if norm == 0:
+            raise ValueError("Wrong value for 'vector'': norm is zero")
+        self._vector = value / norm
