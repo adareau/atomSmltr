@@ -204,6 +204,19 @@ def _LaserBeam_classes_generic_polarization_test(LaserBeamClass):
     beam.polarization = pol.Vector((0, 0, 1))
     assert np.allclose(beam.polarization.get_polarization_vector(), (0, 0, 1))
 
+    # - testing polarization vector conversions (lab frame) <> (laser frame)
+    # vertical (x) polarization, propagation along -z
+    beam.polarization = pol.Vertical()
+    beam.direction = (0, 0, -1)
+    assert np.allclose(beam.get_polarization_vector_in_laser_frame(), (1, 0, 0))
+    assert np.allclose(beam.get_polarization_vector_in_lab_frame(), (-1, 0, 0))
+
+    # circular left polarization, propagation along -z
+    beam.polarization = pol.CircularLeft()
+    beam.direction = (0, 0, -1)
+    assert np.allclose(beam.get_polarization_vector_in_laser_frame(), (0, 0, -1))
+    assert np.allclose(beam.get_polarization_vector_in_lab_frame(), (0, 0, 1))
+
 
 def _LaserBeam_classes_generic_exception_test(LaserBeamClass):
     # - init

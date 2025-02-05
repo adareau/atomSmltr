@@ -219,6 +219,38 @@ class AbstractLaserBeam(ABC):
         vec_lab = np.array([x_lab, y_lab, z_lab])
         return vec_lab
 
+    def get_polarization_vector_in_laser_frame(self):
+        """Returns the polarization vector describing the current polarization state, in the **LASER** frame
+
+        See documentation for the exact definition of the vector. In short :
+
+        > p_vec = (1, 0, 0)  : linear polarization along x (vertical)
+        > p_vec = (0, 1, 0)  : linear polarization along y (horizontal)
+        > p_vec = (0, 0, 1)  : circular right polarization
+        > p_vec = (0, 0, -1) : circular left polarization
+
+        Returns:
+            p_vec: numpy array of size 3, containing the cartesian coordinates of the polarization vector (laser frame)
+        """
+        return self.polarization.get_polarization_vector()
+
+    def get_polarization_vector_in_lab_frame(self):
+        """Returns the polarization vector describing the current polarization state, in the **LAB** frame
+
+        See documentation for the exact definition of the vector. In short :
+
+        > p_vec = (1, 0, 0)  : linear polarization along x (vertical)
+        > p_vec = (0, 1, 0)  : linear polarization along y (horizontal)
+        > p_vec = (0, 0, 1)  : circular right polarization
+        > p_vec = (0, 0, -1) : circular left polarization
+
+        Returns:
+            p_vec: numpy array of size 3, containing the cartesian coordinates of the polarization vector (lab frame)
+        """
+        p_vec_laser_frame = self.polarization.get_polarization_vector()
+        p_vec_lab_frame = self._convert_vector_to_lab_frame(p_vec_laser_frame)
+        return p_vec_lab_frame
+
     # -- REQUIRED ABSTRACT METHODS
     @abstractmethod
     def get_intensity(self, x, y, z):
