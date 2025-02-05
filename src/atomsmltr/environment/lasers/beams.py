@@ -251,6 +251,97 @@ class AbstractLaserBeam(ABC):
         p_vec_lab_frame = self._convert_vector_to_lab_frame(p_vec_laser_frame)
         return p_vec_lab_frame
 
+    def get_polarization_magnetic_projection(self, mag_field_vector):
+        """Returns the projection of the polarization state |Ψ⟩ on |σ+⟩, |σ-⟩ and |π⟩, using
+        the magnetic field vector `mag_field_vector` as a quantification axis. See documentation
+        for a derivation of this projection.
+
+        The result is returned as a dictionnary `res`, such as :
+
+        res["sigma+"] =  〈Ψ|σ+⟩
+        res["sigma-"] =  〈Ψ|σ-⟩
+        res["pi"] =  〈Ψ|π⟩
+
+        Args:
+            mag_field_vector (array, size 3): cartesian coordinates of the magnetic field in the lab frame
+
+        Returns:
+            res (dict): dict containing the projections, see above
+        """
+        # -- convert mag field to numpy array
+        uB = np.asanyarray(mag_field_vector)
+        assert uB.size == 3, "`mag_field_vector` should be an array of size 3"
+        norm = np.linalg.norm(uB)
+        assert norm > 0, "`mag_field_vector` nor should not be zero"
+        uB = uB / norm
+
+        # -- compute angles of B field w.r.t k vector, in the laser frame
+        # 1) coordinates of uB in laser frame
+        uB_laser = self._convert_vector_to_laser_frame(uB)
+        # 2) compute angles
+        xl, yl, zl = uB_laser
+        alpha = np.arctan2(np.sqrt(xl**2 + yl**2), zl)  # polar angle
+        beta = np.arctan2(yl, xl)  # azimuthal angle
+
+        # -- get angles of polarization vector in the laser frame
+        u, v = self.polarization.get_polarization_vector_angles()
+
+        # -- projections of polarization state |Ψ⟩ on |x⟩ and |y⟩
+        # >>> see documentation for explanation
+        x_proj = (1 / np.sqrt(2)) * (
+            np.exp(-1j * v) * np.cos(u / 2) + np.exp(1j * v) * np.sin(u / 2)
+        )
+        y_proj = (1j / np.sqrt(2)) * (
+            np.exp(-1j * v) * np.cos(u / 2) - np.exp(1j * v) * np.sin(u / 2)
+        )
+
+        # -- projections of polarization state |Ψ⟩ on |σ+⟩, |σ-⟩ and |π⟩
+        # >>> see documentation for explanation
+        # shorthands
+        sinB = np.sin(beta)
+        cosB = np.cos(beta)
+        sinA = np.sin(alpha)
+        cosA = np.cos(alpha)
+        sq2 = np.sqrt(2)
+        # |σ+⟩
+        sigma_plus_proj = (cosB * cosA + 1j * sinB) / sq2 * x_proj
+        sigma_plus_proj += (sinB * cosA - 1j * cosB) / sq2 * y_proj
+        # |σ-⟩
+        sigma_minus_proj = (cosB * cosA - 1j * sinB) / sq2 * x_proj
+        sigma_minus_proj += (sinB * cosA + 1j * cosB) / sq2 * y_proj
+        # |π⟩
+        pi_proj = cosB * sinA * x_proj + sinB * sinA * y_proj
+
+        # -- result
+        res = {"sigma+": sigma_plus_proj, "sigma-": sigma_minus_proj, "pi": pi_proj}
+
+        return res
+
+    def get_polarization_magnetic_projection_norm(self, mag_field_vector):
+        """Returns the **squared norm** of projection of the polarization state |Ψ⟩ on |σ+⟩, |σ-⟩ and |π⟩, using
+        the magnetic field vector `mag_field_vector` as a quantification axis. See documentation
+        for a derivation of this projection.
+
+        The result is returned as a dictionnary `res`, such as :
+
+        res["sigma+"] =  |〈Ψ|σ+⟩|**2
+        res["sigma-"] =  |〈Ψ|σ-⟩|**2
+        res["pi"] =  |〈Ψ|π⟩|**2
+
+        Args:
+            mag_field_vector (array, size 3): cartesian coordinates of the magnetic field in the lab frame
+
+        Returns:
+            res (dict): dict containing the projections, see above
+        """
+        projection_amplitude = self.get_polarization_magnetic_projection(
+            mag_field_vector
+        )
+        res = {}
+        for k, v in projection_amplitude.items():
+            res[k] = np.linalg.norm(v) ** 2
+        return res
+
     # -- REQUIRED ABSTRACT METHODS
     @abstractmethod
     def get_intensity(self, x, y, z):
