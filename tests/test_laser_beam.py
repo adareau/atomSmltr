@@ -181,6 +181,30 @@ def _LaserBeam_classes_generic_properties_test(LaserBeamClass):
     assert np.allclose(beam._unit_vector_theta, expected_theta)
 
 
+def _LaserBeam_classes_generic_polarization_test(LaserBeamClass):
+    import atomsmltr.environment.lasers.polarization as pol
+
+    # - init
+    beam = LaserBeamClass(
+        wavelength=780e-9,
+        waist=20e-6,
+        power=50.0,
+        waist_position=[0, 0, 0],
+        direction=[0, 0, 1],
+        direction_type="vector",
+    )
+    # default = Vertical
+    assert beam.polarization.type == "Vertical"
+
+    # test setter # 1
+    beam.polarization = pol.CircularLeft()
+    assert beam.polarization.type == "Circular Left"
+
+    # test setter # 2
+    beam.polarization = pol.Vector((0, 0, 1))
+    assert np.allclose(beam.polarization.get_polarization_vector(), (0, 0, 1))
+
+
 def _LaserBeam_classes_generic_exception_test(LaserBeamClass):
     # - init
     beam = LaserBeamClass(
@@ -259,6 +283,10 @@ def _LaserBeam_classes_generic_exception_test(LaserBeamClass):
     with pytest.raises(ValueError) as excinfo:
         beam.direction_type = [0, 0, 0]
 
+    # polarization
+    with pytest.raises(ValueError) as excinfo:
+        beam.polarization = 0
+
 
 def _laserBeam_classes_generic_methods_test(LaserBeamClass):
     # - init
@@ -313,7 +341,14 @@ def test_Gaussian_laser_beam_methods():
     _laserBeam_classes_generic_methods_test(GaussianLaserBeam)
 
 
+def test_Gaussian_laser_beam_polarization():
+    from atomsmltr.environment.lasers.beams import GaussianLaserBeam
+
+    _LaserBeam_classes_generic_polarization_test(GaussianLaserBeam)
+
+
 if __name__ == "__main__":
     test_Gaussian_laser_beam_properties_setters_and_getters()
     test_Gaussian_laser_beam_exception()
     test_Gaussian_laser_beam_methods()
+    test_Gaussian_laser_beam_polarization()

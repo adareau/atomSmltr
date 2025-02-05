@@ -8,6 +8,9 @@ import numpy.typing as npt
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 
+# % LOCAL IMPORTS
+from .polarization import Vertical, AbstractPolarization
+
 # % GLOBAL DEFINITIONS
 
 DIRECTION_TYPES = ["vector", "thetaphi"]  # allowed values for `direction_type``
@@ -56,6 +59,7 @@ class AbstractLaserBeam(ABC):
         waist_position: npt.ArrayLike,
         direction: npt.ArrayLike,
         direction_type: str = "vector",
+        polarization: AbstractPolarization = Vertical(),
     ):
         self.wavelength = wavelength
         self.waist = waist
@@ -64,6 +68,7 @@ class AbstractLaserBeam(ABC):
         # /!\ direction_type has to be defined BEFORE direction !!
         self.direction_type = direction_type
         self.direction = direction
+        self.polarization = polarization
 
         super().__init__()
 
@@ -256,6 +261,18 @@ class AbstractLaserBeam(ABC):
         self._unit_vector_phi = phi
         self._unit_vector_theta = theta
         self._direction = value
+
+    # - polarization
+    @property
+    def polarization(self) -> AbstractPolarization:
+        return self._polarization
+
+    @polarization.setter
+    def polarization(self, value: AbstractPolarization) -> None:
+        if not isinstance(value, AbstractPolarization):
+            msg = "`polarization` should be a Polarization object, from atomsmltr.environment.lasers.polarization"
+            raise ValueError(msg)
+        self._polarization = value
 
     # -- hidden methods
     def _positive_float_check(self, param_name: str, value: float) -> None:
