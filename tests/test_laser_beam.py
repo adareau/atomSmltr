@@ -314,6 +314,59 @@ def _laserBeam_classes_generic_methods_test(LaserBeamClass):
         beam._convert_coordinates_to_laser_frame, out_fmt="list"
     )
 
+    # -- vector rotations
+    # - stupid check : in the laser frame, the beam_direction is aligned with z
+    # and its norm should be conserved...
+    for beam_direction in [
+        (0, 1, 0),
+        (1, 0, 0),
+        (0, 0, -1),
+        (-1, 0, 1),
+        (1, 1, 1),
+        (0, -1, 0),
+        (5, 8, 7),
+    ]:
+        # align laser with vector
+        beam.direction = beam_direction
+        # compute vector coordinate in laser frame
+        dir_in_laser_frame = beam._convert_vector_to_laser_frame(beam_direction)
+        # it should be aligned with z (0,0,1) with the same norm
+        expected_direction = np.array([0, 0, 1]) * np.linalg.norm(beam_direction)
+        # so we test it !
+        assert np.allclose(dir_in_laser_frame, expected_direction)
+
+    # - a few simple checks
+    check_list = [  # a list of (laser_direction, lab_frame_vec, laser_frame_vec)
+        ((0, 0, 1), (1, 2, 3), (1, 2, 3)),  # no rotation
+        ((0, 0, -1), (1, 2, 3), (-1, 2, -3)),  # propagation // -z
+        ((1, 0, 0), (1, 2, 3), (-3, 2, 1)),  # propagation // x
+        ((-1, 0, 0), (1, 2, 3), (-3, -2, -1)),  # propagation // -x
+        ((0, 1, 0), (1, 2, 3), (-3, -1, 2)),  # propagation // y
+        ((0, -1, 0), (1, 2, 3), (-3, 1, -2)),  # propagation // -y
+    ]
+
+    for to_check in check_list:
+        direction, vec_lab, vec_las_exp = to_check
+        beam.direction = direction
+        vec_las = beam._convert_vector_to_laser_frame(vec_lab)
+        assert np.allclose(vec_las_exp, vec_las), f"{vec_las=}, {vec_las_exp=}"
+
+    # - check reverse rotation
+    # prepare list of directions
+    v = np.array([-1, 0, 1])
+    X, Y, Z = np.meshgrid(v, v, v)
+    # shorthands
+    fwd = beam._convert_vector_to_laser_frame  # forward rotation
+    bwd = beam._convert_vector_to_lab_frame  # backward rotation
+    # scan
+    for x, y, z in zip(X.ravel(), Y.ravel(), Z.ravel()):
+        if x**2 + y**2 + z**2 > 0:
+            beam.direction = (x, y, z)
+            for xvec, yvec, zvec in zip(X.ravel(), Y.ravel(), Z.ravel()):
+                vec = (xvec, yvec, zvec)
+                assert np.allclose(vec, bwd(fwd(vec)))
+                assert np.allclose(vec, fwd(bwd(vec)))
+
     # -- intensity function
     _check_scalar_3D_function_vectorization(beam.get_intensity, out_fmt="single")
 

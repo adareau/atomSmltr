@@ -140,6 +140,85 @@ class AbstractLaserBeam(ABC):
 
         return x_laser, y_laser, z_laser, rho_laser, th_laser
 
+    def _convert_vector_to_laser_frame(self, vec):
+        """Rotates a vector from lab frame to laser frame.
+
+        The unit vector defining laser propagation is defined with two angles, theta
+        and phi : theta is the angle between the unit vector and the z axis of the lab
+        frame, and phi is the angle of the unit vector project on the (x, y) plane of the
+        lab frame, w.r.t the x axis.
+
+        To perform a rotation from lab frame (x, y, z) to laser frame (x_laser, y_laser, z_laser):
+
+        1) we perform a rotation with an angle phi around the lab frame z axis:
+            (x, y, z) > (x', y', z')
+        2) we perform a rotation with an angle theta around the y' axis of the new frame:
+            (x', y', z') > (x_laser, y_laser, z_laser)
+
+        Args:
+            vec (array of size 3): vector cartesian coordinates in the lab frame (x, y, z)
+
+        Returns:
+            vec_laser (array of size 3): vector cartesian coordinates in the laser frame (x_laser, y_laser, z_laser)
+        """
+        # convert vec
+        vec = np.asanyarray(vec)
+        assert vec.size == 3, "`vec` should be an array of size 3"
+        x, y, z = vec
+        # rotate : phi around z axis, then theta along new y axis
+        # see function docstring and documentation for rotation & frames definitions
+        theta = self._unit_vector_theta
+        phi = self._unit_vector_phi
+        x_laser = (
+            x * np.cos(theta) * np.cos(phi)
+            + y * np.cos(theta) * np.sin(phi)
+            - z * np.sin(theta)
+        )
+        y_laser = -x * np.sin(phi) + y * np.cos(phi)
+        z_laser = (
+            x * np.sin(theta) * np.cos(phi)
+            + y * np.sin(theta) * np.sin(phi)
+            + z * np.cos(theta)
+        )
+
+        vec_laser = np.array([x_laser, y_laser, z_laser])
+        return vec_laser
+
+    def _convert_vector_to_lab_frame(self, vec):
+        """Rotates a vector from laser frame to lab frame.
+
+        Realizes the reverse operation of `_convert_vector_to_laser_frame`.
+        See `_convert_vector_to_laser_frame` docstring for more information
+
+        Args:
+            vec (array of size 3): vector cartesian coordinates in the laser frame (x_laser, y_laser, z_laser)
+
+        Returns:
+            vec_lab (array of size 3): vector cartesian coordinates in the lab frame (x, y, z)
+        """
+        # convert vec
+        vec = np.asanyarray(vec)
+        assert vec.size == 3, "`vec` should be an array of size 3"
+        x, y, z = vec
+        # rotate : phi around z axis, then theta along new y axis
+        # see function docstring and documentation for rotation & frames definitions
+        theta = self._unit_vector_theta
+        phi = self._unit_vector_phi
+        x_lab = (
+            x * np.cos(theta) * np.cos(phi)
+            - y * np.sin(phi)
+            + z * np.sin(theta) * np.cos(phi)
+        )
+        y_lab = (
+            x * np.cos(theta) * np.sin(phi)
+            + y * np.cos(phi)
+            + z * np.sin(theta) * np.sin(phi)
+        )
+        z_lab = -x * np.sin(theta) + z * np.cos(theta)
+
+        vec_lab = np.array([x_lab, y_lab, z_lab])
+        return vec_lab
+
     # -- REQUIRED ABSTRACT METHODS
     @abstractmethod
     def get_intensity(self, x, y, z):
