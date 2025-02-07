@@ -21,6 +21,10 @@ packages = [{include = "atomsmltr", from = "src"}]
 pytest = "^8.3.4"
 ipykernel = "^6.29.5"
 
+
+[tool.poetry.group.wayland.dependencies]
+pyqt5 = "^5.15.11"
+
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
