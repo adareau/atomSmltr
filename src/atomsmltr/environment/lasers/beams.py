@@ -6,7 +6,6 @@
 import numpy as np
 import numpy.typing as npt
 from abc import ABC, abstractmethod
-from enum import Enum, auto
 
 # % LOCAL IMPORTS
 from .polarization import Vertical, AbstractPolarization
