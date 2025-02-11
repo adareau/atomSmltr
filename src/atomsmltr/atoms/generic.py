@@ -39,6 +39,10 @@ class Atom(ABC):
     def name(self) -> float:
         return self.__name
 
+    @property
+    def transitions(self) -> float:
+        return self.__transitions.values()
+
     def add_transition(self, transition: AtomicTransition, tag=None) -> None:
         """Adds a transition (`AtomicTransition` object) to the atom transitions collection"""
         # -- parse input

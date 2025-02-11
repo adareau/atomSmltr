@@ -12,7 +12,7 @@ def test_atom_transitions():
 
     # - Initialize an atom
     atom = Atom(mass=4 * csts.m_u, name="Helium")
-    transition = DummyTransition("transition", Gamma=1, lbda=1)
+    transition = DummyTransition("transition", Gamma=1, wavelength=1)
     # -- Adding transitions
     # - wrong transitions
     with pytest.raises(TypeError) as excinfo:
@@ -42,6 +42,10 @@ def test_ytterbium_atom():
 
     yb = Ytterbium()
     print(yb.mass_au)
+    for tr in yb.transitions:
+        print(tr.tag)
+        print(tr.wavelength)
+        print(tr.Isat_mW_per_cm2)
 
 
 if __name__ == "__main__":

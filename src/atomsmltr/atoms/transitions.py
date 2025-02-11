@@ -117,9 +117,9 @@ def _scattering_rate(lbda: float, Gamma: float, I: float, detuning: float) -> fl
 
 
 class AtomicTransition(ABC):
-    def __init__(self, tag: str, Gamma: float, lbda: float):
+    def __init__(self, tag: str, Gamma: float, wavelength: float):
         self.__tag = tag
-        self.__lbda = lbda
+        self.__wavelength = wavelength
         self.__Gamma = Gamma
         super().__init__()
 
@@ -131,8 +131,8 @@ class AtomicTransition(ABC):
         return self.__tag
 
     @property
-    def lbda(self):
-        return self.__lbda
+    def wavelength(self):
+        return self.__wavelength
 
     @property
     def Gamma(self):
@@ -140,11 +140,11 @@ class AtomicTransition(ABC):
 
     @property
     def Isat(self):
-        return _Isat(self.lbda, self.Gamma)
+        return _Isat(self.wavelength, self.Gamma)
 
     @property
     def Isat_mW_per_cm2(self):
-        return _Isat_mW_per_cm2(self.lbda, self.Gamma)
+        return _Isat_mW_per_cm2(self.wavelength, self.Gamma)
 
     # -- METHODS
 
@@ -157,7 +157,7 @@ class AtomicTransition(ABC):
         Returns:
             s (float): the saturation parameter
         """
-        s = _sat_param(self.lbda, self.Gamma, intensity)
+        s = _sat_param(self.wavelength, self.Gamma, intensity)
         return s
 
     @abstractmethod
@@ -179,7 +179,7 @@ class DummyTransition(AtomicTransition):
     """Dummy class, only for testing purposes"""
 
     def get_scattering_rate(self, intensity, mag_field, polarization, detuning):
-        rate = _scattering_rate(self.__lbda, self.__Gamma, intensity, detuning)
+        rate = _scattering_rate(self.__wavelength, self.__Gamma, intensity, detuning)
         return rate
 
 
@@ -228,12 +228,14 @@ class J0J1Transition(AtomicTransition):
         # -- Compute scattering rate
         # NB : we assume that the transition is not saturated and we can sum
         # all the polarization components
-        scatt_pi = _scattering_rate(self.lbda, self.Gamma, intensity * proj_pi, det_pi)
+        scatt_pi = _scattering_rate(
+            self.wavelength, self.Gamma, intensity * proj_pi, det_pi
+        )
         scatt_sigm_minus = _scattering_rate(
-            self.lbda, self.Gamma, intensity * proj_sigm_minus, det_sigm_minus
+            self.wavelength, self.Gamma, intensity * proj_sigm_minus, det_sigm_minus
         )
         scatt_sigm_plus = _scattering_rate(
-            self.lbda, self.Gamma, intensity * proj_sigm_plus, det_sigm_plus
+            self.wavelength, self.Gamma, intensity * proj_sigm_plus, det_sigm_plus
         )
 
         # sum

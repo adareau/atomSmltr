@@ -30,7 +30,7 @@ class MainLine(J0J1Transition):
     def __init__(self):
         super().__init__(
             lande_factor=YTTERBIUM_MAIN_LANDE_FACTOR,
-            lbda=YTTERBIUM_MAIN_WAVELENGTH,
+            wavelength=YTTERBIUM_MAIN_WAVELENGTH,
             Gamma=YTTERBIUM_MAIN_GAMMA,
             tag="main",
         )
@@ -42,7 +42,7 @@ class IntercombinationLine(J0J1Transition):
     def __init__(self):
         super().__init__(
             lande_factor=YTTERBIUM_INTERCOMBINATION_LANDE_FACTOR,
-            lbda=YTTERBIUM_INTERCOMBINATION_WAVELENGTH,
+            wavelength=YTTERBIUM_INTERCOMBINATION_WAVELENGTH,
             Gamma=YTTERBIUM_INTERCOMBINATION_GAMMA,
             tag="intercombination",
         )
