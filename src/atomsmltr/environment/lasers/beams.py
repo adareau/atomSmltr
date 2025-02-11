@@ -6,6 +6,8 @@
 import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
+
 from abc import abstractmethod
 
 # % LOCAL IMPORTS
@@ -497,12 +499,141 @@ class AbstractLaserBeam(Plottable):
     def plot1D(self):
         pass
 
-    def plot2D(self):
-        pass
+    def plot2D(
+        self,
+        ax=None,
+        plane="XY",
+        limits=None,
+        Npoints=None,
+        X=None,
+        Y=None,
+        z=0,
+        cmap=None,
+        show=False,
+        space_scale=1.0,
+    ):
+        """Plots a 2D cut of the laser intensity. The limits can be provided in two ways:
+            * option 1 : with `limits` and `Npoint`
+            * option 2 : with `X` and `Y`
+
+        Examples:
+            > beam.plot2D(limits=(-5, 5, -4, 4), Npoints=200)
+            > beam.plot2D(limits=(-5, 5, -4, 4), Npoints=200, z=-5)
+            > beam.plot2D(limits=(-5, 5, -4, 4), Npoints=(200, 100))
+
+            > x = np.linspace(-100e-6, 100e-6, 500)
+            > X, Y = np.meshgrid(x, x)
+            > beam.plot2D(X=X, Y=Y, z=0)
+
+        Args:
+            ax (matploblit ax, optional): The axis on which to plot. Defaults to None.
+            plane (string, optional): The plane for the cut. Accepted values are "XY", "YZ" and "ZX". Defaults to "XY".
+            limits (array, optional): An array of size 4, providing (xmin, xmax, ymin, ymax). Defaults to None.
+            Npoints (int or array, optional): Number of points for each dimension. Either a int or an array of two ints (Nx, Ny). Defaults to None.
+            X (2D array, optional): meshgrid for the X axis. Defaults to None.
+            Y (2D array, optional): meshgrid for the Y axis. Defaults to None.
+            z (float, optional): coordinate of the third axis for the cut. Defaults to 0.
+            cmap (colormap, optional): colormap used in pcolormesh. Defaults to None.
+            show (bool, optional): whether to show the figure after calling the method. Defaults to False.
+            space_scale (float, optional): space coordinates will be multiplied by this when plotting. Defaults to 1.
+
+
+        Returns:
+            ax (matplotlib axis): the axis
+        """
+        # ------------------------- START ARGUMENT CHECKING ----------------
+        # - check plot config
+        IMPLEMENTED_PLANES = ["XY", "YZ", "ZX"]
+        if plane.upper() not in IMPLEMENTED_PLANES:
+            raise ValueError(f"`plane` argument should be in {IMPLEMENTED_PLANES}")
+
+        assert ax is None or isinstance(ax, Axes), "'ax' should be a matplotlib axis."
+        # - check axis config
+        # general
+        if (limits is not None) + (Npoints is not None) + (X is not None) + (
+            Y is not None
+        ) > 2:
+            msg = "Too many arguments given for meshgrid definition. "
+            msg += "Either provide `limits` and `Npoints` or `X` and `Y`"
+            raise ValueError(msg)
+        if (limits is None) + (Npoints is None) == 1:
+            raise ValueError("Both `limits` and `Npoints` arguments have to be passed")
+        if (X is None) + (Y is None) == 1:
+            raise ValueError("You have to provide both `X` and `Y` mesh")
+        # argument per argument
+        # limits
+        assert (
+            limits is None or np.asanyarray(limits).size == 4
+        ), "`limits` should be an array of size 4"
+        # Npoints
+        if Npoints is not None:
+            Npoints = np.asanyarray(Npoints)
+            msg = "`Npoints` should be an int or a list of two ints"
+            assert Npoints.size in [1, 2], msg
+            assert issubclass(Npoints.dtype.type, np.integer), msg
+        # X, Y
+        if X is not None:
+            X = np.asanyarray(X)
+            Y = np.asanyarray(Y)
+            assert X.shape == Y.shape, "'X' and 'Y' should have the same shape"
+        # ------------------------- STOP ARGUMENT CHECKING ----------------
+
+        # - init ax (if needed)
+        ax = self._init_ax(ax)
+
+        # - init meshgrid
+        if X is None:
+            xmin, xmax, ymin, ymax = limits
+            Nx, Ny = (Npoints, Npoints) if Npoints.size == 1 else Npoints
+            print(Nx)
+            x = np.linspace(xmin, xmax, Nx)
+            y = np.linspace(ymin, ymax, Ny)
+            X, Y = np.meshgrid(x, y)
+
+        # - compute intensity
+        match plane.upper():
+            case "XY":
+                intensity = self.get_intensity(X, Y, z)
+            case "YZ":
+                intensity = self.get_intensity(z, X, Y)
+            case "ZX":
+                intensity = self.get_intensity(Y, z, X)
+
+        # - plot
+        ax.pcolormesh(X * space_scale, Y * space_scale, intensity, cmap=cmap)
+        ax.set_xlabel(plane.upper()[0])
+        ax.set_ylabel(plane.upper()[1])
+
+        # - show ?
+        if show:
+            plt.show()
+
+        return ax
 
     def plot3D(self, ax=None, color=None, name=None, vscale=None, show=False):
+        """plots a 3D reprensentation of the laser beam, including:
+               - a line : laser axis
+               - an arrow along the propagation direction
+               - a point : laser focus position
+               - a dotted arrow : laser polarization vector
 
-        # - init ax
+            When providing an axis via the `ax` parameter, make sure to use our custom implementation of
+            matplotlib `Axes3D`, as this function uses custom arrow drawing methods. The class can be imported
+            via `from atomsmltr.utils.plotter import Axes3D`
+
+
+        Args:
+            ax (custom Axes3D, optional): The axis in which to plot. If None is given (default value) a new ax is generated
+            color (string, optional): A matplotlib compatible color. Defaults to None.
+            name (string, optional): The name of the laser, passed as a label when plotting. Defaults to None.
+            vscale (float, optional): A scaling factor. Use it to tweak the arrow size if needed. Defaults to None.
+            show (bool, optional): Whether the show the figure after calling the method. Defaults to False.
+
+        Returns:
+            ax: the figure axis in which the laser is plotted.
+        """
+
+        # - init ax (if needed)
         ax = self._init_ax(ax, ax3D=True)
 
         # - get laser information
