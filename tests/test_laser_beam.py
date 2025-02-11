@@ -404,7 +404,7 @@ def _LaserBeam_classes_generic_exception_test(LaserBeamClass):
         beam.direction_type = [0, 0, 0]
 
     # polarization
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(TypeError) as excinfo:
         beam.polarization = 0
 
 

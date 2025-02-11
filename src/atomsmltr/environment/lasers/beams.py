@@ -476,7 +476,7 @@ class AbstractLaserBeam(Plottable):
     def polarization(self, value: AbstractPolarization) -> None:
         if not isinstance(value, AbstractPolarization):
             msg = "`polarization` should be a Polarization object, from atomsmltr.environment.lasers.polarization"
-            raise ValueError(msg)
+            raise TypeError(msg)
         self._polarization = value
 
     # -- hidden methods
