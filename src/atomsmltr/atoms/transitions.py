@@ -195,7 +195,7 @@ class J0J1Transition(AtomicTransition):
 
     @property
     def lande_factor(self):
-        return self._lande_factor
+        return self.__lande_factor
 
     def get_scattering_rate(
         self,

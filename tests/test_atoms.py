@@ -37,6 +37,14 @@ def test_atom_transitions():
         atom.rm_transition("transition")
 
 
+def test_ytterbium_atom():
+    from atomsmltr.atoms.collection import Ytterbium
+
+    yb = Ytterbium()
+    print(yb.mass_au)
+
+
 if __name__ == "__main__":
     test_atom_import()
     test_atom_transitions()
+    test_ytterbium_atom()
