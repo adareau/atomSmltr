@@ -5,10 +5,12 @@
 # % IMPORTS
 import numpy as np
 import numpy.typing as npt
-from abc import ABC, abstractmethod
+import matplotlib.pyplot as plt
+from abc import abstractmethod
 
 # % LOCAL IMPORTS
 from .polarization import Vertical, AbstractPolarization
+from ...utils.plotter import Plottable
 
 # % GLOBAL DEFINITIONS
 
@@ -47,7 +49,7 @@ def _intensity_gauss(
 # % ABSTRACT CLASSES
 
 
-class AbstractLaserBeam(ABC):
+class AbstractLaserBeam(Plottable):
     """docstring for AbstractLaserBeam."""
 
     def __init__(
@@ -489,6 +491,70 @@ class AbstractLaserBeam(ABC):
             raise ValueError(f"'{param_name}' has to be a float")
         if value < 0:
             raise ValueError(f"'{param_name}' has to be a positive")
+
+    # -- PLOT FUNCTIONS
+
+    def plot1D(self):
+        pass
+
+    def plot2D(self):
+        pass
+
+    def plot3D(self, ax=None, color=None, name=None, vscale=None, show=False):
+
+        # - init ax
+        ax = self._init_ax(ax, ax3D=True)
+
+        # - get laser information
+        unit_vector = np.asanyarray(self._unit_vector)
+        polar_vector_laserframe = np.asanyarray(
+            self.polarization.get_polarization_vector()
+        )
+        polar_vector = self._convert_vector_to_lab_frame(polar_vector_laserframe)
+        waist_position = np.asanyarray(self.waist_position)
+        # - scale
+        xmin, xmax = ax.get_xlim()
+        ymin, ymax = ax.get_ylim()
+        zmin, zmax = ax.get_zlim()
+        dr = np.array([xmax - xmin, ymax - ymin, zmax - zmin])
+        if vscale is None:
+            vscale = np.max(dr) / 5
+
+        # - PLOT
+        # waist position
+        ax.scatter(*waist_position, marker="o", color=color, label=name)
+
+        # plot laser
+        r1 = waist_position + dr * unit_vector * 5
+        r2 = waist_position - dr * unit_vector * 5
+        x = np.linspace(-100, 100, 1000)
+        r = waist_position[:, np.newaxis] + (unit_vector * dr)[:, np.newaxis] * x
+        ax.plot(r[0, :], r[1, :], r[2, :], color=color)
+
+        # plot propagation vector
+        epsilon = 0.2
+        ax.arrow3D(
+            *(waist_position - unit_vector * vscale * (1 + epsilon)),
+            *(vscale * unit_vector),
+            mutation_scale=15,
+            arrowstyle="simple",
+            ec="k",
+            fc=color,
+        )
+
+        # plot polarisation vector
+        ax.arrow3D(
+            *(waist_position - unit_vector * vscale * (1 + epsilon)),
+            *(vscale * polar_vector * 0.7),
+            mutation_scale=20,
+            arrowstyle="-|>",
+            linestyle="dashed",
+            color=color,
+        )
+
+        if show:
+            plt.show()
+        return ax
 
 
 # % IMPLEMENTED CLASSES
