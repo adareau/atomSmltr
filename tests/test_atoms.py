@@ -6,12 +6,13 @@ def test_atom_import():
 
 
 def test_atom_transitions():
-    from atomsmltr.atoms.generic import Atom, AtomicTransition
+    from atomsmltr.atoms.generic import Atom
+    from atomsmltr.atoms.transitions import DummyTransition
     from scipy import constants as csts
 
     # - Initialize an atom
     atom = Atom(mass=4 * csts.m_u, name="Helium")
-    transition = AtomicTransition("transition")
+    transition = DummyTransition("transition", Gamma=1, lbda=1)
     # -- Adding transitions
     # - wrong transitions
     with pytest.raises(TypeError) as excinfo:

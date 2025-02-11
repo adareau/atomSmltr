@@ -117,10 +117,126 @@ def _scattering_rate(lbda: float, Gamma: float, I: float, detuning: float) -> fl
 
 
 class AtomicTransition(ABC):
-    def __init__(self, tag: str):
+    def __init__(self, tag: str, Gamma: float, lbda: float):
         self.__tag = tag
+        self.__lbda = lbda
+        self.__Gamma = Gamma
         super().__init__()
+
+    # -- LOCKED PROPERTIES
+    # only with getters, no setters
 
     @property
     def tag(self):
         return self.__tag
+
+    @property
+    def lbda(self):
+        return self.__lbda
+
+    @property
+    def Gamma(self):
+        return self.__Gamma
+
+    @property
+    def Isat(self):
+        return _Isat(self.lbda, self.Gamma)
+
+    @property
+    def Isat_mW_per_cm2(self):
+        return _Isat_mW_per_cm2(self.lbda, self.Gamma)
+
+    # -- METHODS
+
+    def get_saturation_parameter(self, intensity: float) -> float:
+        """Returns the saturation parameter (for a two-level system)
+
+        Args:
+            intensity (float): laser intensity in W/m^2
+
+        Returns:
+            s (float): the saturation parameter
+        """
+        s = _sat_param(self.lbda, self.Gamma, intensity)
+        return s
+
+    @abstractmethod
+    def get_scattering_rate(
+        self,
+        intensity: float,  # the intensity in W/cm^2
+        mag_field: float,  # the amplitude of the magnetic field
+        polarization: list,  # projection of laser polarization on (pi, sigma+, sigma-)
+        detuning: float,  # laser detuning
+    ):
+        """To be defined for each implementation
+        NOTE: the Doppler effect will be handled at the Atom() object level
+              so it will be passed to this function in a "transparent" manner.
+        """
+        pass
+
+
+class DummyTransition(AtomicTransition):
+    """Dummy class, only for testing purposes"""
+
+    def get_scattering_rate(self, intensity, mag_field, polarization, detuning):
+        rate = _scattering_rate(self.__lbda, self.__Gamma, intensity, detuning)
+        return rate
+
+
+# % REAL IMPLEMENTATIONS
+
+
+class J0J1Transition(AtomicTransition):
+    """A common class for simple J=0 -> J=1 transitions"""
+
+    def __init__(self, lande_factor: float, *args, **kwargs):
+        self.__lande_factor = lande_factor
+        super().__init__(*args, **kwargs)
+
+    @property
+    def lande_factor(self):
+        return self._lande_factor
+
+    def get_scattering_rate(
+        self,
+        intensity: float,  # the intensity in W/cm^2
+        mag_field: float,  # the amplitude of the magnetic field
+        polarization: list,  # projection (squared) of laser polarization on (pi, sigma+, sigma-)
+        detuning: float,  # laser detuning (in rad/s !!!!!!)
+    ):
+        # -- get projections
+        assert (
+            np.asanyarray(polarization).size == 3
+        ), "`polarization` should be a list/array of size 3"
+        assert np.allclose(
+            np.sum(polarization), 1
+        ), "the sum of all polarization amplitudes should be one"
+
+        proj_pi, proj_sigm_plus, proj_sigm_minus = polarization
+
+        # -- Zeeman effect
+        # NB : detuning is 2 * pi * (f_laser - f_atom)
+        # constants
+        mu_B = csts.physical_constants["Bohr magneton"]
+        mu = self.lande_factor * mu_B / csts.hbar
+
+        # compute detuning
+        det_pi = detuning
+        det_sigm_minus = detuning + mu * mag_field
+        det_sigm_plus = detuning - mu * mag_field
+
+        # -- Compute scattering rate
+        # NB : we assume that the transition is not saturated and we can sum
+        # all the polarization components
+        scatt_pi = _scattering_rate(self.lbda, self.Gamma, intensity * proj_pi, det_pi)
+        scatt_sigm_minus = _scattering_rate(
+            self.lbda, self.Gamma, intensity * proj_sigm_minus, det_sigm_minus
+        )
+        scatt_sigm_plus = _scattering_rate(
+            self.lbda, self.Gamma, intensity * proj_sigm_plus, det_sigm_plus
+        )
+
+        # sum
+        scatt_total = scatt_pi + scatt_sigm_minus + scatt_sigm_plus
+
+        return scatt_total
