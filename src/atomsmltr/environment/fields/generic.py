@@ -22,7 +22,19 @@ class AbstractField(Plottable):
     """A generic, abstract class to handle fields (magnetic mostly)"""
 
     def __init__(self):
-        super().__init__()
+        super(AbstractField, self).__init__()
+
+    @property
+    @abstractmethod
+    def type():
+        """Type has to be defined in the concrete class"""
+        pass
+
+    @property
+    @abstractmethod
+    def unit():
+        """unit has to be defined in the concrete class"""
+        pass
 
     @abstractmethod
     def value(self, x, y, z):
@@ -52,6 +64,24 @@ class AbstractField(Plottable):
     def plot3D(self, ax=None):
         pass
 
+    # -- USEFUL CHECK FUNCTIONS
+    def _check_real_number(self, value, name):
+        if np.asanyarray(value).size > 1:
+            raise ValueError(f"'{name}' should be a scalar")
+        if not np.isreal(value):
+            raise TypeError(f"'{name}' should be a real numbers")
+        return value
+
+    def _check_3D_vector(self, value, name, norm=False):
+        value = np.asanyarray(value)
+        if value.size != 3:
+            raise ValueError(f"'{name}' should be an array of size 3")
+        if not np.all(np.isreal(value)):
+            raise TypeError(f"'{name}' should be an array of real numbers")
+        if norm:
+            value = value / np.linalg.norm(value)
+        return value
+
 
 # % TOOL CLASSES
 
@@ -66,13 +96,9 @@ class AbstractOffsetField(AbstractField):
             offset (npt.ArrayLike): offset of the field (array of size 3)
         """
         self.offset = offset
+        super(AbstractField, self).__init__()
 
     # -- getters and setters
-    @property
-    @abstractmethod
-    def type():
-        """Type has to be defined in the concrete class"""
-        pass
 
     @property
     def offset(self) -> npt.ArrayLike:
@@ -80,16 +106,11 @@ class AbstractOffsetField(AbstractField):
 
     @offset.setter
     def offset(self, value: npt.ArrayLike):
-        value = np.asanyarray(value)
-        if value.size != 3:
-            raise ValueError("'offset' should be an array of size 3")
-        if not np.all(np.isreal(value)):
-            raise TypeError("'offset' should be an array of real numbers")
-        self.__offset = value
+        self.__offset = self._check_3D_vector(value, "offset")
 
     # -- requested methods for AbstractField
     def value(self, x, y, z):
-        """Returns the value of the field at poins (x, y, z).
+        """Returns the value of the field at point (x, y, z).
             Here we have an offset, so the field is constant
         Args:
             x (float): x position in lab frame
@@ -103,13 +124,14 @@ class AbstractOffsetField(AbstractField):
 
     def gen_infostring_obj(self):
         """Generates an info string object"""
+        unit = self.unit
         title = self.type
         title = title[:1].upper() + title[1:]  # capitalize first letter
         info = InfoString(title=title)
         info.add_section("Parameters")
         info.add_element("type", "offset (constant field)")
-        info.add_element("value", f"{self.offset}")
-        info.add_element("norm", f"{np.linalg.norm(self.offset):.3g}")
+        info.add_element(f"value ({unit})", f"{self.offset}")
+        info.add_element(f"norm ({unit})", f"{np.linalg.norm(self.offset):.3g}")
         return info
 
 
@@ -118,10 +140,118 @@ class AbstractGradientField(AbstractField):
 
     def __init__(
         self,
-        slope: float,
-        offset: float,
         origin: npt.ArrayLike,
+        slope: float,
         gradient_direction: npt.ArrayLike,
         field_direction: npt.ArrayLike,
+        offset: float = 0.0,
     ):
-        pass
+        """Abstract Gradient
+
+        See below for arguments.
+
+        Note that 'gradient_direction' and 'field_direction' are meant to be
+        unit vectors, but the class will take care of normalizing any non normalized entry
+
+
+        Args:
+            origin (npt.ArrayLike): origin for the gradient (array of size 3)
+            slope (float): the slope of the gradient (scalar)
+            gradient_direction (npt.ArrayLike): the direction of the gradient (array of size 3)
+            field_direction (npt.ArrayLike): the field direction (array of size 3)
+            offset (float, optional): the field offset, at origin (scalar). Defaults to 0.0.
+        """
+        self.slope = slope
+        self.offset = offset
+        self.origin = origin
+        self.gradient_direction = gradient_direction
+        self.field_direction = field_direction
+        super(AbstractGradientField, self).__init__()
+
+    # -- value
+    def value(self, x, y, z):
+        """Returns the value of the field at point (x, y, z).
+        Args:
+            x (float): x position in lab frame
+            y (float): y position in lab frame
+            z (float): z position in lab frame
+
+        Returns:
+            value: the value of the field
+        """
+        # - convert position to vector
+        r = np.array([x, y, z])
+        dr = r - self.origin
+
+        # - distance to origin ?
+        distance = np.dot(dr, self.gradient_direction)
+
+        # - value at position
+        value = (self.offset + distance * self.slope) * self.field_direction
+
+        return value
+
+    def gen_infostring_obj(self):
+        """Generates an info string object"""
+        unit = self.unit
+        title = self.type
+        title = title[:1].upper() + title[1:]  # capitalize first letter
+        info = InfoString(title=title)
+        info.add_section("Parameters")
+        info.add_element("type", "perfect gradient")
+        info.add_element(f"slope ({unit}/m)", f"{self.slope:.3g}")
+        info.add_element("gradient direction", f"{self.gradient_direction}")
+        info.add_element("field direction", f"{self.field_direction}")
+        info.add_element(f"origin (m)", f"{self.origin}")
+        info.add_element(f"offset ({unit})", f"{self.offset:3g}")
+        return info
+
+    # -- getters and setters
+    # -
+    @property
+    def slope(self) -> npt.ArrayLike:
+        return self.__slope
+
+    @slope.setter
+    def slope(self, value: npt.ArrayLike):
+        self.__slope = self._check_real_number(value, "slope")
+
+    # -
+    @property
+    def offset(self) -> npt.ArrayLike:
+        return self.__offset
+
+    @offset.setter
+    def offset(self, value: npt.ArrayLike):
+        self.__offset = self._check_real_number(value, "offset")
+
+    # -
+    @property
+    def origin(self) -> npt.ArrayLike:
+        return self.__origin
+
+    @origin.setter
+    def origin(self, value: npt.ArrayLike):
+        self.__origin = self._check_3D_vector(value, "origin")
+
+    # -
+    @property
+    def gradient_direction(self) -> npt.ArrayLike:
+        return self.__gradient_direction
+
+    @gradient_direction.setter
+    def gradient_direction(self, value: npt.ArrayLike):
+        self.__gradient_direction = self._check_3D_vector(
+            value, "gradient_direction", norm=True
+        )
+
+    # -
+    @property
+    def field_direction(self) -> npt.ArrayLike:
+        return self.__field_direction
+
+    @field_direction.setter
+    def field_direction(self, value: npt.ArrayLike):
+        self.__field_direction = self._check_3D_vector(
+            value, "field_direction", norm=True
+        )

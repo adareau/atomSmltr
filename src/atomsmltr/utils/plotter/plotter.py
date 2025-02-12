@@ -17,7 +17,7 @@ class Plottable(ABC):
     """A class to describe plottable objects"""
 
     def __init__(self):
-        pass
+        super(Plottable, self).__init__()
 
     def _init_ax(self, ax=None, ax3D=False):
         if ax is None:
