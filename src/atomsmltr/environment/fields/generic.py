@@ -61,8 +61,78 @@ class AbstractField(Plottable):
     def plot2D(self, ax=None, plane="XY"):
         pass
 
-    def plot3D(self, ax=None):
-        pass
+    def plot3D(
+        self,
+        limits,
+        Npoints,
+        ax=None,
+        color=None,
+        name=None,
+        show=False,
+        scale=1.0,
+        normalize=False,
+    ):
+        """plots a 3D representation of the field.
+
+        Args:
+            limits (array of size 6): limits for the plot (xmin, xmax, ymin, ymax, zmin, zmax)
+            Npoints (int or array): Number of points for each dimension. Either a int or an array of trhee ints (Nx, Ny, Nz)
+            ax (custom Axes3D, optional): The axis in which to plot. If None is given (default value) a new ax is generated
+            color (string, optional): A matplotlib compatible color. Defaults to None.
+            name (string, optional): The name of the laser, passed as a label when plotting. Defaults to None.
+            show (bool, optional): Whether the show the figure after calling the method. Defaults to False.
+            scale (float, optional): A scale factor for plotting the arrows (defaults to 1)
+            normalize (bool, optional): if set to True, we normalize the magnetic field to have a max value of 1 before plotting
+
+        Returns:
+            ax: the figure axis in which the laser is plotted.
+        """
+        # ------------------------- START ARGUMENT CHECKING ----------------
+        # - check plot config
+        assert ax is None or isinstance(ax, Axes), "'ax' should be a matplotlib axis."
+        # - check axis config
+        # limits
+        assert np.asanyarray(limits).size == 6, "`limits` should be an array of size 6"
+        # Npoints
+        Npoints = np.asanyarray(Npoints)
+        msg = "`Npoints` should be an int or a list of three ints"
+        assert Npoints.size in [1, 3], msg
+        assert issubclass(Npoints.dtype.type, np.integer), msg
+        # ------------------------- STOP ARGUMENT CHECKING ----------------
+        # - init ax (if needed)
+        ax = self._init_ax(ax, ax3D=True)
+        # - generate grid
+        xmin, xmax, ymin, ymax, zmin, zmax = limits
+        Nx, Ny, Nz = (Npoints, Npoints, Npoints) if Npoints.size == 1 else Npoints
+        x = np.linspace(xmin, xmax, Nx)
+        y = np.linspace(ymin, ymax, Ny)
+        z = np.linspace(zmin, zmax, Nz)
+        X, Y, Z = np.meshgrid(x, y, z)
+        # - get magnetic field
+        B = self.value(X, Y, Z)
+        # - normalize ?
+        if normalize:
+            B = B / np.max(np.abs(B.ravel()))
+        B = B * scale
+        # - plot
+        ax.quiver(
+            X,
+            Y,
+            Z,
+            B[:, :, :, 0],
+            B[:, :, :, 1],
+            B[:, :, :, 2],
+            label=name,
+            color=color,
+        )
+        # - axes names
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        ax.set_zlabel("z")
+        # - show
+        if show:
+            plt.show()
+        return ax
 
     # -- USEFUL CHECK FUNCTIONS
     def _check_real_number(self, value, name):
@@ -120,7 +190,16 @@ class AbstractOffsetField(AbstractField):
         Returns:
             value: the value of the field
         """
-        return self.__offset
+        # convert to arrays, in case
+        x = np.asanyarray(x)
+        y = np.asanyarray(y)
+        z = np.asanyarray(z)
+
+        # make an array of zeros with good size
+        # NB: x, y and z should be broadcastable
+        zero_array = 0.0 * x * y * z
+        res = zero_array[..., np.newaxis] + self.__offset
+        return res
 
     def gen_infostring_obj(self):
         """Generates an info string object"""
@@ -179,15 +258,28 @@ class AbstractGradientField(AbstractField):
         Returns:
             value: the value of the field
         """
-        # - convert position to vector
-        r = np.array([x, y, z])
-        dr = r - self.origin
+        # - get gradient vector angles
+        theta = self.__gradient_theta
+        phi = self.__gradient_phi
 
-        # - distance to origin ?
-        distance = np.dot(dr, self.gradient_direction)
+        # - get coordinates w.r.t origin
+        x0, y0, z0 = self.origin
+        xc = x - x0
+        yc = y - y0
+        zc = z - z0
+
+        # compute coordinates in rotated frame
+        # we want z
+        z_rot = (
+            xc * np.sin(theta) * np.cos(phi)
+            + yc * np.sin(theta) * np.sin(phi)
+            + zc * np.cos(theta)
+        )
 
         # - value at position
-        value = (self.offset + distance * self.slope) * self.field_direction
+        value = (self.offset + z_rot * self.slope)[
+            ..., np.newaxis
+        ] * self.field_direction
 
         return value
 
@@ -241,9 +333,17 @@ class AbstractGradientField(AbstractField):
 
     @gradient_direction.setter
     def gradient_direction(self, value: npt.ArrayLike):
-        self.__gradient_direction = self._check_3D_vector(
-            value, "gradient_direction", norm=True
-        )
+        value = self._check_3D_vector(value, "gradient_direction", norm=True)
+        assert np.allclose(
+            np.linalg.norm(value), 1
+        ), "We did not manage to normalize gradient_direction, something is fishy.."
+        # compute angles
+        ux, uy, uz = value
+        theta = np.arctan2(np.sqrt(ux**2 + uy**2), uz)
+        phi = np.arctan2(uy, ux)
+        self.__gradient_direction = value
+        self.__gradient_theta = theta
+        self.__gradient_phi = phi
 
     # -
     @property

@@ -27,6 +27,11 @@ def test_magnetic_offset():
 
     assert np.allclose(mag_field.value(1, 4, 8), new_offset)
 
+    # plot
+    limits = (-10, 10, -10, 10, -10, 10)
+    Npoints = 3
+    mag_field.plot3D(limits=limits, Npoints=Npoints, show=False, color="C1")
+
 
 def test_magnetic_gradient():
     from atomsmltr.environment.fields.magnetic import MagneticGradient
@@ -58,6 +63,13 @@ def test_magnetic_gradient():
                 np.linalg.norm(field_value),
                 np.abs((mag_field.offset + x * mag_field.slope)),
             )
+
+    # plot
+    limits = (-10, 10, -10, 10, -10, 10)
+    Npoints = (10, 3, 3)
+    mag_field.plot3D(
+        limits=limits, Npoints=Npoints, show=False, color="C2", normalize=True, scale=5
+    )
 
     # gradient along z, field along x
     mag_field.slope = 7.0
@@ -99,6 +111,10 @@ def test_magnetic_gradient():
 
 
 if __name__ == "__main__":
-    # test_magnetic_import()
+    import matplotlib.pyplot as plt
+
+    test_magnetic_import()
     test_magnetic_offset()
     test_magnetic_gradient()
+
+    plt.show()
