@@ -64,13 +64,6 @@ def test_magnetic_gradient():
                 np.abs((mag_field.offset + x * mag_field.slope)),
             )
 
-    # plot
-    limits = (-10, 10, -10, 10, -10, 10)
-    Npoints = (10, 3, 3)
-    mag_field.plot3D(
-        limits=limits, Npoints=Npoints, show=False, color="C2", normalize=True, scale=5
-    )
-
     # gradient along z, field along x
     mag_field.slope = 7.0
     mag_field.offset = -8.0

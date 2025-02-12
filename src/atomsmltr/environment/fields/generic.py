@@ -58,8 +58,80 @@ class AbstractField(Plottable):
     def plot1D(self, ax=None):
         pass
 
-    def plot2D(self, ax=None, plane="XY"):
-        pass
+    def plot2D(
+        self,
+        ax=None,
+        plane="XY",
+        limits=None,
+        Npoints=None,
+        X=None,
+        Y=None,
+        z=0,
+        cmap=None,
+        show=False,
+        space_scale=1.0,
+    ):
+        """Plots a 2D cut of the field. The limits can be provided in two ways:
+            * option 1 : with `limits` and `Npoint`
+            * option 2 : with `X` and `Y`
+
+        Examples:
+            > field.plot2D(limits=(-5, 5, -4, 4), Npoints=200)
+            > field.plot2D(limits=(-5, 5, -4, 4), Npoints=200, z=-5)
+            > field.plot2D(limits=(-5, 5, -4, 4), Npoints=(200, 100))
+
+            > x = np.linspace(-100e-6, 100e-6, 500)
+            > X, Y = np.meshgrid(x, x)
+            > field.plot2D(X=X, Y=Y, z=0)
+
+        Args:
+            ax (matploblit ax, optional): The axis on which to plot. Defaults to None.
+            plane (string, optional): The plane for the cut. Accepted values are "XY", "YZ" and "ZX". Defaults to "XY".
+            limits (array, optional): An array of size 4, providing (xmin, xmax, ymin, ymax). Defaults to None.
+            Npoints (int or array, optional): Number of points for each dimension. Either a int or an array of two ints (Nx, Ny). Defaults to None.
+            X (2D array, optional): meshgrid for the X axis. Defaults to None.
+            Y (2D array, optional): meshgrid for the Y axis. Defaults to None.
+            z (float, optional): coordinate of the third axis for the cut. Defaults to 0.
+            cmap (optional): passed to matplotlib streamplot() function
+            show (bool, optional): whether to show the figure after calling the method. Defaults to False.
+            space_scale (float, optional): space coordinates will be multiplied by this when plotting. Defaults to 1.
+
+
+        Returns:
+            ax (matplotlib axis): the axis
+        """
+        # - process arguments using the Plottable builtin method
+        ax, X, Y = self._process_2D_plot_args(
+            ax=ax, plane=plane, limits=limits, Npoints=Npoints, X=X, Y=Y
+        )
+
+        # - compute intensity
+        match plane.upper():
+            case "XY":
+                mag_field = self.value(X, Y, z)
+                u = mag_field[:, :, 0]
+                v = mag_field[:, :, 1]
+            case "YZ":
+                mag_field = self.value(z, X, Y)
+                u = mag_field[:, :, 1]
+                v = mag_field[:, :, 2]
+            case "ZX":
+                mag_field = self.value(Y, z, X)
+                u = mag_field[:, :, 2]
+                v = mag_field[:, :, 0]
+
+        color = np.sqrt(u**2 + v**2)
+
+        # - plot
+        ax.streamplot(X * space_scale, Y * space_scale, u, v, color=color, cmap=cmap)
+        ax.set_xlabel(plane.upper()[0])
+        ax.set_ylabel(plane.upper()[1])
+
+        # - show ?
+        if show:
+            plt.show()
+
+        return ax
 
     def plot3D(
         self,

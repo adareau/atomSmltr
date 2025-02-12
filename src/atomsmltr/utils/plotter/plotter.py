@@ -88,7 +88,6 @@ class Plottable(ABC):
         if X is None:
             xmin, xmax, ymin, ymax = limits
             Nx, Ny = (Npoints, Npoints) if Npoints.size == 1 else Npoints
-            print(Nx)
             x = np.linspace(xmin, xmax, Nx)
             y = np.linspace(ymin, ymax, Ny)
             X, Y = np.meshgrid(x, y)
