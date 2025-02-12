@@ -38,28 +38,28 @@ def test_special_polarizations():
     assert np.allclose(pol.get_polarization_vector(), (1, 0, 0))
     assert np.allclose(pol.get_polarization_vector_angles(), (pi / 2, 0))
     _check_projections(pol)
-    pol.display_info_string()
+    pol.print_info()
 
     # - HORIZONTAL
     pol = Horizontal()
     assert np.allclose(pol.get_polarization_vector(), (0, 1, 0))
     assert np.allclose(pol.get_polarization_vector_angles(), (pi / 2, pi / 2))
     _check_projections(pol)
-    pol.display_info_string()
+    pol.print_info()
 
     # - CIRCULAR RIGHT
     pol = CircularRight()
     assert np.allclose(pol.get_polarization_vector(), (0, 0, 1))
     assert np.allclose(pol.get_polarization_vector_angles(), (0, 0))
     _check_projections(pol)
-    pol.display_info_string()
+    pol.print_info()
 
     # - CIRCULAR LEFT
     pol = CircularLeft()
     assert np.allclose(pol.get_polarization_vector(), (0, 0, -1))
     assert np.allclose(pol.get_polarization_vector_angles(), (pi, 0))
     _check_projections(pol)
-    pol.display_info_string()
+    pol.print_info()
 
 
 def test_linear_polarization():
@@ -80,7 +80,7 @@ def test_linear_polarization():
     assert np.allclose(pol.get_polarization_vector(), (0, -1, 0))
     assert np.allclose(pol.get_polarization_vector_angles(), (pi / 2, -pi / 2))
     _check_projections(pol)
-    pol.display_info_string()
+    pol.print_info()
 
     # -- Check angle setter
     pol = Linear(pi / 2)
@@ -104,12 +104,12 @@ def test_vector_polarization():
     # -- Check init settings
     pol = Vector((1, 1, 1))
     _check_projections(pol)
-    pol.display_info_string()
+    pol.print_info()
 
     # - Check setter
     pol = Vector((1, 0, 0))
     pol.vector = (1, 1, 0)
-    pol.display_info_string()
+    pol.print_info()
     assert np.allclose(pol.vector, (S2INV, S2INV, 0))
     assert np.allclose(pol.get_polarization_vector(), (S2INV, S2INV, 0))
     assert np.allclose(pol.get_polarization_vector_angles(), (pi / 2, pi / 4))

@@ -192,6 +192,9 @@ class AtomicTransition(ABC):
     def gen_info_string(self, **kwargs):
         return self.gen_infostring_obj().generate(**kwargs)
 
+    def print_info(self):
+        print(self.gen_info_string())
+
 
 class DummyTransition(AtomicTransition):
     """Dummy class, only for testing purposes"""

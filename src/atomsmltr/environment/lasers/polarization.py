@@ -231,7 +231,7 @@ class AbstractPolarization(ABC):
 
         return info.generate()
 
-    def display_info_string(self):
+    def print_info(self):
         """Prints an info string for the current polarization state"""
         print(self.get_info_string())
 

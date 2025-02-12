@@ -92,3 +92,6 @@ class Atom(ABC):
 
     def gen_info_string(self, **kwargs):
         return self.gen_infostring_obj().generate(**kwargs)
+
+    def print_info(self):
+        print(self.gen_info_string())

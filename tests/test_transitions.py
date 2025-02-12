@@ -12,10 +12,10 @@ def test_Ytterbium_transitions():
     from atomsmltr.atoms.collection.ytterbium import MainLine, IntercombinationLine
 
     main = MainLine()
-    print(main.gen_info_string())
+    main.print_info()
 
     intercomb = IntercombinationLine()
-    print(intercomb.gen_info_string())
+    intercomb.print_info()
 
 
 if __name__ == "__main__":

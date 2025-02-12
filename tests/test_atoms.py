@@ -41,7 +41,7 @@ def test_ytterbium_atom():
     from atomsmltr.atoms.collection import Ytterbium
 
     yb = Ytterbium()
-    print(yb.gen_info_string())
+    yb.print_info()
 
 
 if __name__ == "__main__":
