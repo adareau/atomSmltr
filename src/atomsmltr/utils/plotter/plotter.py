@@ -29,13 +29,13 @@ class Plottable(ABC):
         return ax
 
     @abstractmethod
-    def plot1D():
+    def plot1D(self, ax=None):
         pass
 
     @abstractmethod
-    def plot2D():
+    def plot2D(self, ax=None, plane="XY"):
         pass
 
     @abstractmethod
-    def plot3D():
+    def plot3D(self, ax=None):
         pass
