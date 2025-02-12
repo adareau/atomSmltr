@@ -7,7 +7,8 @@ import numpy as np
 import numpy.typing as npt
 from abc import ABC, abstractmethod
 
-# % GLOBAL DEFINITIONS
+# % LOCAL IMPORTS
+from ...utils.infostring import InfoString
 
 
 # % ABSTRACT CLASS
@@ -186,58 +187,49 @@ class AbstractPolarization(ABC):
 
     def get_info_string(self):
         """Returns an info string for the current polarization state"""
-        # - definitions
-        HEADER = ". {} :\n"
-        PARAM = "  ├── {} : {}\n"
-        LPARAM = "  └── {} : {}\n\n"
-        TITLE = "| POLARIZATION PROPERTIES |\n"
-        LINE = "─" * len(TITLE) + "\n"
-
-        # - generate info string
-        out_str = LINE
-        out_str += TITLE
-        out_str += LINE
+        # - init InfoString object
+        info = InfoString("POLARIZATION PROPERTIES")
+        # - populate info string
         # object settings
-        out_str += HEADER.format("Settings")
-
+        info.add_section("Settings")
         if isinstance(self, Linear):
-            out_str += PARAM.format("type", self.type)
-            out_str += LPARAM.format("angle", f"{self.angle / np.pi:.2f} pi")
+            info.add_element("type", self.type)
+            info.add_element("angle", f"{self.angle / np.pi:.2f} pi")
         elif isinstance(self, Vector):
-            out_str += PARAM.format("type", self.type)
-            out_str += LPARAM.format("vector", self.vector)
+            info.add_element("type", self.type)
+            info.add_element("vector", self.vector)
         else:
-            out_str += LPARAM.format("type", self.type)
+            info.add_element("type", self.type)
 
         # vector
+        info.add_section("Polarization vector")
         u, v = self.get_polarization_vector_angles()
-        out_str += HEADER.format("Polarization vector")
         x, y, z = self.get_polarization_vector()
-        out_str += PARAM.format("coords", f"({x:.2f}, {y:.2f}, {z:.2f})")
-        out_str += PARAM.format("polar angle u", f"{u/np.pi:.2f} pi")
-        out_str += LPARAM.format("azimt angle v", f"{v/np.pi:.2f} pi")
+        info.add_element("coords", f"({x:.2f}, {y:.2f}, {z:.2f})")
+        info.add_element("polar angle u", f"{u/np.pi:.2f} pi")
+        info.add_element("azimt angle v", f"{v/np.pi:.2f} pi")
 
         # Projections (amplitudes)
         u, v = self.get_polarization_vector_angles()
-        out_str += HEADER.format("Projections (amplitudes)")
+        info.add_section("Projections (amplitudes)")
         for target in ["vertical", "horizontal", "circular left", "circular right"]:
             proj = self.get_polarization_vector_projection(target)
             if target == "circular right":
-                out_str += LPARAM.format(target, f"{proj:.2f}")
+                info.add_element(target, f"{proj:.2f}")
             else:
-                out_str += PARAM.format(target, f"{proj:.2f}")
+                info.add_element(target, f"{proj:.2f}")
 
         # Projections (norm)
         u, v = self.get_polarization_vector_angles()
-        out_str += HEADER.format("Projections (squared norm)")
+        info.add_section("Projections (squared norm)")
         for target in ["vertical", "horizontal", "circular left", "circular right"]:
             proj = self.get_polarization_vector_projection_norm(target)
             if target == "circular right":
-                out_str += LPARAM.format(target, f"{proj:.2f}")
+                info.add_element(target, f"{proj:.2f}")
             else:
-                out_str += PARAM.format(target, f"{proj:.2f}")
+                info.add_element(target, f"{proj:.2f}")
 
-        return out_str
+        return info.generate()
 
     def display_info_string(self):
         """Prints an info string for the current polarization state"""
