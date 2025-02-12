@@ -8,6 +8,7 @@ import scipy.constants as csts
 
 # % LOCAL IMPORTS
 from .transitions import AtomicTransition
+from ..utils.infostring import InfoString
 
 # % ABSTRACT CLASSES
 
@@ -66,3 +67,28 @@ class Atom(ABC):
     def rm_transition(self, tag: str):
         """removes a transition from the list"""
         del self.__transitions[tag]
+
+    def _gen_infostring_obj(self):
+        """Generates an info string object"""
+
+        info = InfoString(title=self.name)
+        info.add_section("Parameters")
+        info.add_element("mass (kg)", f"{self.mass:.2e}")
+        info.add_element("mass (au)", f"{self.mass_au:.2f}")
+
+        info.add_section("Transition list")
+        for trans_tag in self.list_transitions():
+            info.add_element(trans_tag)
+
+        for trans_tag, trans in self.__transitions.items():
+            trans_info = trans.gen_infostring_obj()
+            section_title = f"'{trans_tag}' transition"
+            info.absorb_section(trans_info, "Parameters", section_title)
+
+        return info
+
+    def gen_infostring_obj(self):
+        return self._gen_infostring_obj()
+
+    def gen_info_string(self, **kwargs):
+        return self.gen_infostring_obj().generate(**kwargs)

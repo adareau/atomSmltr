@@ -41,11 +41,7 @@ def test_ytterbium_atom():
     from atomsmltr.atoms.collection import Ytterbium
 
     yb = Ytterbium()
-    print(yb.mass_au)
-    for tr in yb.transitions:
-        print(tr.tag)
-        print(tr.wavelength)
-        print(tr.Isat_mW_per_cm2)
+    print(yb.gen_info_string())
 
 
 if __name__ == "__main__":
