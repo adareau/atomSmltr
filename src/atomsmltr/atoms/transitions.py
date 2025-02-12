@@ -7,6 +7,9 @@ from abc import ABC, abstractmethod
 import numpy as np
 import scipy.constants as csts
 
+# % LOCAL IMPORTS
+from ..utils.infostring import InfoString
+
 # % PHYSICS DEFINITIONS
 """In the following, we will define transitions using two parameters:
     > the wavelength in vacuum `lbda`
@@ -174,6 +177,21 @@ class AtomicTransition(ABC):
         """
         pass
 
+    def _gen_infostring_obj(self):
+        """Generates an info string object"""
+        info = InfoString(title=self.tag)
+        info.add_section("Parameters")
+        info.add_element("λ", f"{self.wavelength * 1e9:.2f} nm")
+        info.add_element("Γ", f"2π × {self.Gamma / 2 / np.pi:.2e} Hz")
+        info.add_element("Isat", f"{self.Isat_mW_per_cm2:.2f} mw/cm²")
+        return info
+
+    def gen_infostring_obj(self):
+        return self._gen_infostring_obj()
+
+    def gen_info_string(self, **kwargs):
+        return self.gen_infostring_obj().generate(**kwargs)
+
 
 class DummyTransition(AtomicTransition):
     """Dummy class, only for testing purposes"""
@@ -196,6 +214,11 @@ class J0J1Transition(AtomicTransition):
     @property
     def lande_factor(self):
         return self.__lande_factor
+
+    def gen_infostring_obj(self):
+        info = self._gen_infostring_obj()
+        info.add_element("lande factor g", f"{self.lande_factor}")
+        return info
 
     def get_scattering_rate(
         self,
