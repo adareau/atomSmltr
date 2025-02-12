@@ -40,13 +40,14 @@ class InfoString(object):
             raise Warning(f"section '{section}' already has an element {name}")
         self.__elements[section][name] = value
 
-    def generate(self):
+    def generate(self, display_title=True):
         # init
         out = []
         # title
-        title = TITLE.format(self.__title)
-        line = "─" * (len(title) - 1) + "\n"
-        out.append(line + title + line)
+        if display_title:
+            title = TITLE.format(self.__title)
+            line = "─" * (len(title) - 1) + "\n"
+            out.append(line + title + line)
         # params
         for section, elements in self.__elements.items():
             out.append(HEADER.format(section))
