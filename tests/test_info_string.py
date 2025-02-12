@@ -12,6 +12,14 @@ def test_info_string():
 
     print(info.generate())
 
+    info2 = InfoString("Environment")
+    info2.add_section("Laser list")
+    info2.add_element("laser 1")
+    info2.add_element("laser 2")
+    info2.absorb_section(info, "Settings", "Laser 1 - Settings")
+
+    print(info2.generate())
+
 
 if __name__ == "__main__":
     test_info_string()
