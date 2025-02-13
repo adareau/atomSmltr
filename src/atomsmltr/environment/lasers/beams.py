@@ -520,7 +520,7 @@ class AbstractLaserBeam(Plottable):
     ):
         """Plots a 2D cut of the laser intensity.
 
-        The limits given via an array of size 4 'limits', providing providing (xmin, xmax, ymin, ymax)
+        The limits are given via an array of size 4 'limits', providing providing (xmin, xmax, ymin, ymax)
         Number of points are given with 'Npoints', either as an integer (same value for x and y) or an array of size 2
         the coordinate of the cut axis is given by 'cut'
 
@@ -531,8 +531,8 @@ class AbstractLaserBeam(Plottable):
 
 
         Args:
-            limits (array, optional): An array of size 4, providing (xmin, xmax, ymin, ymax). Defaults to None.
-            Npoints (int or array, optional): Number of points for each dimension. Either a int or an array of two ints (Nx, Ny). Defaults to None.
+            limits (array): An array of size 4, providing (xmin, xmax, ymin, ymax).
+            Npoints (int or array): Number of points for each dimension. Either a int or an array of two ints (Nx, Ny).
             cut (float, optional): coordinate of the third axis for the cut. Defaults to 0.
             ax (matploblit ax, optional): The axis on which to plot. Defaults to None.
             plane (string, optional): The plane for the cut. Accepted values are "XY", "YZ" and "ZX". Defaults to "XY".

@@ -72,25 +72,25 @@ class Plottable(ABC):
         # depending on plane
         match plane.upper():
             case "XY":
-                position = np.mgrid[
+                grid = np.mgrid[
                     xmin : xmax : Nx * 1j, ymin : ymax : Ny * 1j, cut:cut:1j
                 ]
-                position = position.T[0]
+                position = grid.T[0]
                 X, Y, _ = position.T
             case "YZ":
-                position = np.mgrid[
+                grid = np.mgrid[
                     cut:cut:1j, xmin : xmax : Nx * 1j, ymin : ymax : Ny * 1j
                 ]
-                position = position.T
+                position = grid.T
                 position = np.moveaxis(position, 2, 0)
                 position = position[0]
                 _, X, Y = position.T
 
             case "ZX":
-                position = np.mgrid[
+                grid = np.mgrid[
                     ymin : ymax : Ny * 1j, cut:cut:1j, xmin : xmax : Nx * 1j
                 ]
-                position = position.T
+                position = grid.T
                 position = np.moveaxis(position, 1, 0)
                 position = position[0]
                 Y, _, X = position.T

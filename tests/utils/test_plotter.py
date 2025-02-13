@@ -127,7 +127,7 @@ def test_laserbeam_plotter_2D():
     beam.direction = (0.1, 1, 0)
     beam.plot2D(
         (-5e-3, 5e-3, -100e-6, 100e-6),
-        (500, 200),
+        (500, 100),
         cut=-100e-6,
         plane="YZ",
         space_scale=1e3,
@@ -144,9 +144,12 @@ def test_laserbeam_plotter_2D():
 
 
 def test_mag_field_plotter():
-    from atomsmltr.environment.fields.magnetic import MagneticGradient
+    from atomsmltr.environment.fields.magnetic import MagneticGradient, MagneticOffset
 
-    # -- generate a good field
+    # -- Constant
+    mag_field = MagneticOffset([1, 1, 1])
+    mag_field.plot3D((-10, 10, -10, 10, -10, 10), (5, 10, 10))
+    # -- Gradient
 
     mag_field = MagneticGradient(
         origin=(0, 0, 0),
@@ -155,10 +158,9 @@ def test_mag_field_plotter():
         field_direction=(0, 1, 1),
         offset=10,
     )
-
-    # plot 3D
+    # plot 3Dc
     limits = (-10, 10, -10, 10, -10, 10)
-    Npoints = (10, 3, 3)
+    Npoints = (10, 4, 4)
     mag_field.plot3D(
         limits=limits, Npoints=Npoints, show=False, color="C2", normalize=True, scale=5
     )
@@ -171,6 +173,6 @@ def test_mag_field_plotter():
 
 
 if __name__ == "__main__":
-    test_laserbeam_plotter_2D()
-    # test_mag_field_plotter()
+    # test_laserbeam_plotter_2D()
+    test_mag_field_plotter()
     plt.show()
