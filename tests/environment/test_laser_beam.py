@@ -5,55 +5,38 @@ import numpy as np
 # % GENERIC TESTS
 
 
-def _check_scalar_3D_function_vectorization(func, out_fmt="single"):
+def _check_scalar_field_value_function(func):
     """Checks that a function yielding values of a 3D field
     field behaves correctly with numpy arrays. Typically used to
     check intensities.
     """
-    # a
-    x = 1.5
-    y = np.linspace(0, 5, 100)
-    z = 0
-    res = func(x, y, z)
-    if out_fmt == "single":
-        assert res.shape == y.shape
-    elif out_fmt == "list":
-        for r in res:
-            assert r.shape == y.shape
 
-    # b
-    x = 1.5
-    y = np.linspace(0, 5, 100)
-    z = np.linspace(0, 5, 100)
-    res = func(x, y, z)
-    if out_fmt == "single":
-        assert res.shape == y.shape
-    elif out_fmt == "list":
-        for r in res:
-            assert r.shape == y.shape
+    # - 0 check exceptions
+    with pytest.raises(ValueError) as excinfo:
+        func(0)
+    with pytest.raises(ValueError) as excinfo:
+        func((0, 0))
+    with pytest.raises(ValueError) as excinfo:
+        func(np.linspace(0, 1, 20))
+    with pytest.raises(ValueError) as excinfo:
+        func(np.mgrid[0:1:10j, 0:1:10j, 0:1:10j])
 
-    # c
-    y = np.linspace(0, 5, 100)
-    y = np.linspace(0, 5, 100)
-    z = np.linspace(0, 5, 100)
-    res = func(x, y, z)
-    if out_fmt == "single":
-        assert res.shape == y.shape
-    elif out_fmt == "list":
-        for r in res:
-            assert r.shape == y.shape
+    # - 1 check that it works with a single position
+    position = (0, 0, 0)
+    value = func(position)
+    assert value.ndim == 0
 
-    # d
-    y = np.linspace(0, 5, 20)
-    y = np.linspace(0, 5, 10)
-    z = np.linspace(0, 5, 5)
-    x, y, z = np.meshgrid(x, y, z)
-    res = func(x, y, z)
-    if out_fmt == "single":
-        assert res.shape == y.shape
-    elif out_fmt == "list":
-        for r in res:
-            assert r.shape == y.shape
+    # - 2 with arrays
+    # -
+    position = np.mgrid[0:1:8j, 0:5:10j, 0:0:1j].T
+    X, _, _ = position.T
+    value = func(position)
+    assert value.shape == X.shape
+    # -
+    position = position[0]
+    X, _, _ = position.T
+    value = func(position)
+    assert value.shape == X.shape
 
 
 def _LaserBeam_classes_generic_properties_test(LaserBeamClass):
@@ -429,11 +412,6 @@ def _laserBeam_classes_generic_methods_test(LaserBeamClass):
     res = beam._convert_coordinates_to_laser_frame(x, y, z)
     assert np.allclose(expected_res, res)
 
-    # 2 - testing that it works with arrays
-    _check_scalar_3D_function_vectorization(
-        beam._convert_coordinates_to_laser_frame, out_fmt="list"
-    )
-
     # -- vector rotations
     # - stupid check : in the laser frame, the beam_direction is aligned with z
     # and its norm should be conserved...
@@ -488,7 +466,7 @@ def _laserBeam_classes_generic_methods_test(LaserBeamClass):
                 assert np.allclose(vec, fwd(bwd(vec)))
 
     # -- intensity function
-    _check_scalar_3D_function_vectorization(beam.get_intensity, out_fmt="single")
+    _check_scalar_field_value_function(beam.get_intensity)
 
 
 # % ACTUAL IMPLEMENTATION
