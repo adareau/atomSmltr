@@ -147,7 +147,7 @@ def test_mag_field_plotter():
     from atomsmltr.environment.fields.magnetic import MagneticGradient, MagneticOffset
 
     # -- Constant
-    mag_field = MagneticOffset([1, 1, 1])
+    mag_field = MagneticOffset([0, 0, 1])
     mag_field.plot3D((-10, 10, -10, 10, -10, 10), (5, 10, 10))
     # -- Gradient
 
@@ -172,7 +172,33 @@ def test_mag_field_plotter():
     mag_field.plot2D(plane="ZX", limits=(-10, 10, -10, 10), Npoints=10, cmap="jet")
 
 
+def test_mag_field_plotter_for_magpylib():
+    import magpylib as magpy
+    from atomsmltr.environment.fields.magnetic import MagpylibWrapper
+
+    loop = magpy.current.Circle(current=1, diameter=1)
+    mag_field = MagpylibWrapper(loop)
+
+    # plot 3Dc
+    limits = (-10, 10, -10, 10, -10, 10)
+    Npoints = (10, 4, 4)
+    mag_field.plot3D(
+        limits=limits, Npoints=Npoints, show=False, color="C2", normalize=True, scale=5
+    )
+
+    # plot 2D
+
+    cyl = magpy.magnet.Cylinder(polarization=(0.5, 0.5, 0), dimension=(40, 20))
+    mag_field = MagpylibWrapper(cyl)
+    limits = (-50, 50, -50, 50)
+    Npoints = 100
+    mag_field.plot2D(plane="XY", limits=limits, Npoints=Npoints)
+    mag_field.plot2D(plane="YZ", limits=limits, Npoints=Npoints)
+    mag_field.plot2D(plane="ZX", limits=limits, Npoints=Npoints)
+
+
 if __name__ == "__main__":
-    # test_laserbeam_plotter_2D()
+    test_laserbeam_plotter_2D()
     test_mag_field_plotter()
+    test_mag_field_plotter_for_magpylib()
     plt.show()

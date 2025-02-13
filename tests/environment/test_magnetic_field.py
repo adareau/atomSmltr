@@ -27,7 +27,6 @@ def _check_vector_field_value_function(func):
     # - 2 with arrays
     # -
     position = np.mgrid[0:1:8j, 0:5:10j, 0:0:1j].T
-
     value = func(position)
     assert value.shape == position.shape
     # -
@@ -147,11 +146,24 @@ def test_magnetic_gradient():
         mag_field.offset = "5"
 
 
+def test_magpy_integration():
+    import magpylib as magpy
+    from atomsmltr.environment.fields.magnetic import MagpylibWrapper
+
+    loop = magpy.current.Circle(current=1, diameter=1)
+    mag_field = MagpylibWrapper(loop)
+    mag_field.print_info()
+    mag_field.value([0, 0, 0])
+
+    _check_vector_field_value_function(mag_field.value)
+
+
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
-    test_magnetic_import()
-    test_magnetic_offset()
-    test_magnetic_gradient()
+    # test_magnetic_import()
+    # test_magnetic_offset()
+    # test_magnetic_gradient()
+    test_magpy_integration()
 
     # plt.show()
