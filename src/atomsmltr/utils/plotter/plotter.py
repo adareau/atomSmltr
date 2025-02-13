@@ -43,7 +43,7 @@ class Plottable(ABC):
     def plot3D(self, ax=None):
         pass
 
-    def _process_2D_plot_args(self, ax, plane, limits, Npoints, X, Y):
+    def _process_2D_plot_args(self, ax, plane, limits, Npoints, cut):
         # ------------------------- START ARGUMENT CHECKING ----------------
         # - check plot config
         IMPLEMENTED_PLANES = ["XY", "YZ", "ZX"]
@@ -51,45 +51,48 @@ class Plottable(ABC):
             raise ValueError(f"`plane` argument should be in {IMPLEMENTED_PLANES}")
 
         assert ax is None or isinstance(ax, Axes), "'ax' should be a matplotlib axis."
-        # - check axis config
-        # general
-        if (limits is not None) + (Npoints is not None) + (X is not None) + (
-            Y is not None
-        ) > 2:
-            msg = "Too many arguments given for meshgrid definition. "
-            msg += "Either provide `limits` and `Npoints` or `X` and `Y`"
-            raise ValueError(msg)
-        if (limits is None) + (Npoints is None) == 1:
-            raise ValueError("Both `limits` and `Npoints` arguments have to be passed")
-        if (X is None) + (Y is None) == 1:
-            raise ValueError("You have to provide both `X` and `Y` mesh")
-        # argument per argument
+        # - check grid config
         # limits
-        assert (
-            limits is None or np.asanyarray(limits).size == 4
-        ), "`limits` should be an array of size 4"
+        assert np.asanyarray(limits).size == 4, "`limits` should be an array of size 4"
         # Npoints
-        if Npoints is not None:
-            Npoints = np.asanyarray(Npoints)
-            msg = "`Npoints` should be an int or a list of two ints"
-            assert Npoints.size in [1, 2], msg
-            assert issubclass(Npoints.dtype.type, np.integer), msg
-        # X, Y
-        if X is not None:
-            X = np.asanyarray(X)
-            Y = np.asanyarray(Y)
-            assert X.shape == Y.shape, "'X' and 'Y' should have the same shape"
+        Npoints = np.asanyarray(Npoints)
+        msg = "`Npoints` should be an int or a list of three ints"
+        assert Npoints.size in [1, 2], msg
+        assert issubclass(Npoints.dtype.type, np.integer), msg
+        # cut
+        assert np.isscalar(cut), "'cut' should be a scalar"
 
         # ------------------------- STOP ARGUMENT CHECKING ----------------
         # - init ax (if needed)
         ax = self._init_ax(ax)
 
         # - init meshgrid
-        if X is None:
-            xmin, xmax, ymin, ymax = limits
-            Nx, Ny = (Npoints, Npoints) if Npoints.size == 1 else Npoints
-            x = np.linspace(xmin, xmax, Nx)
-            y = np.linspace(ymin, ymax, Ny)
-            X, Y = np.meshgrid(x, y)
+        xmin, xmax, ymin, ymax = limits
+        Nx, Ny = (Npoints, Npoints) if Npoints.size == 1 else Npoints
+        # depending on plane
+        match plane.upper():
+            case "XY":
+                grid = np.mgrid[
+                    xmin : xmax : Nx * 1j, ymin : ymax : Ny * 1j, cut:cut:1j
+                ]
+                position = grid.T[0]
+                X, Y, _ = position.T
+            case "YZ":
+                grid = np.mgrid[
+                    cut:cut:1j, xmin : xmax : Nx * 1j, ymin : ymax : Ny * 1j
+                ]
+                position = grid.T
+                position = np.moveaxis(position, 2, 0)
+                position = position[0]
+                _, X, Y = position.T
 
-        return ax, X, Y
+            case "ZX":
+                grid = np.mgrid[
+                    ymin : ymax : Ny * 1j, cut:cut:1j, xmin : xmax : Nx * 1j
+                ]
+                position = grid.T
+                position = np.moveaxis(position, 1, 0)
+                position = position[0]
+                Y, _, X = position.T
+
+        return ax, position, X, Y

@@ -13,6 +13,7 @@ from abc import abstractmethod
 # % LOCAL IMPORTS
 from .polarization import Vertical, AbstractPolarization
 from ...utils.plotter import Plottable
+from ...utils.misc import check_position_array
 
 # % GLOBAL DEFINITIONS
 
@@ -346,20 +347,27 @@ class AbstractLaserBeam(Plottable):
         return res
 
     # -- REQUIRED ABSTRACT METHODS
-    @abstractmethod
-    def get_intensity(self, x, y, z):
-        """Returns laser intensity at point (x, y, z) in the lab frame
-        ATTENTION: x, y, z must be floats or arrays of same size !!
+
+    def get_intensity(self, position: np.ndarray) -> np.ndarray:
+        """Returns laser intensity at a given position in the lab frame
+
+            position is an array_like object, with shape (3,) or (n1, n2, .., 3).
+            In all cases, the last dimension contains cordinates (x, y, z), in meter and in the lab frame
 
         Args:
-            x (float or array): x cartesian coordinate in the lab frame
-            y (float or array): y cartesian coordinate in the lab frame
-            z (float or array): z cartesian coordinate in the lab frame
+            position (array_like, shape (3,) or (n,3)) : positions at which the intensity is computed
 
         Returns:
-            I (float or array): laser intensity at point (x, y, z)
+            intensity (float or array): laser intensity at positions, with dimension matching the 'position' input.
         """
-        pass
+        # Check position
+        position = check_position_array(position)
+        # call hidden function that actually does the computation
+        return self._intensity_func(self, position)
+
+    @abstractmethod
+    def _intensity_func(self, position):
+        """Actual method for field computation ; defined for each subclass"""
 
     # -- CLASS PROPERTIES GETTERS & SETTERS
     # - wavelength
@@ -501,38 +509,33 @@ class AbstractLaserBeam(Plottable):
 
     def plot2D(
         self,
+        limits: np.ndarray,
+        Npoints: np.ndarray,
+        cut=0,
         ax=None,
         plane="XY",
-        limits=None,
-        Npoints=None,
-        X=None,
-        Y=None,
-        z=0,
         cmap=None,
         show=False,
         space_scale=1.0,
     ):
-        """Plots a 2D cut of the laser intensity. The limits can be provided in two ways:
-            * option 1 : with `limits` and `Npoint`
-            * option 2 : with `X` and `Y`
+        """Plots a 2D cut of the laser intensity.
+
+        The limits are given via an array of size 4 'limits', providing providing (xmin, xmax, ymin, ymax)
+        Number of points are given with 'Npoints', either as an integer (same value for x and y) or an array of size 2
+        the coordinate of the cut axis is given by 'cut'
 
         Examples:
             > beam.plot2D(limits=(-5, 5, -4, 4), Npoints=200)
-            > beam.plot2D(limits=(-5, 5, -4, 4), Npoints=200, z=-5)
+            > beam.plot2D(limits=(-5, 5, -4, 4), Npoints=200, cut=-5, plane="YZ")
             > beam.plot2D(limits=(-5, 5, -4, 4), Npoints=(200, 100))
 
-            > x = np.linspace(-100e-6, 100e-6, 500)
-            > X, Y = np.meshgrid(x, x)
-            > beam.plot2D(X=X, Y=Y, z=0)
 
         Args:
+            limits (array): An array of size 4, providing (xmin, xmax, ymin, ymax).
+            Npoints (int or array): Number of points for each dimension. Either a int or an array of two ints (Nx, Ny).
+            cut (float, optional): coordinate of the third axis for the cut. Defaults to 0.
             ax (matploblit ax, optional): The axis on which to plot. Defaults to None.
             plane (string, optional): The plane for the cut. Accepted values are "XY", "YZ" and "ZX". Defaults to "XY".
-            limits (array, optional): An array of size 4, providing (xmin, xmax, ymin, ymax). Defaults to None.
-            Npoints (int or array, optional): Number of points for each dimension. Either a int or an array of two ints (Nx, Ny). Defaults to None.
-            X (2D array, optional): meshgrid for the X axis. Defaults to None.
-            Y (2D array, optional): meshgrid for the Y axis. Defaults to None.
-            z (float, optional): coordinate of the third axis for the cut. Defaults to 0.
             cmap (colormap, optional): colormap used in pcolormesh. Defaults to None.
             show (bool, optional): whether to show the figure after calling the method. Defaults to False.
             space_scale (float, optional): space coordinates will be multiplied by this when plotting. Defaults to 1.
@@ -542,18 +545,16 @@ class AbstractLaserBeam(Plottable):
             ax (matplotlib axis): the axis
         """
         # - process arguments using the Plottable builtin method
-        ax, X, Y = self._process_2D_plot_args(
-            ax=ax, plane=plane, limits=limits, Npoints=Npoints, X=X, Y=Y
+        ax, position, X, Y = self._process_2D_plot_args(
+            ax=ax,
+            plane=plane,
+            limits=limits,
+            Npoints=Npoints,
+            cut=cut,
         )
 
         # - compute intensity
-        match plane.upper():
-            case "XY":
-                intensity = self.get_intensity(X, Y, z)
-            case "YZ":
-                intensity = self.get_intensity(z, X, Y)
-            case "ZX":
-                intensity = self.get_intensity(Y, z, X)
+        intensity = self.get_intensity(position)
 
         # - plot
         ax.pcolormesh(X * space_scale, Y * space_scale, intensity, cmap=cmap)
@@ -651,20 +652,20 @@ class GaussianLaserBeam(AbstractLaserBeam):
     """docstring for GaussianLaserBeam."""
 
     # -- REQUIRED METHOD FOR LASER BEAM CLASSES
-    def get_intensity(self, x, y, z):
-        """Returns laser intensity at point (x, y, z) in the lab frame
-        ATTENTION: x, y, z must be floats or arrays of same size !!
+    # pylint : disable=method_hidden
+    @staticmethod
+    def _intensity_func(self, position):
+        """Returns laser intensity at point position
 
-        Args:
-            x (float or array): x cartesian coordinate in the lab frame
-            y (float or array): y cartesian coordinate in the lab frame
-            z (float or array): z cartesian coordinate in the lab frame
+        position should be an array of shape (3,) or (n1,n2,..,3)
+        last axis contains coordinates x, y, z
 
-        Returns:
-            I (float or array): laser intensity at point (x, y, z)
+        NB: position is already checked and converted to an array in the
+            `AbstractLaserBeam` class
         """
         # - get coordinates in laser frame
         # NB : x, y and phi are not needed here
+        x, y, z = position.T
         _, _, z_laser, rho_laser, _ = self._convert_coordinates_to_laser_frame(x, y, z)
 
         # - compute gaussian beam intensity
