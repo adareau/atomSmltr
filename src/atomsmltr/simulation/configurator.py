@@ -68,12 +68,14 @@ class Configuration(object):
 
     def __add_obj(self, obj, collection, name):
         """Internal method to add objects"""
+        # - copy
+        obj = copy(obj)
         # - check that object tag not present
         msg = f"We already have an element with tag '{obj.tag}' in our {name} collection. "
         msg += "Remove or update this element."
         if obj.tag in collection:
             raise ValueError(msg)
-        # - add the object
+        # - add the object >>> we use a copy to avoid unwanted modifications
         collection[obj.tag] = obj
 
     # UPDATING
@@ -86,7 +88,6 @@ class Configuration(object):
             for element in obj:
                 self.update_objects(element, verbose)
             return
-
         # - add object
         if isinstance(obj, MagneticField):
             collection = self.__magfields
@@ -98,7 +99,7 @@ class Configuration(object):
             msg = f"Objects of type {type(obj)} are not handled yet.. where did you find this ?"
             raise TypeError(msg)
         success = self.__upd_obj(obj, collection, name, error_on_fail)
-
+        print(success)
         if verbose:
             if success:
                 msg = f"(>) sucessfully updated object '{obj.tag}' in the {name} collection"
@@ -107,11 +108,13 @@ class Configuration(object):
             print(msg)
 
     def __upd_obj(self, obj, collection, name, error_on_fail) -> bool:
+        # - copy
+        obj = copy(obj)
         # - check that object tag not present
         msg = f"There is no element with tag '{obj.tag}' in our {name} collection. "
         if not obj.tag in collection:
             raiser = ValueError if error_on_fail else Warning
-            raiser(msg)
+            raise raiser(msg)
             return False
         # - update the object
         collection[obj.tag] = obj
@@ -136,23 +139,25 @@ class Configuration(object):
         return self.rm_object("magnetic field", tag)
 
     def rm_all_objects(self):
-        self.__lasers = {}
-        self.__magfields = {}
-        self.__zones = {}
+        self.rm_all_lasers()
+        self.rm_all_magnetic_fields()
+        self.rm_all_zones()
 
     def rm_all_lasers(self):
-        self.__lasers = {}
+        self.__lasers.clear()
 
     def rm_all_magnetic_fields(self):
-        self.__magfields = {}
+        self.__magfields.clear()
 
     def rm_all_zones(self):
-        self.__zones = {}
+        self.__zones.clear()
 
     # -- INFOS
     def print_object_info(self, collection, tag):
         coll = self.__check_object_in_coll(collection, tag)
-        coll[tag].print_info()
+        info = coll[tag].gen_infostring_obj()
+        info.title = f"{collection} | {tag=}"
+        print(info.generate())
 
     def print_laser_info(self, tag):
         return self.print_object_info("laser", tag)

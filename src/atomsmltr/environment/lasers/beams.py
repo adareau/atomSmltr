@@ -650,12 +650,18 @@ class AbstractLaserBeam(EnvObject):
 
     # -- INFO STRING
 
+    @property
+    @abstractmethod
+    def disp_type(self) -> str:
+        return ""
+
     def gen_infostring_obj(self):
         """Generates an info string object"""
         title = self.type
         title = title[:1].upper() + title[1:]  # capitalize first letter
         info = InfoString(title=title)
         info.add_section("Parameters")
+        info.add_element(f"type", f"{self.disp_type}")
         info.add_element(f"waist (m)", f"{self.waist:.3g}")
         info.add_element(f"power (W)", f"{self.power:.3g}")
         info.add_element(f"waist position (m)", f"{self.waist_position}")
@@ -680,6 +686,10 @@ class GaussianLaserBeam(AbstractLaserBeam):
     @property
     def type(self):
         return "Gaussian Laser Beam"
+
+    @property
+    def disp_type(self) -> str:
+        return "Gaussian beam"
 
     # -- REQUIRED METHOD FOR LASER BEAM CLASSES
     # pylint : disable=method_hidden

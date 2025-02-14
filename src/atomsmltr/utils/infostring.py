@@ -29,6 +29,15 @@ class InfoString(object):
     def elements(self):
         return self.__elements
 
+    @property
+    def title(self) -> str:
+        return self.title
+
+    @title.setter
+    def title(self, value: str):
+        assert isinstance(value, str), "title should be a string"
+        self.__title = value
+
     def add_section(self, name: str):
         if name in self.__elements:
             raise Warning(f"section '{name}' already exists")

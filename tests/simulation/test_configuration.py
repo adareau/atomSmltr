@@ -69,9 +69,9 @@ def test_configuration():
     las1.direction = [1, 0, 0]
     mag1.offset = [1, 1, 1]
     config.add_objects([las1, mag1])
-    mag1.offset = [-1, 1, 1]
-    config.update_objects(mag1, verbose=True)
     config.print_magnetic_field_info("offset1")
+    mag1.offset = [2, 1, 1]
+    config.update_objects(mag1, verbose=True)
     mag3 = config.get_magnetic_field_copy("offset1")
     assert np.allclose(mag3.offset, mag1.offset)
 
@@ -86,6 +86,8 @@ def test_configuration():
     config.add_objects(las1)
     las1.direction = [0, 0, 1]
     config.print_laser_info("laser1")
+    direction = config.get_laser_copy("laser1").direction
+    assert np.allclose(direction, [1, 0, 0])
 
 
 def test_configuration_exceptions():
