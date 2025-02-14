@@ -2,8 +2,12 @@
 """Defines the base class for environment objects
 """
 
+# % IMPORTS
+from abc import abstractmethod
+
 # % LOCAL IMPORTS
 from ..utils.plotter import Plottable
+from ..utils.infostring import InfoString
 
 # % ABSTRACT CLASSES
 
@@ -27,3 +31,21 @@ class EnvObject(Plottable):
         if not isinstance(value, str):
             raise TypeError("'tag' should be a string")
         self._tag = value
+
+    # -- INFO STRING / OBJECT MANAGEMENT
+    @abstractmethod
+    def gen_infostring_obj(self):
+        """should return the infostring object"""
+        pass
+
+    def gen_info_string(self, **kwargs):
+        return self.gen_infostring_obj().generate(**kwargs)
+
+    def print_info(self):
+        print(self.gen_info_string())
+
+    @property
+    @abstractmethod
+    def type():
+        """Type has to be defined in the concrete class"""
+        pass

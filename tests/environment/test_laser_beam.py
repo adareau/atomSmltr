@@ -51,6 +51,9 @@ def _LaserBeam_classes_generic_properties_test(LaserBeamClass):
         direction_type="vector",
     )
 
+    # - info
+    beam.print_info()
+
     # - testing setters and getters
     # tag
     new_tag = "deathstar laser"

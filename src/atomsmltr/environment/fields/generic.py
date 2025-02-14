@@ -26,12 +26,6 @@ class AbstractField(EnvObject):
 
     @property
     @abstractmethod
-    def type():
-        """Type has to be defined in the concrete class"""
-        pass
-
-    @property
-    @abstractmethod
     def unit():
         """unit has to be defined in the concrete class"""
         pass
@@ -56,18 +50,6 @@ class AbstractField(EnvObject):
     @abstractmethod
     def _field_value_func(self, position):
         """Actual method for field computation ; defined for each subclass"""
-
-    # -- INFO STRING / OBJECT MANAGEMENT
-    @abstractmethod
-    def gen_infostring_obj(self):
-        """should return the infostring object"""
-        pass
-
-    def gen_info_string(self, **kwargs):
-        return self.gen_infostring_obj().generate(**kwargs)
-
-    def print_info(self):
-        print(self.gen_info_string())
 
     # -- PLOT
     # TODO > plot methods, at this level !!!

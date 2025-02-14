@@ -14,6 +14,8 @@ from abc import abstractmethod
 from .polarization import Vertical, AbstractPolarization
 from ..envbase import EnvObject
 from ...utils.misc import check_position_array
+from ...utils.infostring import InfoString
+
 
 # % GLOBAL DEFINITIONS
 
@@ -646,12 +648,35 @@ class AbstractLaserBeam(EnvObject):
             plt.show()
         return ax
 
+    # -- INFO STRING
+
+    def gen_infostring_obj(self):
+        """Generates an info string object"""
+        title = self.type
+        title = title[:1].upper() + title[1:]  # capitalize first letter
+        info = InfoString(title=title)
+        info.add_section("Parameters")
+        info.add_element(f"waist (m)", f"{self.waist:.3g}")
+        info.add_element(f"power (W)", f"{self.power:.3g}")
+        info.add_element(f"waist position (m)", f"{self.waist_position}")
+        info.add_element(f"direction type", f"{self.direction_type}")
+        info.add_element(f"direction", f"{self.direction}")
+        info.add_element(f"unit vector", f"{self._unit_vector}")
+        info.add_element(f"unit vector phi", f"π × {self._unit_vector_phi / np.pi}")
+        info.add_element(f"unit vector theta", f"π × {self._unit_vector_theta / np.pi}")
+
+        return info
+
 
 # % IMPLEMENTED CLASSES
 
 
 class GaussianLaserBeam(AbstractLaserBeam):
     """docstring for GaussianLaserBeam."""
+
+    @property
+    def type(self):
+        return "Gaussian Laser Beam"
 
     # -- REQUIRED METHOD FOR LASER BEAM CLASSES
     # pylint : disable=method_hidden
