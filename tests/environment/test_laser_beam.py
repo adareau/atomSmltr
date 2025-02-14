@@ -52,6 +52,11 @@ def _LaserBeam_classes_generic_properties_test(LaserBeamClass):
     )
 
     # - testing setters and getters
+    # tag
+    new_tag = "deathstar laser"
+    beam.tag = new_tag
+    assert beam.tag == new_tag
+
     # wavelength
     new_wavelength = 781e-9
     beam.wavelength = new_wavelength
@@ -389,6 +394,10 @@ def _LaserBeam_classes_generic_exception_test(LaserBeamClass):
     # polarization
     with pytest.raises(TypeError) as excinfo:
         beam.polarization = 0
+
+    # tag
+    with pytest.raises(TypeError) as excinfo:
+        beam.tag = 0
 
 
 def _laserBeam_classes_generic_methods_test(LaserBeamClass):

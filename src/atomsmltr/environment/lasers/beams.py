@@ -64,6 +64,7 @@ class AbstractLaserBeam(Plottable):
         direction: npt.ArrayLike,
         direction_type: str = "vector",
         polarization: AbstractPolarization = Vertical(),
+        tag: str = "",
     ):
         self.wavelength = wavelength
         self.waist = waist
@@ -73,6 +74,7 @@ class AbstractLaserBeam(Plottable):
         self.direction_type = direction_type
         self.direction = direction
         self.polarization = polarization
+        self.tag = tag
 
         super().__init__()
 
@@ -486,6 +488,17 @@ class AbstractLaserBeam(Plottable):
             msg = "`polarization` should be a Polarization object, from atomsmltr.environment.lasers.polarization"
             raise TypeError(msg)
         self._polarization = value
+
+    # - tag
+    @property
+    def tag(self) -> str:
+        return self._tag
+
+    @tag.setter
+    def tag(self, value: str) -> None:
+        if not isinstance(value, str):
+            raise TypeError("'tag' should be a string")
+        self._tag = value
 
     # -- hidden methods
     def _positive_float_check(self, param_name: str, value: float) -> None:
