@@ -17,7 +17,7 @@ def _get_env_objects():
     return mag_field_1, mag_field_2, laser_1, laser_2
 
 
-def test_configuration():
+def test_configuration_collection_management():
     from atomsmltr.simulation import Configuration
     from atomsmltr.atoms.collection import Ytterbium
 
@@ -108,6 +108,52 @@ def test_configuration():
         )  # should issue a warning but go on
 
 
+def test_configuration_atom_light():
+    from atomsmltr.simulation import Configuration
+    from atomsmltr.atoms.collection import Ytterbium
+    from atomsmltr.environment.lasers.beams import GaussianLaserBeam
+
+    # -- init config
+    config = Configuration()
+
+    # -- set atom
+    config.atom = Ytterbium()
+    config.atom.print_info()
+
+    # -- lasers
+    laser399_1 = GaussianLaserBeam(
+        399e-9, 100e-6, 10e-3, (0, 0, 0), (0, 0, 1), tag="399-1"
+    )
+    laser399_2 = GaussianLaserBeam(
+        399e-9, 100e-6, 10e-3, (0, 0, 0), (0, 0, 1), tag="399-2"
+    )
+    laser556 = GaussianLaserBeam(556e-9, 100e-6, 10e-3, (0, 0, 0), (0, 0, 1), tag="556")
+
+    # -- Config tests
+    # - init
+    config.add_objects([laser399_1, laser399_2, laser556])
+    # - key errors
+    with pytest.raises(KeyError) as excinfo:
+        config.add_atomlight_coupling("557", "intercombination", 0, True)
+    with pytest.raises(KeyError) as excinfo:
+        config.add_atomlight_coupling("556", "D1", 0, True)
+
+    # - add
+    config.add_atomlight_coupling("556", "intercombination", 0, True)
+    config.add_atomlight_coupling(laser399_1, "main", 0, True)
+    with pytest.raises(KeyError) as excinfo:
+        config.add_atomlight_coupling(laser399_1, "main", 0, True)
+    config.add_atomlight_coupling(laser399_1, "main", -2, override=True, verbose=True)
+
+    config.print_atomlight_info()
+
+    # - remove
+    config.rm_atomlight_coupling("556", "intercombination")
+    with pytest.raises(KeyError) as excinfo:
+        config.rm_atomlight_coupling("556", "intercombination")
+    config.reset_atomlight_coupling()
+
+
 def test_configuration_exceptions():
     from atomsmltr.simulation import Configuration
 
@@ -138,5 +184,6 @@ def test_configuration_exceptions():
 
 
 if __name__ == "__main__":
-    test_configuration()
-    test_configuration_exceptions()
+    # test_configuration_collection_management()
+    # test_configuration_exceptions()
+    test_configuration_atom_light()

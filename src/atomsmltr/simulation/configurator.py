@@ -11,6 +11,7 @@ import warnings
 from ..environment import AbstractLaserBeam, MagneticField
 from ..environment.envbase import EnvObject
 from ..atoms import Atom
+from ..utils.infostring import InfoString
 
 
 # % DEFINE THE CLASS
@@ -38,7 +39,73 @@ class Configuration(object):
         if object_list is not None:
             self.add_objects(object_list)
 
-    # -- COLLECTION HANDLING METHOD
+    # -- ATOM-LIGHT INTERACTION HANDLING
+    def add_atomlight_coupling(
+        self,
+        laser: str | AbstractLaserBeam,
+        transition: str,
+        detuning: float,
+        verbose=False,
+        override=False,
+    ):
+        # - checking inputs
+        # check laser argument
+        if not isinstance(laser, (str, AbstractLaserBeam)):
+            raise TypeError("'laser' should be a tag (string) or a Laser object")
+        if not isinstance(laser, str):
+            laser = laser.tag
+        # check that laser is there
+        if laser not in self.__lasers:
+            msg = f"No entry for laser tag '{laser}'. "
+            msg += f" Available lasers are {list(self.__lasers)}."
+            raise KeyError(msg)
+        # check that transition is there
+        if self.atom is None:
+            raise ValueError("No atom was defined for this config")
+        if transition not in self.__atomlight:
+            msg = f"No entry for transition '{transition}'. "
+            msg += f" Available transitions are {list(self.__atomlight)}."
+            raise KeyError(msg)
+
+        # - check that there is no link
+        if laser in self.__atomlight[transition]:
+            msg = f"There is alreay a link between laser '{laser}' and transition '{transition}'. "
+            if not override:
+                msg += "Since 'override' is set to 'False', we stop here with an error."
+                raise KeyError(msg)
+            else:
+                msg += "Since 'override' is set to 'True', we go on."
+                if verbose:
+                    print(" > " + msg)
+        # - store
+        self.__atomlight[transition][laser] = {"detuning": detuning}
+
+    def rm_atomlight_coupling(
+        self,
+        laser: str | AbstractLaserBeam,
+        transition: str,
+    ):
+        # - checking inputs
+        # check laser argument
+        if not isinstance(laser, (str, AbstractLaserBeam)):
+            raise TypeError("'laser' should be a tag (string) or a Laser object")
+        if not isinstance(laser, str):
+            laser = laser.tag
+
+        # - remove
+        success = False
+        if transition in self.__atomlight:
+            if laser in self.__atomlight[transition]:
+                del self.__atomlight[transition][laser]
+                success = True
+        if not success:
+            msg = f"There is no link between '{laser}' and '{transition}'."
+            raise KeyError(msg)
+
+    def reset_atomlight_coupling(self):
+        self.__atomlight.clear()
+
+    # -- COLLECTION HANDLING METHODS
 
     # ADDING
     def add_objects(self, obj: EnvObject | list, verbose=False):
@@ -300,7 +367,28 @@ class Configuration(object):
 
     @atom.setter
     def atom(self, atom: Atom):
+        # - set atom
         if not isinstance(atom, Atom):
             raise TypeError("'atom' should be an atom")
         self.__atom = atom
-        # TODO here, check sanity of __atomlight ; warning
+        # - prepare atomlight dict
+        # issue warning if already some entries
+        if not self.__atomlight:
+            # if dict not empty, clear it
+            self.__atomlight.clear()
+            warnings.warn("Resetting atom-light dictionnary...")
+        for transition_tag in self.atom.list_transitions():
+            self.__atomlight[transition_tag] = {}
+
+    # -- INFO PRINTER
+    def gen_atomlight_infostring_obj(self):
+        info = InfoString("Atom-light couplings")
+        for transition, couplings in self.__atomlight.items():
+            info.add_section(f"transition > '{transition}'")
+            for laser, params in couplings.items():
+                detuning = params["detuning"]
+                info.add_element(f"laser '{laser}'", f"{detuning=:.3g}")
+        return info
+
+    def print_atomlight_info(self):
+        print(self.gen_atomlight_infostring_obj().generate())

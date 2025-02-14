@@ -4,6 +4,8 @@
 
 # % IMPORTS
 from abc import ABC, abstractmethod
+from copy import copy
+
 import scipy.constants as csts
 
 # % LOCAL IMPORTS
@@ -43,6 +45,10 @@ class Atom(ABC):
     @property
     def transitions(self) -> float:
         return self.__transitions.values()
+
+    def get_transitions_copy(self):
+        """to get a copy, so that the transition collection stays protected"""
+        return copy(self.__transitions)
 
     def add_transition(self, transition: AtomicTransition, tag=None) -> None:
         """Adds a transition (`AtomicTransition` object) to the atom transitions collection"""
