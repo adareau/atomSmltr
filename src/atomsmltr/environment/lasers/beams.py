@@ -665,6 +665,9 @@ class AbstractLaserBeam(EnvObject):
         info.add_element(f"unit vector phi", f"π × {self._unit_vector_phi / np.pi}")
         info.add_element(f"unit vector theta", f"π × {self._unit_vector_theta / np.pi}")
 
+        info_polar = self.polarization.gen_infostring_obj()
+        info.merge(info_polar, prefix="")
+
         return info
 
 
