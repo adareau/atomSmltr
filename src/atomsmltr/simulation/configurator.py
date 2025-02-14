@@ -96,7 +96,7 @@ class Configuration(object):
         success = False
         if transition in self.__atomlight:
             if laser in self.__atomlight[transition]:
-                del self.__atomlight[transition][laser]
+                self.__atomlight[transition].pop(laser)
                 success = True
         if not success:
             msg = f"There is no link between '{laser}' and '{transition}'."
@@ -385,9 +385,12 @@ class Configuration(object):
         info = InfoString("Atom-light couplings")
         for transition, couplings in self.__atomlight.items():
             info.add_section(f"transition > '{transition}'")
-            for laser, params in couplings.items():
-                detuning = params["detuning"]
-                info.add_element(f"laser '{laser}'", f"{detuning=:.3g}")
+            if couplings:
+                for laser, params in couplings.items():
+                    detuning = params["detuning"]
+                    info.add_element(f"laser '{laser}'", f"{detuning=:.3g}")
+            else:
+                info.add_element("empty")
         return info
 
     def print_atomlight_info(self):

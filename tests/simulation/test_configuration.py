@@ -144,14 +144,16 @@ def test_configuration_atom_light():
     with pytest.raises(KeyError) as excinfo:
         config.add_atomlight_coupling(laser399_1, "main", 0, True)
     config.add_atomlight_coupling(laser399_1, "main", -2, override=True, verbose=True)
-
     config.print_atomlight_info()
 
     # - remove
     config.rm_atomlight_coupling("556", "intercombination")
+    config.print_atomlight_info()
+
     with pytest.raises(KeyError) as excinfo:
         config.rm_atomlight_coupling("556", "intercombination")
     config.reset_atomlight_coupling()
+    config.print_atomlight_info()
 
 
 def test_configuration_exceptions():
