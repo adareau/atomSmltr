@@ -89,6 +89,24 @@ def test_configuration():
     direction = config.get_laser_copy("laser1").direction
     assert np.allclose(direction, [1, 0, 0])
 
+    # check warning behaviour
+    config.rm_all_objects()
+    las1.tag = "las1"
+    las2.tag = "las2"
+    las1.direction = [1, 0, 0]
+    config.add_objects(las1)
+    las1.direction = [0, 1, 0]
+    config.update_objects(
+        [las2, las1], verbose=True, error_on_fail=False
+    )  # should issue a warning but go on
+
+    assert np.allclose(config.get_laser_copy("las1").direction, [0, 1, 0])
+
+    with pytest.raises(KeyError) as excinfo:
+        config.update_objects(
+            [las2, las1], verbose=False, error_on_fail=True
+        )  # should issue a warning but go on
+
 
 def test_configuration_exceptions():
     from atomsmltr.simulation import Configuration
