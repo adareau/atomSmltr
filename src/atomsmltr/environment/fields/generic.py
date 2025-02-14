@@ -13,7 +13,7 @@ from abc import abstractmethod
 # % LOCAL IMPORTS
 from ...utils.plotter import Plottable
 from ...utils.infostring import InfoString
-
+from ...utils.misc import check_position_array
 
 # % ABSTRACT CLASSES
 
@@ -36,10 +36,26 @@ class AbstractField(Plottable):
         """unit has to be defined in the concrete class"""
         pass
 
+    def value(self, position: np.ndarray) -> np.ndarray:
+        """Returns laser intensity at a given position in the lab frame
+
+            position is an array_like object, with shape (3,) or (n1, n2, .., 3).
+            In all cases, the last dimension contains cordinates (x, y, z), in meter and in the lab frame
+
+        Args:
+            position (array_like, shape (3,) or (n,3)) : positions at which the intensity is computed
+
+        Returns:
+            intensity (float or array): laser intensity at positions, with dimension matching the 'position' input.
+        """
+        # Check position
+        position = check_position_array(position)
+        # call hidden function that actually does the computation
+        return self._field_value_func(self, position)
+
     @abstractmethod
-    def value(self, x, y, z):
-        """Will return the value of the field at point (x, y, z)"""
-        pass
+    def _field_value_func(self, position):
+        """Actual method for field computation ; defined for each subclass"""
 
     # -- INFO STRING / OBJECT MANAGEMENT
     @abstractmethod
@@ -60,38 +76,33 @@ class AbstractField(Plottable):
 
     def plot2D(
         self,
+        limits: np.ndarray,
+        Npoints: np.ndarray,
+        cut=0,
         ax=None,
         plane="XY",
-        limits=None,
-        Npoints=None,
-        X=None,
-        Y=None,
-        z=0,
         cmap=None,
         show=False,
         space_scale=1.0,
     ):
-        """Plots a 2D cut of the field. The limits can be provided in two ways:
-            * option 1 : with `limits` and `Npoint`
-            * option 2 : with `X` and `Y`
+        """Plots a 2D cut of the field.
+
+        The limits are given via an array of size 4 'limits', providing providing (xmin, xmax, ymin, ymax)
+        Number of points are given with 'Npoints', either as an integer (same value for x and y) or an array of size 2
+        the coordinate of the cut axis is given by 'cut'
 
         Examples:
             > field.plot2D(limits=(-5, 5, -4, 4), Npoints=200)
-            > field.plot2D(limits=(-5, 5, -4, 4), Npoints=200, z=-5)
+            > field.plot2D(limits=(-5, 5, -4, 4), Npoints=200, cut=-5)
             > field.plot2D(limits=(-5, 5, -4, 4), Npoints=(200, 100))
 
-            > x = np.linspace(-100e-6, 100e-6, 500)
-            > X, Y = np.meshgrid(x, x)
-            > field.plot2D(X=X, Y=Y, z=0)
 
         Args:
+            limits (array): An array of size 4, providing (xmin, xmax, ymin, ymax).
+            Npoints (int or array, optional): Number of points for each dimension. Either a int or an array of two ints (Nx, Ny).
+            cut (float, optional): coordinate of the third axis for the cut. Defaults to 0.
             ax (matploblit ax, optional): The axis on which to plot. Defaults to None.
             plane (string, optional): The plane for the cut. Accepted values are "XY", "YZ" and "ZX". Defaults to "XY".
-            limits (array, optional): An array of size 4, providing (xmin, xmax, ymin, ymax). Defaults to None.
-            Npoints (int or array, optional): Number of points for each dimension. Either a int or an array of two ints (Nx, Ny). Defaults to None.
-            X (2D array, optional): meshgrid for the X axis. Defaults to None.
-            Y (2D array, optional): meshgrid for the Y axis. Defaults to None.
-            z (float, optional): coordinate of the third axis for the cut. Defaults to 0.
             cmap (optional): passed to matplotlib streamplot() function
             show (bool, optional): whether to show the figure after calling the method. Defaults to False.
             space_scale (float, optional): space coordinates will be multiplied by this when plotting. Defaults to 1.
@@ -101,26 +112,37 @@ class AbstractField(Plottable):
             ax (matplotlib axis): the axis
         """
         # - process arguments using the Plottable builtin method
-        ax, X, Y = self._process_2D_plot_args(
-            ax=ax, plane=plane, limits=limits, Npoints=Npoints, X=X, Y=Y
+        ax, position, X, Y = self._process_2D_plot_args(
+            ax=ax,
+            plane=plane,
+            limits=limits,
+            Npoints=Npoints,
+            cut=cut,
         )
-
-        # - compute intensity
+        # - compute field
+        mag_field = self.value(position)
+        Bx, By, Bz = mag_field.T
+        # - get relevant part
         match plane.upper():
             case "XY":
-                mag_field = self.value(X, Y, z)
-                u = mag_field[:, :, 0]
-                v = mag_field[:, :, 1]
-            case "YZ":
-                mag_field = self.value(z, X, Y)
-                u = mag_field[:, :, 1]
-                v = mag_field[:, :, 2]
-            case "ZX":
-                mag_field = self.value(Y, z, X)
-                u = mag_field[:, :, 2]
-                v = mag_field[:, :, 0]
+                u = Bx
+                v = By
 
-        color = np.sqrt(u**2 + v**2)
+            case "YZ":
+                u = By
+                v = Bz
+            case "ZX":
+                u = Bz
+                v = Bx
+
+        color = np.sqrt(Bx**2 + By**2 + Bz**2)
+        # Transpose if needed, since streamplot is quite strict..
+        if not np.allclose(X[0], X):
+            X = X.T
+            Y = Y.T
+            u = u.T
+            v = v.T
+            color = color.T
 
         # - plot
         ax.streamplot(X * space_scale, Y * space_scale, u, v, color=color, cmap=cmap)
@@ -176,24 +198,26 @@ class AbstractField(Plottable):
         # - generate grid
         xmin, xmax, ymin, ymax, zmin, zmax = limits
         Nx, Ny, Nz = (Npoints, Npoints, Npoints) if Npoints.size == 1 else Npoints
-        x = np.linspace(xmin, xmax, Nx)
-        y = np.linspace(ymin, ymax, Ny)
-        z = np.linspace(zmin, zmax, Nz)
-        X, Y, Z = np.meshgrid(x, y, z)
+        grid = np.mgrid[
+            xmin : xmax : Nx * 1j, ymin : ymax : Ny * 1j, zmin : zmax : Nz * 1j
+        ]
+        X, Y, Z = grid
+        position = grid.T
         # - get magnetic field
-        B = self.value(X, Y, Z)
+        B = self.value(position)
         # - normalize ?
         if normalize:
             B = B / np.max(np.abs(B.ravel()))
         B = B * scale
+        Bx, By, Bz = B.T
         # - plot
         ax.quiver(
             X,
             Y,
             Z,
-            B[:, :, :, 0],
-            B[:, :, :, 1],
-            B[:, :, :, 2],
+            Bx,
+            By,
+            Bz,
             label=name,
             color=color,
         )
@@ -251,27 +275,22 @@ class AbstractOffsetField(AbstractField):
         self.__offset = self._check_3D_vector(value, "offset")
 
     # -- requested methods for AbstractField
-    def value(self, x, y, z):
-        """Returns the value of the field at point (x, y, z).
-            Here we have an offset, so the field is constant
-        Args:
-            x (float): x position in lab frame
-            y (float): y position in lab frame
-            z (float): z position in lab frame
+    # pylint : disable=method_hidden
+    @staticmethod
+    def _field_value_func(self, position):
+        """Returns field value at point position
 
-        Returns:
-            value: the value of the field
+        position should be an array of shape (3,) or (n1,n2,..,3)
+        last axis contains coordinates x, y, z
+
+        NB: position is already checked and converted to an array in the
+            `AbstractField` class
         """
-        # convert to arrays, in case
-        x = np.asanyarray(x)
-        y = np.asanyarray(y)
-        z = np.asanyarray(z)
-
-        # make an array of zeros with good size
-        # NB: x, y and z should be broadcastable
-        zero_array = 0.0 * x * y * z
-        res = zero_array[..., np.newaxis] + self.__offset
-        return res
+        # 'position' already has the right size here
+        # as it contains 3D vectors (position)
+        # so we can generate an homogeneous field quite easily
+        value = position * 0.0 + self.__offset
+        return value
 
     def gen_infostring_obj(self):
         """Generates an info string object"""
@@ -320,16 +339,21 @@ class AbstractGradientField(AbstractField):
         super(AbstractGradientField, self).__init__()
 
     # -- value
-    def value(self, x, y, z):
-        """Returns the value of the field at point (x, y, z).
-        Args:
-            x (float): x position in lab frame
-            y (float): y position in lab frame
-            z (float): z position in lab frame
+    # pylint : disable=method_hidden
+    @staticmethod
+    def _field_value_func(self, position):
+        """Returns field value at point position
 
-        Returns:
-            value: the value of the field
+        position should be an array of shape (3,) or (n1,n2,..,3)
+        last axis contains coordinates x, y, z
+
+        NB: position is already checked and converted to an array in the
+            `AbstractField` class
         """
+        # - get X, Y, and Z
+        x, y, z = position.T
+        x, y, z = x.T, y.T, z.T
+
         # - get gradient vector angles
         theta = self.__gradient_theta
         phi = self.__gradient_phi

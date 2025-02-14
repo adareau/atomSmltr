@@ -25,6 +25,10 @@ ipykernel = "^6.29.5"
 [tool.poetry.group.wayland.dependencies]
 pyqt5 = "^5.15.11"
 
+
+[tool.poetry.group.magpy.dependencies]
+magpylib = "^5.1.1"
+
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
