@@ -595,7 +595,7 @@ class AbstractLaserBeam(Plottable):
         Args:
             ax (custom Axes3D, optional): The axis in which to plot. If None is given (default value) a new ax is generated
             color (string, optional): A matplotlib compatible color. Defaults to None.
-            name (string, optional): The name of the laser, passed as a label when plotting. Defaults to None.
+            name (string, optional): The name of the laser, passed as a label when plotting. If none is given, use the laser tag
             vscale (float, optional): A scaling factor. Use it to tweak the arrow size if needed. Defaults to None.
             show (bool, optional): Whether the show the figure after calling the method. Defaults to False.
 
@@ -623,7 +623,8 @@ class AbstractLaserBeam(Plottable):
 
         # - PLOT
         # waist position
-        ax.scatter(*waist_position, marker="o", color=color, label=name)
+        label = self.tag if name is None else name
+        ax.scatter(*waist_position, marker="o", color=color, label=label)
 
         # plot laser
         r1 = waist_position + dr * unit_vector * 5
