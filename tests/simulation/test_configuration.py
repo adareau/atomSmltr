@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 
 
 def _get_env_objects():
@@ -63,6 +64,29 @@ def test_configuration():
     assert len(config.list_magnetic_fields()) == 2
     assert len(config.list_lasers()) == 0
 
+    # -- updating
+    config.rm_all_objects()
+    las1.direction = [1, 0, 0]
+    mag1.offset = [1, 1, 1]
+    config.add_objects([las1, mag1])
+    mag1.offset = [-1, 1, 1]
+    config.update_objects(mag1, verbose=True)
+    config.print_magnetic_field_info("offset1")
+    mag3 = config.get_magnetic_field_copy("offset1")
+    assert np.allclose(mag3.offset, mag1.offset)
+
+    # check that a copy is indeed given
+    mag3.offset = [0, 0, 1]
+    offset = config.get_magnetic_field_copy("offset1").offset
+    assert np.allclose(offset, mag1.offset)
+
+    # check copy is also given in entry
+    config.rm_all_objects()
+    las1.direction = [1, 0, 0]
+    config.add_objects(las1)
+    las1.direction = [0, 0, 1]
+    config.print_laser_info("laser1")
+
 
 def test_configuration_exceptions():
     from atomsmltr.simulation import Configuration
@@ -70,11 +94,11 @@ def test_configuration_exceptions():
     # -- init
     config = Configuration()
 
-    # check atom exception
+    # - check atom exception
     with pytest.raises(TypeError) as excinfo:
         config.atom = "ytterbium"
 
-    # check environement
+    # - check environement
     mag1, mag2, las1, las2 = _get_env_objects()
     # adding wrong types
     with pytest.raises(TypeError) as excinfo:

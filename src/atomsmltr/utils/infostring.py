@@ -48,6 +48,8 @@ class InfoString(object):
 
     def absorb_section(self, info, target_section, new_name=None):
         """incorporates the section 'section' from a info object 'info'"""
+        # assert
+        assert isinstance(info, InfoString), "'info' should be an InfoString object"
         # get info
         info_dic = info.elements
         assert (
@@ -59,6 +61,16 @@ class InfoString(object):
         self.add_section(new_name)
         for name, value in info_dic[target_section].items():
             self.add_element(name, value)
+
+    def merge(self, info, prefix=""):
+        """Merges info strings"""
+        # assert
+        assert isinstance(info, InfoString), "'info' should be an InfoString object"
+        # merge
+        for section, elements in info.elements.items():
+            self.add_section(prefix + section)
+            for name, value in elements.items():
+                self.add_element(name, value)
 
     def generate(self, display_title=True):
         # init

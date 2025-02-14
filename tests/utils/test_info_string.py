@@ -20,6 +20,17 @@ def test_info_string():
 
     print(info2.generate())
 
+    info3 = InfoString("MAG FIELDS")
+    info3.add_section("Settings A")
+    info3.add_element("param1", "val1")
+    info3.add_element("param2", "val2")
+    info3.add_section("Settings B")
+    info3.add_element("param1", "val1")
+    info3.add_element("param2", "val2")
+
+    info2.merge(info3, prefix="(mag fields) ")
+    print(info2.generate())
+
 
 if __name__ == "__main__":
     test_info_string()

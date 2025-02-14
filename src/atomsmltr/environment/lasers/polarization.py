@@ -185,13 +185,13 @@ class AbstractPolarization(ABC):
 
         return norm
 
-    def get_info_string(self):
-        """Returns an info string for the current polarization state"""
+    def gen_infostring_obj(self):
+        """Returns an info string object for the current polarization state"""
         # - init InfoString object
         info = InfoString("POLARIZATION PROPERTIES")
         # - populate info string
         # object settings
-        info.add_section("Settings")
+        info.add_section("Polarization settings")
         if isinstance(self, Linear):
             info.add_element("type", self.type)
             info.add_element("angle", f"{self.angle / np.pi:.2f} pi")
@@ -229,11 +229,13 @@ class AbstractPolarization(ABC):
             else:
                 info.add_element(target, f"{proj:.2f}")
 
-        return info.generate()
+        return info
+
+    def gen_info_string(self, **kwargs):
+        return self.gen_infostring_obj().generate(**kwargs)
 
     def print_info(self):
-        """Prints an info string for the current polarization state"""
-        print(self.get_info_string())
+        print(self.gen_info_string())
 
 
 # % ACTUAL IMPLEMENTATIONS
