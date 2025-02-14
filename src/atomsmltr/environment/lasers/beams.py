@@ -12,7 +12,7 @@ from abc import abstractmethod
 
 # % LOCAL IMPORTS
 from .polarization import Vertical, AbstractPolarization
-from ...utils.plotter import Plottable
+from ..envbase import EnvObject
 from ...utils.misc import check_position_array
 
 # % GLOBAL DEFINITIONS
@@ -52,7 +52,7 @@ def _intensity_gauss(
 # % ABSTRACT CLASSES
 
 
-class AbstractLaserBeam(Plottable):
+class AbstractLaserBeam(EnvObject):
     """docstring for AbstractLaserBeam."""
 
     def __init__(
@@ -74,9 +74,8 @@ class AbstractLaserBeam(Plottable):
         self.direction_type = direction_type
         self.direction = direction
         self.polarization = polarization
-        self.tag = tag
 
-        super().__init__()
+        super().__init__(tag=tag)
 
     # -- COMMON METHODS DEFINED HERE
     def _convert_coordinates_to_laser_frame(self, x, y, z):
@@ -488,17 +487,6 @@ class AbstractLaserBeam(Plottable):
             msg = "`polarization` should be a Polarization object, from atomsmltr.environment.lasers.polarization"
             raise TypeError(msg)
         self._polarization = value
-
-    # - tag
-    @property
-    def tag(self) -> str:
-        return self._tag
-
-    @tag.setter
-    def tag(self, value: str) -> None:
-        if not isinstance(value, str):
-            raise TypeError("'tag' should be a string")
-        self._tag = value
 
     # -- hidden methods
     def _positive_float_check(self, param_name: str, value: float) -> None:

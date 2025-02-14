@@ -11,18 +11,18 @@ from matplotlib.axes import Axes
 from abc import abstractmethod
 
 # % LOCAL IMPORTS
-from ...utils.plotter import Plottable
+from ..envbase import EnvObject
 from ...utils.infostring import InfoString
 from ...utils.misc import check_position_array
 
 # % ABSTRACT CLASSES
 
 
-class AbstractField(Plottable):
+class AbstractField(EnvObject):
     """A generic, abstract class to handle fields (magnetic mostly)"""
 
-    def __init__(self):
-        super(AbstractField, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(AbstractField, self).__init__(*args, **kwargs)
 
     @property
     @abstractmethod
@@ -255,14 +255,14 @@ class AbstractField(Plottable):
 class AbstractOffsetField(AbstractField):
     """To generate perfect field offset"""
 
-    def __init__(self, offset: npt.ArrayLike = (0, 0, 0)):
+    def __init__(self, offset: npt.ArrayLike = (0, 0, 0), tag: str = ""):
         """Generates a constant offset field
 
         Args:
             offset (npt.ArrayLike): offset of the field (array of size 3)
         """
         self.offset = offset
-        super(AbstractField, self).__init__()
+        super(AbstractField, self).__init__(tag)
 
     # -- getters and setters
 
@@ -315,6 +315,7 @@ class AbstractGradientField(AbstractField):
         gradient_direction: npt.ArrayLike,
         field_direction: npt.ArrayLike,
         offset: float = 0.0,
+        tag: str = "",
     ):
         """Abstract Gradient
 
@@ -336,7 +337,7 @@ class AbstractGradientField(AbstractField):
         self.origin = origin
         self.gradient_direction = gradient_direction
         self.field_direction = field_direction
-        super(AbstractGradientField, self).__init__()
+        super(AbstractGradientField, self).__init__(tag)
 
     # -- value
     # pylint : disable=method_hidden

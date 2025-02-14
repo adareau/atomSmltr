@@ -35,6 +35,12 @@ def _check_vector_field_value_function(func):
     assert value.shape == position.shape
 
 
+def _generic_magfield_test(mag_field):
+    new_tag = "super magnet"
+    mag_field.tag = new_tag
+    assert mag_field.tag == new_tag
+
+
 def test_magnetic_import():
     from atomsmltr.environment.fields import magnetic
 
@@ -51,8 +57,10 @@ def test_magnetic_offset():
     # -- good usage
     # - check init and info print
     offset = (1, 0, 0)
-    mag_field = MagneticOffset(offset=offset)
+    mag_field = MagneticOffset(offset=offset, tag="offset")
     mag_field.print_info()
+    assert mag_field.tag == "offset"
+    _generic_magfield_test(mag_field)
 
     # - check value function behaviour
     _check_vector_field_value_function(mag_field.value)
@@ -78,8 +86,11 @@ def test_magnetic_gradient():
         gradient_direction=(1, 0, 0),
         field_direction=(0, 1, 1),
         offset=0,
+        tag="gradient",
     )
     mag_field.print_info()
+    assert mag_field.tag == "gradient"
+    _generic_magfield_test(mag_field)
 
     # -- check value function behaviour
     _check_vector_field_value_function(mag_field.value)
@@ -151,8 +162,11 @@ def test_magpy_integration():
     from atomsmltr.environment.fields.magnetic import MagpylibWrapper
 
     loop = magpy.current.Circle(current=1, diameter=1)
-    mag_field = MagpylibWrapper(loop)
+    mag_field = MagpylibWrapper(loop, tag="wrapped")
     mag_field.print_info()
+    assert mag_field.tag == "wrapped"
+    _generic_magfield_test(mag_field)
+
     mag_field.value([0, 0, 0])
 
     _check_vector_field_value_function(mag_field.value)

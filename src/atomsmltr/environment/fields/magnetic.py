@@ -41,13 +41,13 @@ class MagneticField(AbstractField):
 class MagneticOffset(MagneticField, AbstractOffsetField):
     """Our magnetic field class"""
 
-    def __init__(self, offset: float):
+    def __init__(self, offset: float, tag: str = ""):
         """Generates a constant offset magnetic field
 
         Args:
             offset (npt.ArrayLike): offset of the field (array of size 3)
         """
-        super(MagneticOffset, self).__init__(offset)
+        super(MagneticOffset, self).__init__(offset, tag)
 
     @property
     def type(self):
@@ -64,6 +64,7 @@ class MagneticGradient(MagneticField, AbstractGradientField):
         gradient_direction: npt.ArrayLike,
         field_direction: npt.ArrayLike,
         offset: float = 0.0,
+        tag: str = "",
     ):
         """Magnetic field perfect gradient
 
@@ -86,6 +87,7 @@ class MagneticGradient(MagneticField, AbstractGradientField):
             gradient_direction=gradient_direction,
             field_direction=field_direction,
             offset=offset,
+            tag=tag,
         )
 
     @property
@@ -96,13 +98,13 @@ class MagneticGradient(MagneticField, AbstractGradientField):
 class MagpylibWrapper(MagneticField):
     """Our magnetic field class"""
 
-    def __init__(self, magpy_object):
+    def __init__(self, magpy_object, tag: str = ""):
         """Generates a constant offset magnetic field
 
         Args:
             offset (npt.ArrayLike): offset of the field (array of size 3)
         """
-        super(MagpylibWrapper, self).__init__()
+        super(MagpylibWrapper, self).__init__(tag)
         self.magpy_object = magpy_object
 
     @property
