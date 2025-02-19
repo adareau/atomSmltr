@@ -159,7 +159,7 @@ def test_magnetic_gradient():
 
 def test_magpy_integration():
     import magpylib as magpy
-    from atomsmltr.environment.fields.magnetic import MagpylibWrapper
+    from atomsmltr.environment.fields.magnetic.magpylib import MagpylibWrapper
 
     loop = magpy.current.Circle(current=1, diameter=1)
     mag_field = MagpylibWrapper(loop, tag="wrapped")

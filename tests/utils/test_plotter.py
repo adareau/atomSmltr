@@ -174,7 +174,7 @@ def test_mag_field_plotter():
 
 def test_mag_field_plotter_for_magpylib():
     import magpylib as magpy
-    from atomsmltr.environment.fields.magnetic import MagpylibWrapper
+    from atomsmltr.environment.fields.magnetic.magpylib import MagpylibWrapper
 
     loop = magpy.current.Circle(current=1, diameter=1)
     mag_field = MagpylibWrapper(loop)

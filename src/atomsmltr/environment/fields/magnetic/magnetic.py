@@ -7,11 +7,11 @@ import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
-import magpylib as magpy
+
 
 # % LOCAL IMPORTS
-from .generic import AbstractField, AbstractGradientField, AbstractOffsetField
-from ...utils.infostring import InfoString
+from ..generic import AbstractField, AbstractGradientField, AbstractOffsetField
+from ....utils.infostring import InfoString
 
 # % CLASSES
 
@@ -93,51 +93,3 @@ class MagneticGradient(MagneticField, AbstractGradientField):
     @property
     def type(self):
         return "magnetic field gradient"
-
-
-class MagpylibWrapper(MagneticField):
-    """Our magnetic field class"""
-
-    def __init__(self, magpy_object, tag: str = ""):
-        """Generates a constant offset magnetic field
-
-        Args:
-            offset (npt.ArrayLike): offset of the field (array of size 3)
-        """
-        super(MagpylibWrapper, self).__init__(tag)
-        self.magpy_object = magpy_object
-
-    @property
-    def type(self):
-        return "magpylib object"
-
-    # -- requested methods for AbstractField
-    # pylint : disable=method_hidden
-    @staticmethod
-    def _field_value_func(self, position):
-        """Returns field value at point position
-
-        position should be an array of shape (3,) or (n1,n2,..,3)
-        last axis contains coordinates x, y, z
-
-        NB: position is already checked and converted to an array in the
-            `AbstractField` class
-        """
-        # let's call the magpy get_B function
-        B = magpy.getB(self.magpy_object, position, squeeze=False)
-        # sqeeeeeeze
-        value = B.T
-        while value.ndim > position.ndim:
-            value = np.squeeze(value, axis=-1)
-        return value.T
-
-    def gen_infostring_obj(self):
-        """Generates an info string object"""
-        unit = self.unit
-        title = self.type
-        title = title[:1].upper() + title[1:]  # capitalize first letter
-        info = InfoString(title=title)
-        info.add_section("Parameters")
-        info.add_element("type", "magpylib object")
-        # TODO can we have more info ?
-        return info
