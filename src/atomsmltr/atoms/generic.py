@@ -48,6 +48,10 @@ class Atom(ABC):
     def transitions(self) -> float:
         return self.__transitions.values()
 
+    @property
+    def trans(self) -> dict:
+        return copy(self.__transitions)
+
     # - RADIATION PRESSURE
 
     def get_radiation_pressure(

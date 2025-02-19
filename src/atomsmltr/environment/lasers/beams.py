@@ -655,7 +655,7 @@ class AbstractLaserBeam(EnvObject):
     def disp_type(self) -> str:
         return ""
 
-    def gen_infostring_obj(self):
+    def gen_infostring_obj(self, show_polar=True):
         """Generates an info string object"""
         title = self.type
         title = title[:1].upper() + title[1:]  # capitalize first letter
@@ -671,10 +671,15 @@ class AbstractLaserBeam(EnvObject):
         info.add_element(f"unit vector phi", f"π × {self._unit_vector_phi / np.pi}")
         info.add_element(f"unit vector theta", f"π × {self._unit_vector_theta / np.pi}")
 
-        info_polar = self.polarization.gen_infostring_obj()
-        info.merge(info_polar, prefix="")
+        if show_polar:
+            info_polar = self.polarization.gen_infostring_obj()
+            info.merge(info_polar, prefix="")
 
         return info
+
+    def print_info(self, show_polar=True):
+        info_str = self.gen_infostring_obj(show_polar)
+        print(info_str.generate())
 
 
 # % IMPLEMENTED CLASSES
@@ -714,3 +719,14 @@ class GaussianLaserBeam(AbstractLaserBeam):
         )
 
         return intensity
+
+    @property
+    def rayleigh_length(self) -> float:
+        return np.pi * self.waist**2 / self.wavelength
+
+    def gen_infostring_obj(self, show_polar=True):
+        info = super().gen_infostring_obj(show_polar)
+        info.add_element(
+            "Rayleigh length", f"{self.rayleigh_length:.2g} m", section="Parameters"
+        )
+        return info
