@@ -13,6 +13,9 @@ from ..environment.envbase import EnvObject
 from ..atoms import Atom
 from ..utils.infostring import InfoString
 
+# % CONSTANTS
+
+SEP_STR = "# ------------ {} ------------ #"
 
 # % DEFINE THE CLASS
 
@@ -229,6 +232,10 @@ class Configuration(object):
         """Returns the list of magnetic fields' tags in the current config"""
         return list(self.__magfields)
 
+    def list_zones(self):
+        """Returns the list of magnetic fields' tags in the current config"""
+        return list(self.__zones)
+
     # REMOVING
     def rm_object(self, collection: str, tag: str):
         """Remove object from 'collection' with 'tag'
@@ -277,8 +284,9 @@ class Configuration(object):
         self.__zones.clear()
 
     # -- INFOS
-    def print_object_info(self, collection, tag):
-        """Print info for an object from 'collection' with 'tag'
+
+    def gen_object_infostring_object(self, collection, tag):
+        """Generate infostring object for an object from 'collection' with 'tag'
 
         Collection must be in ['laser', 'magnetic field', 'zone'    ]
 
@@ -289,6 +297,18 @@ class Configuration(object):
         coll = self.__check_object_in_coll(collection, tag)
         info = coll[tag].gen_infostring_obj()
         info.title = f"{collection} | {tag=}"
+        return info
+
+    def print_object_info(self, collection, tag):
+        """Print info for an object from 'collection' with 'tag'
+
+        Collection must be in ['laser', 'magnetic field', 'zone'    ]
+
+        Args:
+            collection (str): the collection from which the object should be removed
+            tag (str): the tag of the object
+        """
+        info = self.gen_object_infostring_object(collection, tag)
         print(info.generate())
 
     def print_laser_info(self, tag):
@@ -395,3 +415,48 @@ class Configuration(object):
 
     def print_atomlight_info(self):
         print(self.gen_atomlight_infostring_obj().generate())
+
+    def gen_infostring_obj_list(self):
+        # - prepare output
+        info_list = []
+        # - general infostring
+        info = InfoString("General informations")
+        # atom
+        info.add_section("atom")
+        info.add_element("name", self.atom.name)
+        # collections
+        for name, coll in self.__implemented_collections.items():
+            info.add_section(name + "s")
+            if coll:
+                for tag in coll:
+                    info.add_element(tag)
+            else:
+                info.add_element("empty")
+
+        # append to list
+        info_list.append(info)
+
+        # - atom info
+        info = self.atom.gen_infostring_obj()
+        info.title = f"atom | {self.atom.name.lower()}"
+        info_list.append(info)
+
+        # - collections
+        for name, coll in self.__implemented_collections.items():
+            for tag in coll:
+                info = self.gen_object_infostring_object(name, tag)
+                info_list.append(info)
+
+        # - atom light
+        info = self.gen_atomlight_infostring_obj()
+        info_list.append(info)
+
+        return info_list
+
+    def print_info(self):
+        """Prints informations on the configuration"""
+        info_list = self.gen_infostring_obj_list()
+        print(SEP_STR.format("CONFIG INFO > START"))
+        for info in info_list:
+            print(info.generate())
+        print(SEP_STR.format("CONFIG INFO > STOP "))

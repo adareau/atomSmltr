@@ -185,7 +185,47 @@ def test_configuration_exceptions():
         config.rm_laser("las3")
 
 
+def test_configuration_print_info():
+    from atomsmltr.simulation import Configuration
+    from atomsmltr.atoms.collection import Ytterbium
+    from atomsmltr.environment.lasers.beams import GaussianLaserBeam
+    from atomsmltr.environment.fields.magnetic import MagneticGradient, MagneticOffset
+
+    # init config
+    config = Configuration()
+
+    # set atom
+    config.atom = Ytterbium()
+
+    # set lasers
+    laser399_1 = GaussianLaserBeam(
+        399e-9, 100e-6, 10e-3, (0, 0, 0), (0, 0, 1), tag="399-1"
+    )
+    laser399_2 = GaussianLaserBeam(
+        399e-9, 100e-6, 10e-3, (0, 0, 0), (0, 0, 1), tag="399-2"
+    )
+    laser556 = GaussianLaserBeam(556e-9, 100e-6, 10e-3, (0, 0, 0), (0, 0, 1), tag="556")
+
+    # set magnetic fields
+    mag_offset = MagneticOffset([0.1, 0, 0.4], tag="compensation")
+    mag_gradient = MagneticGradient(
+        [0, 0, 0], 1.0, [0, 0, 1], [0, 1, 0], tag="gradient"
+    )
+
+    # add
+    config.add_objects([laser399_1, laser399_2, laser556, mag_offset, mag_gradient])
+
+    # setup atom-light
+    config.add_atomlight_coupling("399-1", "main", detuning=0)
+    config.add_atomlight_coupling("399-2", "main", detuning=-4)
+    config.add_atomlight_coupling("556", "intercombination", 0)
+
+    # print info
+    config.print_info()
+
+
 if __name__ == "__main__":
     # test_configuration_collection_management()
     # test_configuration_exceptions()
-    test_configuration_atom_light()
+    # test_configuration_atom_light()
+    test_configuration_print_info()
