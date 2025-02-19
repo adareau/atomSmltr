@@ -149,6 +149,10 @@ class AtomicTransition(ABC):
     def Isat_mW_per_cm2(self):
         return _Isat_mW_per_cm2(self.wavelength, self.Gamma)
 
+    @property
+    def k(self):
+        return 2 * np.pi / self.wavelength
+
     # -- METHODS
 
     def get_saturation_parameter(self, intensity: float) -> float:
@@ -243,7 +247,7 @@ class J0J1Transition(AtomicTransition):
         # -- Zeeman effect
         # NB : detuning is 2 * pi * (f_laser - f_atom)
         # constants
-        mu_B = csts.physical_constants["Bohr magneton"]
+        mu_B = csts.physical_constants["Bohr magneton"][0]
         mu = self.lande_factor * mu_B / csts.hbar
 
         # compute detuning

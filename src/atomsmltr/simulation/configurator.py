@@ -4,8 +4,9 @@ to make a consistent configuration for the simulator
 """
 
 # % IMPORTS
-from copy import copy
 import warnings
+import numpy as np
+from copy import copy
 
 # % LOCAL IMPORTS
 from ..environment import AbstractLaserBeam, MagneticField
@@ -43,6 +44,16 @@ class Configuration(object):
             self.add_objects(object_list)
 
     # -- ATOM-LIGHT INTERACTION HANDLING
+
+    def get_atomlight_couples(self):
+        list = []
+        for transition_tag, laser_dict in self.__atomlight.items():
+            transition = self.atom.trans[transition_tag]
+            for laser_tag, coupling_info in laser_dict.items():
+                laser = self.__lasers[laser_tag]
+                detuning = coupling_info["detuning"]
+                list.append((transition, laser, detuning))
+        return list
 
     def add_atomlight_coupling(
         self,
@@ -108,6 +119,25 @@ class Configuration(object):
 
     def reset_atomlight_coupling(self):
         self.__atomlight.clear()
+
+    # -- GETTING VALUES
+    def getB(self, position):
+        """Returns magnetic field at a given position in the lab frame
+
+            position is an array_like object, with shape (3,) or (n1, n2, .., 3).
+            In all cases, the last dimension contains cordinates (x, y, z), in meter and in the lab frame
+
+        Args:
+            position (array_like, shape (3,) or (n,3)) : positions at which the intensity is computed
+
+        Returns:
+            magnetic field (float or array): laser intensity at positions, with dimension matching the 'position' input.
+        """
+        B = np.zeros_like(position, dtype=float)
+        if self.__magfields:
+            for magfield in self.__magfields.values():
+                B += magfield.value(position)
+        return B
 
     # -- COLLECTION HANDLING METHODS
 

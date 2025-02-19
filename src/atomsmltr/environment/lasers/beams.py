@@ -490,6 +490,19 @@ class AbstractLaserBeam(EnvObject):
             raise TypeError(msg)
         self._polarization = value
 
+    # - others
+    @property
+    def unit_vector(self):
+        return self._unit_vector
+
+    @property
+    def k(self):
+        return 2 * np.pi / self.wavelength
+
+    @property
+    def kvec(self):
+        return self.k * self.unit_vector
+
     # -- hidden methods
     def _positive_float_check(self, param_name: str, value: float) -> None:
         """internal function to check that a parameter is a positive float, raises a `ValueError` if not.
