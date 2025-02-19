@@ -22,6 +22,8 @@ class Atom(ABC):
         self.__transitions = {}
         super().__init__()
 
+    # - GETTERS AND SETTERS
+
     @property
     def mass(self) -> float:
         """The atom mass in kg"""
@@ -45,6 +47,36 @@ class Atom(ABC):
     @property
     def transitions(self) -> float:
         return self.__transitions.values()
+
+    # - RADIATION PRESSURE
+
+    def get_radiation_pressure(
+        self,
+        transition: str,  # the transition tag
+        intensity: float,  # the intensity in W/cm^2
+        mag_field: float,  # the amplitude of the magnetic field
+        polarization: list,  # projection of laser polarization on (pi, sigma+, sigma-)
+        detuning: float,  # laser detuning
+    ):
+        # parameter check
+        transition_list = self.list_transitions()
+        msg = f"There is no transition with tag '{transition}'. Available transitions : {transition_list}"
+        if transition not in transition_list:
+            raise KeyError(msg)
+
+        # get scattering rate
+        trans = self.__transitions[transition]
+        scattering_rate = trans.get_scattering_rate(
+            intensity, mag_field, polarization, detuning
+        )
+
+        # convert to radiation pressure
+        k = 2 * csts.pi / trans.wavelength
+        F_rad = csts.hbar * k * scattering_rate
+
+        return F_rad
+
+    # - TRANSITIONS MANAGEMENT
 
     def get_transitions_copy(self):
         """to get a copy, so that the transition collection stays protected"""
@@ -73,6 +105,8 @@ class Atom(ABC):
     def rm_transition(self, tag: str):
         """removes a transition from the list"""
         del self.__transitions[tag]
+
+    # - INFOSTRING
 
     def _gen_infostring_obj(self):
         """Generates an info string object"""

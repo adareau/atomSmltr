@@ -36,6 +36,10 @@ def test_atom_transitions():
     with pytest.raises(KeyError) as excinfo:
         atom.rm_transition("transition")
 
+    # - key error for radiation pressure
+    with pytest.raises(KeyError) as excinfo:
+        atom.get_radiation_pressure("transition", 0, 0, (1, 0, 0), -5)
+
 
 def test_ytterbium_atom():
     from atomsmltr.atoms.collection import Ytterbium

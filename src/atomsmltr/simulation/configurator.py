@@ -43,6 +43,7 @@ class Configuration(object):
             self.add_objects(object_list)
 
     # -- ATOM-LIGHT INTERACTION HANDLING
+
     def add_atomlight_coupling(
         self,
         laser: str | AbstractLaserBeam,
