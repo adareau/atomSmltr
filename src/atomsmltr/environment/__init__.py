@@ -1,2 +1,2 @@
 from .fields.magnetic import MagneticField
-from .lasers.beams import AbstractLaserBeam
+from .lasers.beams import BaseLaserBeam

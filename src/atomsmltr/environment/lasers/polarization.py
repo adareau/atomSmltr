@@ -14,7 +14,7 @@ from ...utils.infostring import InfoString
 # % ABSTRACT CLASS
 
 
-class AbstractPolarization(ABC):
+class BasePolarization(ABC):
     """Handles laser polarization"""
 
     def __init__(self):
@@ -241,7 +241,7 @@ class AbstractPolarization(ABC):
 # % ACTUAL IMPLEMENTATIONS
 
 
-class Vertical(AbstractPolarization):
+class Vertical(BasePolarization):
     """Vertical polarization (along x in the laser frame)"""
 
     def __init__(self):
@@ -253,7 +253,7 @@ class Vertical(AbstractPolarization):
         return (1, 0, 0)
 
 
-class Horizontal(AbstractPolarization):
+class Horizontal(BasePolarization):
     """Horizontal polarization (along y in the laser frame)"""
 
     def __init__(self):
@@ -265,7 +265,7 @@ class Horizontal(AbstractPolarization):
         return (0, 1, 0)
 
 
-class CircularLeft(AbstractPolarization):
+class CircularLeft(BasePolarization):
     """Circular Left polarization (observer point of vue)"""
 
     def __init__(self):
@@ -277,7 +277,7 @@ class CircularLeft(AbstractPolarization):
         return (0, 0, -1)
 
 
-class CircularRight(AbstractPolarization):
+class CircularRight(BasePolarization):
     """Circular Right polarization (observer point of vue)"""
 
     def __init__(self):
@@ -289,7 +289,7 @@ class CircularRight(AbstractPolarization):
         return (0, 0, 1)
 
 
-class Linear(AbstractPolarization):
+class Linear(BasePolarization):
     """Arbitrary linear polarization"""
 
     def __init__(self, angle):
@@ -323,7 +323,7 @@ class Linear(AbstractPolarization):
         self._angle = value
 
 
-class Vector(AbstractPolarization):
+class Vector(BasePolarization):
     """Arbitrary vector polarization"""
 
     def __init__(self, vector):
