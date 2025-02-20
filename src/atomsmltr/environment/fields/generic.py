@@ -18,11 +18,11 @@ from ...utils.misc import check_position_array
 # % ABSTRACT CLASSES
 
 
-class BaseField(EnvObject):
+class Field(EnvObject):
     """A generic, abstract class to handle fields (magnetic mostly)"""
 
     def __init__(self, *args, **kwargs):
-        super(BaseField, self).__init__(*args, **kwargs)
+        super(Field, self).__init__(*args, **kwargs)
 
     @property
     @abstractmethod
@@ -234,7 +234,7 @@ class BaseField(EnvObject):
 # % TOOL CLASSES
 
 
-class BaseOffsetField(BaseField):
+class OffsetField(Field):
     """To generate perfect field offset"""
 
     def __init__(self, offset: npt.ArrayLike = (0, 0, 0), tag: str = ""):
@@ -244,7 +244,7 @@ class BaseOffsetField(BaseField):
             offset (npt.ArrayLike): offset of the field (array of size 3)
         """
         self.offset = offset
-        super(BaseField, self).__init__(tag)
+        super(Field, self).__init__(tag)
 
     # -- getters and setters
 
@@ -256,7 +256,7 @@ class BaseOffsetField(BaseField):
     def offset(self, value: npt.ArrayLike):
         self.__offset = self._check_3D_vector(value, "offset")
 
-    # -- requested methods for BaseField
+    # -- requested methods for Field
     # pylint : disable=method_hidden
     @staticmethod
     def _field_value_func(self, position):
@@ -266,7 +266,7 @@ class BaseOffsetField(BaseField):
         last axis contains coordinates x, y, z
 
         NB: position is already checked and converted to an array in the
-            `BaseField` class
+            `Field` class
         """
         # 'position' already has the right size here
         # as it contains 3D vectors (position)
@@ -287,7 +287,7 @@ class BaseOffsetField(BaseField):
         return info
 
 
-class BaseGradientField(BaseField):
+class GradientField(Field):
     """To generate perfect gradients"""
 
     def __init__(
@@ -319,7 +319,7 @@ class BaseGradientField(BaseField):
         self.origin = origin
         self.gradient_direction = gradient_direction
         self.field_direction = field_direction
-        super(BaseGradientField, self).__init__(tag)
+        super(GradientField, self).__init__(tag)
 
     # -- value
     # pylint : disable=method_hidden
@@ -331,7 +331,7 @@ class BaseGradientField(BaseField):
         last axis contains coordinates x, y, z
 
         NB: position is already checked and converted to an array in the
-            `BaseField` class
+            `Field` class
         """
         # - get X, Y, and Z
         x, y, z = position.T

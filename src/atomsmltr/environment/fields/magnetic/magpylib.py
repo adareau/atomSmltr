@@ -30,7 +30,7 @@ class MagpylibWrapper(MagneticField):
     def type(self):
         return "magpylib object"
 
-    # -- requested methods for BaseField
+    # -- requested methods for Field
     # pylint : disable=method_hidden
     @staticmethod
     def _field_value_func(self, position):
@@ -40,7 +40,7 @@ class MagpylibWrapper(MagneticField):
         last axis contains coordinates x, y, z
 
         NB: position is already checked and converted to an array in the
-            `BaseField` class
+            `Field` class
         """
         # let's call the magpy get_B function
         B = magpy.getB(self.magpy_object, position, squeeze=False)

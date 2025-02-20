@@ -10,7 +10,7 @@ from matplotlib.axes import Axes
 
 
 # % LOCAL IMPORTS
-from ..generic import BaseField, BaseGradientField, BaseOffsetField
+from ..generic import Field, GradientField, OffsetField
 from ....utils.infostring import InfoString
 
 # % CLASSES
@@ -22,7 +22,7 @@ from ....utils.infostring import InfoString
 #   in the environment object
 
 
-class MagneticField(BaseField):
+class MagneticField(Field):
     """Our magnetic field class"""
 
     def __init__(self, *args, **kwargs):
@@ -38,7 +38,7 @@ class MagneticField(BaseField):
 
 
 # -- PERFECT FIELDS CLASSES
-class MagneticOffset(MagneticField, BaseOffsetField):
+class MagneticOffset(MagneticField, OffsetField):
     """Our magnetic field class"""
 
     def __init__(self, offset: float, tag: str = ""):
@@ -54,7 +54,7 @@ class MagneticOffset(MagneticField, BaseOffsetField):
         return "magnetic field offset"
 
 
-class MagneticGradient(MagneticField, BaseGradientField):
+class MagneticGradient(MagneticField, GradientField):
     """Our magnetic field class"""
 
     def __init__(
