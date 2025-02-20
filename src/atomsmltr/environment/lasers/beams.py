@@ -349,6 +349,30 @@ class AbstractLaserBeam(EnvObject):
             res[k] = np.linalg.norm(v) ** 2
         return res
 
+    def get_polarization_array(self, mag_field_vector):
+        """Identitical to 'get_polarization_magnetic_projection_norm', but returns an array instead of a dict
+
+        Returns the **squared norm** of projection of the polarization state |Ψ⟩ on |σ+⟩, |σ-⟩ and |π⟩, using
+        the magnetic field vector `mag_field_vector` as a quantification axis. See documentation
+        for a derivation of this projection.
+
+        The result is returned as an array = (|〈Ψ|π⟩|**2 , |〈Ψ|σ+⟩|**2,  |〈Ψ|σ-⟩|**2)
+
+        Args:
+            mag_field_vector (array, size 3): cartesian coordinates of the magnetic field in the lab frame
+
+        Returns:
+            res (array): array containing the projections, see above
+        """
+        # TODO : make it vectorized ?
+        amp = self.get_polarization_magnetic_projection(mag_field_vector)
+        res = [
+            np.linalg.norm(amp["pi"]) ** 2,
+            np.linalg.norm(amp["sigma+"]) ** 2,
+            np.linalg.norm(amp["sigma-"]) ** 2,
+        ]
+        return np.array(res)
+
     # -- REQUIRED ABSTRACT METHODS
 
     def get_intensity(self, position: np.ndarray) -> np.ndarray:
