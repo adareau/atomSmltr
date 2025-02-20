@@ -48,7 +48,15 @@ def test_ytterbium_atom():
     yb.print_info()
 
 
+def test_strontium_atom():
+    from atomsmltr.atoms.collection import Strontium
+
+    sr = Strontium()
+    sr.print_info()
+
+
 if __name__ == "__main__":
     test_atom_import()
     test_atom_transitions()
     test_ytterbium_atom()
+    test_strontium_atom()
