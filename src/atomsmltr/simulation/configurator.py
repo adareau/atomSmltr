@@ -456,7 +456,10 @@ class Configuration(object):
             if couplings:
                 for laser, params in couplings.items():
                     detuning = params["detuning"]
-                    info.add_element(f"laser '{laser}'", f"{detuning=:.3g}")
+                    trans_Gamma = self.atom.trans[transition].Gamma
+                    det_str = f"{detuning=:.3g}"
+                    det_str += f" ({detuning / trans_Gamma:.2f}Γ)"
+                    info.add_element(f"laser '{laser}'", det_str)
             else:
                 info.add_element("empty")
         return info

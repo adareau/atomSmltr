@@ -181,6 +181,16 @@ class AtomicTransition(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_resonant_speed(
+        self,
+        mag_field: float,  # the amplitude of the magnetic field
+        polarization: str,  # "pi", "sigma+", "sigma-"
+        detuning: float,  # laser detuning
+    ):
+        """To be defined for each implementation"""
+        pass
+
     def _gen_infostring_obj(self):
         """Generates an info string object"""
         info = InfoString(title=self.tag)
@@ -206,6 +216,14 @@ class DummyTransition(AtomicTransition):
     def get_scattering_rate(self, intensity, mag_field, polarization, detuning):
         rate = _scattering_rate(self.__wavelength, self.__Gamma, intensity, detuning)
         return rate
+
+    def get_resonant_speed(
+        self,
+        mag_field: float,  # the amplitude of the magnetic field
+        polarization: str,  # "pi", "sigma+", "sigma-"
+        detuning: float,  # laser detuning
+    ):
+        return 0
 
 
 # % REAL IMPLEMENTATIONS
@@ -272,3 +290,22 @@ class J0J1Transition(AtomicTransition):
         scatt_total = scatt_pi + scatt_sigm_minus + scatt_sigm_plus
 
         return scatt_total
+
+    def get_resonant_speed(
+        self,
+        mag_field: float,  # the amplitude of the magnetic field
+        polarization: str,  # "pi", "sigma+", "sigma-"
+        detuning: float,  # laser detuning
+    ):
+        # -- check input
+        polar_list = ["pi", "sigma+", "sigma-"]
+        msg = f"'polarization' should be in {polar_list}"
+        assert polarization in polar_list, msg
+
+        # -- factor
+        mu_B = csts.physical_constants["Bohr magneton"][0]
+        mu = self.lande_factor * mu_B / csts.hbar
+        prefact = {"pi": 0, "sigma+": 1, "sigma-": -1}
+
+        v_res = (detuning - mu * prefact[polarization] * mag_field) / self.k
+        return v_res
