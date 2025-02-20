@@ -139,6 +139,23 @@ class Configuration(object):
                 B += magfield.value(position)
         return B
 
+    def getBnorm(self, position):
+        """Returns magnetic field norm at a given position in the lab frame
+
+            position is an array_like object, with shape (3,) or (n1, n2, .., 3).
+            In all cases, the last dimension contains cordinates (x, y, z), in meter and in the lab frame
+
+        Args:
+            position (array_like, shape (3,) or (n,3)) : positions at which the intensity is computed
+
+        Returns:
+            magnetic field (float or array): laser intensity at positions, with dimension matching the 'position' input.
+        """
+        B = self.getB(position)
+        Bx, By, Bz = B.T
+        B_norm = np.sqrt(Bx**2 + By**2 + Bz**2).T
+        return B_norm
+
     # -- COLLECTION HANDLING METHODS
 
     # ADDING
