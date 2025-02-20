@@ -11,7 +11,7 @@ from matplotlib.axes import Axes
 from abc import abstractmethod
 
 # % LOCAL IMPORTS
-from .polarization import Vertical, AbstractPolarization
+from .polarization import Vertical, BasePolarization
 from ..envbase import EnvObject
 from ...utils.misc import check_position_array
 from ...utils.infostring import InfoString
@@ -54,8 +54,8 @@ def _intensity_gauss(
 # % ABSTRACT CLASSES
 
 
-class AbstractLaserBeam(EnvObject):
-    """docstring for AbstractLaserBeam."""
+class BaseLaserBeam(EnvObject):
+    """docstring for BaseLaserBeam."""
 
     def __init__(
         self,
@@ -65,7 +65,7 @@ class AbstractLaserBeam(EnvObject):
         waist_position: npt.ArrayLike,
         direction: npt.ArrayLike,
         direction_type: str = "vector",
-        polarization: AbstractPolarization = Vertical(),
+        polarization: BasePolarization = Vertical(),
         tag: str = "",
     ):
         self.wavelength = wavelength
@@ -504,12 +504,12 @@ class AbstractLaserBeam(EnvObject):
 
     # - polarization
     @property
-    def polarization(self) -> AbstractPolarization:
+    def polarization(self) -> BasePolarization:
         return self._polarization
 
     @polarization.setter
-    def polarization(self, value: AbstractPolarization) -> None:
-        if not isinstance(value, AbstractPolarization):
+    def polarization(self, value: BasePolarization) -> None:
+        if not isinstance(value, BasePolarization):
             msg = "`polarization` should be a Polarization object, from atomsmltr.environment.lasers.polarization"
             raise TypeError(msg)
         self._polarization = value
@@ -722,7 +722,7 @@ class AbstractLaserBeam(EnvObject):
 # % IMPLEMENTED CLASSES
 
 
-class GaussianLaserBeam(AbstractLaserBeam):
+class GaussianLaserBeam(BaseLaserBeam):
     """docstring for GaussianLaserBeam."""
 
     @property
@@ -743,7 +743,7 @@ class GaussianLaserBeam(AbstractLaserBeam):
         last axis contains coordinates x, y, z
 
         NB: position is already checked and converted to an array in the
-            `AbstractLaserBeam` class
+            `BaseLaserBeam` class
         """
         # - get coordinates in laser frame
         # NB : x, y and phi are not needed here
