@@ -3,15 +3,12 @@
 """
 
 # % IMPORTS
-import numpy as np
 import numpy.typing as npt
-import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
 
 
 # % LOCAL IMPORTS
 from ..generic import Field, GradientField, OffsetField
-from ....utils.infostring import InfoString
+from ..interpolated import InterpolatedField1D1D
 
 # % CLASSES
 
@@ -93,3 +90,12 @@ class MagneticGradient(MagneticField, GradientField):
     @property
     def type(self):
         return "magnetic field gradient"
+
+
+# -- INTERPOLATED
+class InterpMag1D1D(MagneticField, InterpolatedField1D1D):
+    """Our magnetic field class"""
+
+    @property
+    def type(self):
+        return "interpolated mag. field (1D-1D)"
