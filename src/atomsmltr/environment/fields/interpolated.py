@@ -7,7 +7,6 @@ import numpy.typing as npt
 import numpy as np
 from abc import abstractmethod
 
-
 # % LOCAL IMPORTS
 from .generic import Field
 from ...utils.infostring import InfoString
@@ -126,7 +125,8 @@ class InterpolatedField1D1D(InterpolatedField):
             + yc * np.sin(theta) * np.sin(phi)
             + zc * np.cos(theta)
         )
-        value = self.__fun(z_rot)[..., np.newaxis] * self.field_direction
+        value = self.__fun(z_rot)
+        value = value[..., np.newaxis] * self.field_direction
         return value
 
     # -- GETTERS
