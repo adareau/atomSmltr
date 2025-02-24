@@ -80,8 +80,12 @@ class BaseLaserBeam(EnvObject):
         super().__init__(tag=tag)
 
     # -- COMMON METHODS DEFINED HERE
-    def _convert_coordinates_to_laser_frame(self, x, y, z):
+    def _convert_coordinates_to_laser_frame(self, position):
         """Converts lab frame cartesian coordinates to laser frame coordinates.
+
+        'position' should be an array of shape (3,) or (n1,n2,..,3)
+        last axis contains coordinates x, y, z
+
         The laser frame is centered at the laser waist, and has the z axis aligned
         with the laser propagation.
 
@@ -107,18 +111,15 @@ class BaseLaserBeam(EnvObject):
         this rotation will be handled in the `intensity()` method of the corresponding class.
 
         Args:
-            x (float or array): x cartesian coordinate in the lab frame
-            y (float or array): y cartesian coordinate in the lab frame
-            z (float or array): z cartesian coordinate in the lab frame
+            position (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates in lab frame
 
         Returns:
-            x_laser (float or array): x cartesian coordinate in the laser frame
-            y_laser (float or array): y cartesian coordinate in the laser frame
-            z_laser (float or array): z cartesian coordinate in the laser frame
-            rho_laser (float or array): radial polar coordinate in the laser frame
-            phi_laser (float or array): angular polar coordinate in the laser frame
+            laser_position (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates in laser frame
         """
-
+        # convert to array if needed
+        position = check_position_array(position)
+        # get coordinates
+        x, y, z = position.T
         # shift center
         x0, y0, z0 = self._waist_position
         xc = x - x0
@@ -141,11 +142,11 @@ class BaseLaserBeam(EnvObject):
             + zc * np.cos(theta)
         )
 
-        # also yield cylindrical coordinates
-        rho_laser = np.sqrt(x_laser**2 + y_laser**2)
-        th_laser = np.arctan2(y_laser, x_laser)
-
-        return x_laser, y_laser, z_laser, rho_laser, th_laser
+        # also yield cylindrical coordinates - NOT ANYMORE
+        # rho_laser = np.sqrt(x_laser**2 + y_laser**2)
+        # th_laser = np.arctan2(y_laser, x_laser)
+        position_laser = np.array([x_laser, y_laser, z_laser]).T
+        return position_laser
 
     def _convert_vector_to_laser_frame(self, vec):
         """Rotates a vector from lab frame to laser frame.
@@ -205,7 +206,7 @@ class BaseLaserBeam(EnvObject):
         """
         # convert vec
         vec = np.asanyarray(vec)
-        assert vec.size == 3, "`vec` should be an array of size 3"
+        # assert vec.size == 3, "`vec` should be an array of size 3"
         x, y, z = vec
         # rotate : phi around z axis, then theta along new y axis
         # see function docstring and documentation for rotation & frames definitions
@@ -755,9 +756,9 @@ class GaussianLaserBeam(BaseLaserBeam):
         """
         # - get coordinates in laser frame
         # NB : x, y and phi are not needed here
-        x, y, z = position.T
-        _, _, z_laser, rho_laser, _ = self._convert_coordinates_to_laser_frame(x, y, z)
-
+        position_laser = self._convert_coordinates_to_laser_frame(position)
+        x_laser, y_laser, z_laser = position_laser.T
+        rho_laser = np.sqrt(x_laser**2 + y_laser**2)
         # - compute gaussian beam intensity
         intensity = _intensity_gauss(
             rho_laser, z_laser, self.waist, self.power, self.wavelength

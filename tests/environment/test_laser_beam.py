@@ -39,6 +39,37 @@ def _check_scalar_field_value_function(func):
     assert value.shape == X.shape
 
 
+def _check_vector_field_value_function(func):
+    """Checks that a function yielding values of a 3D field
+    field behaves correctly with numpy arrays.
+    """
+
+    # - 0 check exceptions
+    with pytest.raises(ValueError) as excinfo:
+        func(0)
+    with pytest.raises(ValueError) as excinfo:
+        func((0, 0))
+    with pytest.raises(ValueError) as excinfo:
+        func(np.linspace(0, 1, 20))
+    with pytest.raises(ValueError) as excinfo:
+        func(np.mgrid[0:1:10j, 0:1:10j, 0:1:10j])
+
+    # - 1 check that it works with a single position
+    position = (0, 0, 0)
+    value = func(position)
+    assert value.shape == (3,)
+
+    # - 2 with arrays
+    # -
+    position = np.mgrid[0:1:8j, 0:5:10j, 0:0:1j].T
+    value = func(position)
+    assert value.shape == position.shape
+    # -
+    position = position[0]
+    value = func(position)
+    assert value.shape == position.shape
+
+
 def _LaserBeam_classes_generic_properties_test(LaserBeamClass):
 
     # - testing initialization
@@ -420,9 +451,13 @@ def _laserBeam_classes_generic_methods_test(LaserBeamClass):
 
     # 1 - sanity check > waist position is origin of new frame
     x, y, z = beam.waist_position
-    expected_res = (0, 0, 0, 0, 0)
-    res = beam._convert_coordinates_to_laser_frame(x, y, z)
+    expected_res = (0, 0, 0)
+    res = beam._convert_coordinates_to_laser_frame((x, y, z))
+
     assert np.allclose(expected_res, res)
+
+    # 2 - vectorization check
+    _check_vector_field_value_function(beam._convert_coordinates_to_laser_frame)
 
     # -- vector rotations
     # - stupid check : in the laser frame, the beam_direction is aligned with z
