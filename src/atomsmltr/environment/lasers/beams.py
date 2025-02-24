@@ -260,35 +260,41 @@ class BaseLaserBeam(EnvObject):
         p_vec_lab_frame = self._convert_vector_to_lab_frame(p_vec_laser_frame)
         return p_vec_lab_frame
 
-    def get_polarization_magnetic_projection(self, mag_field_vector):
+    def get_polarization_quant_amplitude(self, quantization_axis):
         """Returns the projection of the polarization state |Ψ⟩ on |σ+⟩, |σ-⟩ and |π⟩, using
-        the magnetic field vector `mag_field_vector` as a quantification axis. See documentation
+        the vector `quantization_axis` as a quantification axis. See documentation
         for a derivation of this projection.
 
-        The result is returned as a dictionnary `res`, such as :
+        `quantization_axis` should be an array of shape (3,) or (n1, n2, .., 3), where the cartesian
+        coordinates of the quantization axis are stored in the last dimension (of size 3)
 
-        res["sigma+"] =  〈Ψ|σ+⟩
-        res["sigma-"] =  〈Ψ|σ-⟩
-        res["pi"] =  〈Ψ|π⟩
+        the result `polar_amp`is an array whose size matches the one of `quantization_axi`, where the last
+        dimension of size 3 contains the projections of the polarization state on π, σ+ and σ-
+
+        That is : pi_amp, sigmaplus_amp, sigma_minus_amp = polar_amp.T
+
+        With:
+
+        pi_amp =  〈Ψ|π⟩
+        sigmaplus_amp =  〈Ψ|σ+⟩
+        sigma_minus_amp =  〈Ψ|σ-⟩
 
         Args:
-            mag_field_vector (array, size 3): cartesian coordinates of the magnetic field in the lab frame
+            quantization_axis vec (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates of the quantization axis
 
         Returns:
-            res (dict): dict containing the projections, see above
+            polar_amp (array): array of shape (3,) or (n1, n2, ..., 3) containing the polarization amplitude for π, σ+ and σ- components
         """
-        # -- convert mag field to numpy array
-        uB = np.asanyarray(mag_field_vector)
-        assert uB.size == 3, "`mag_field_vector` should be an array of size 3"
-        norm = np.linalg.norm(uB)
-        assert norm > 0, "`mag_field_vector` nor should not be zero"
-        uB = uB / norm
+
+        # -- process input
+        # - check
+        quantization_axis = check_position_array(quantization_axis)
 
         # -- compute angles of B field w.r.t k vector, in the laser frame
         # 1) coordinates of uB in laser frame
-        uB_laser = self._convert_vector_to_laser_frame(uB)
+        uB_laser = self._convert_vector_to_laser_frame(quantization_axis)
         # 2) compute angles
-        xl, yl, zl = uB_laser
+        xl, yl, zl = uB_laser.T
         alpha = np.arctan2(np.sqrt(xl**2 + yl**2), zl)  # polar angle
         beta = np.arctan2(yl, xl)  # azimuthal angle
 
@@ -322,13 +328,68 @@ class BaseLaserBeam(EnvObject):
         pi_proj = cosB * sinA * x_proj + sinB * sinA * y_proj
 
         # -- result
-        res = {"sigma+": sigma_plus_proj, "sigma-": sigma_minus_proj, "pi": pi_proj}
+        polar_amp = np.array([pi_proj, sigma_plus_proj, sigma_minus_proj]).T
+
+        return polar_amp
+
+    def get_polarization_quant(self, quantization_axis):
+        """Returns **squared norm** the projection of the polarization state |Ψ⟩ on |σ+⟩, |σ-⟩ and |π⟩, using
+        the vector `quantization_axis` as a quantification axis. See documentation
+        for a derivation of this projection.
+
+        `quantization_axis` should be an array of shape (3,) or (n1, n2, .., 3), where the cartesian
+        coordinates of the quantization axis are stored in the last dimension (of size 3)
+
+        the result `polar_norm`is an array whose size matches the one of `quantization_axi`, where the last
+        dimension of size 3 contains the projections of the polarization state on π, σ+ and σ-
+
+        That is : pi_norm, sigmaplus_norm, sigma_minus_norm = polar_norm.T
+
+        With:
+
+        pi_norm =  |〈Ψ|π⟩| ** 2
+        sigmaplus_norm =  |〈Ψ|σ+⟩| ** 2
+        sigma_minus_norm =  |〈Ψ|σ-⟩| ** 2
+
+        Args:
+            quantization_axis vec (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates of the quantization axis
+
+        Returns:
+            polar_norm (array): array of shape (3,) or (n1, n2, ..., 3) containing the polarization amplitude for π, σ+ and σ- components
+        """
+        polar_amp = self.get_polarization_quant_amplitude(quantization_axis)
+        polar_norm = np.abs(polar_amp) ** 2
+        return polar_norm
+
+    def get_polarization_quant_amplitude_dict(self, quantization_axis):
+        """Returns the projection of the polarization state |Ψ⟩ on |σ+⟩, |σ-⟩ and |π⟩, using
+        the magnetic field vector `quantization_axis` as a quantification axis. See documentation
+        for a derivation of this projection.
+
+        The result is returned as a dictionnary `res`, such as :
+
+        res["sigma+"] =  〈Ψ|σ+⟩
+        res["sigma-"] =  〈Ψ|σ-⟩
+        res["pi"] =  〈Ψ|π⟩
+
+        Args:
+            quantization_axis (array, size 3): cartesian coordinates of the magnetic field in the lab frame
+
+        Returns:
+            res (dict): dict containing the projections, see above
+        """
+        # -- get result in array form
+        polar_amp = self.get_polarization_quant_amplitude(quantization_axis)
+        pi_amp, sigma_plus_amp, sigma_minus_amp = polar_amp.T
+
+        # -- result
+        res = {"sigma+": sigma_plus_amp, "sigma-": sigma_minus_amp, "pi": pi_amp}
 
         return res
 
-    def get_polarization_magnetic_projection_norm(self, mag_field_vector):
+    def get_polarization_quant_dict(self, quantization_axis):
         """Returns the **squared norm** of projection of the polarization state |Ψ⟩ on |σ+⟩, |σ-⟩ and |π⟩, using
-        the magnetic field vector `mag_field_vector` as a quantification axis. See documentation
+        the magnetic field vector `quantization_axis` as a quantification axis. See documentation
         for a derivation of this projection.
 
         The result is returned as a dictionnary `res`, such as :
@@ -338,42 +399,18 @@ class BaseLaserBeam(EnvObject):
         res["pi"] =  |〈Ψ|π⟩|**2
 
         Args:
-            mag_field_vector (array, size 3): cartesian coordinates of the magnetic field in the lab frame
+            quantization_axis (array, size 3): cartesian coordinates of the magnetic field in the lab frame
 
         Returns:
             res (dict): dict containing the projections, see above
         """
-        projection_amplitude = self.get_polarization_magnetic_projection(
-            mag_field_vector
+        projection_amplitude = self.get_polarization_quant_amplitude_dict(
+            quantization_axis
         )
         res = {}
         for k, v in projection_amplitude.items():
             res[k] = np.linalg.norm(v) ** 2
         return res
-
-    def get_polarization_array(self, mag_field_vector):
-        """Identitical to 'get_polarization_magnetic_projection_norm', but returns an array instead of a dict
-
-        Returns the **squared norm** of projection of the polarization state |Ψ⟩ on |σ+⟩, |σ-⟩ and |π⟩, using
-        the magnetic field vector `mag_field_vector` as a quantification axis. See documentation
-        for a derivation of this projection.
-
-        The result is returned as an array = (|〈Ψ|π⟩|**2 , |〈Ψ|σ+⟩|**2,  |〈Ψ|σ-⟩|**2)
-
-        Args:
-            mag_field_vector (array, size 3): cartesian coordinates of the magnetic field in the lab frame
-
-        Returns:
-            res (array): array containing the projections, see above
-        """
-        # TODO : make it vectorized ?
-        amp = self.get_polarization_magnetic_projection(mag_field_vector)
-        res = [
-            np.linalg.norm(amp["pi"]) ** 2,
-            np.linalg.norm(amp["sigma+"]) ** 2,
-            np.linalg.norm(amp["sigma-"]) ** 2,
-        ]
-        return np.array(res)
 
     # -- REQUIRED ABSTRACT METHODS
 

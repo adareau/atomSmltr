@@ -249,31 +249,31 @@ def _LaserBeam_classes_generic_polarization_test(LaserBeamClass):
     beam.direction = (-1, 0, 1)  # take an arbitrary direction for the test
     mag_field = beam.direction
     beam.polarization = pol.CircularRight()
-    proj = beam.get_polarization_magnetic_projection_norm(mag_field)
+    proj = beam.get_polarization_quant_dict(mag_field)
     assert np.allclose(_unpack(proj), (1, 0, 0))
     # 1.b) Circular Left > sigma -
     beam.direction = (0, 1, 2)  # take an arbitrary direction for the test
     mag_field = beam.direction
     beam.polarization = pol.CircularLeft()
-    proj = beam.get_polarization_magnetic_projection_norm(mag_field)
+    proj = beam.get_polarization_quant_dict(mag_field)
     assert np.allclose(_unpack(proj), (0, 1, 0))
     # 1.c) Horizontal > sigma
     beam.direction = (4, -3, 2)  # take an arbitrary direction for the test
     mag_field = beam.direction
     beam.polarization = pol.Horizontal()
-    proj = beam.get_polarization_magnetic_projection_norm(mag_field)
+    proj = beam.get_polarization_quant_dict(mag_field)
     assert np.allclose(_unpack(proj), (0.5, 0.5, 0))
     # 1.d) Vertical > sigma
     beam.direction = (0, -1, 0)  # take an arbitrary direction for the test
     mag_field = beam.direction
     beam.polarization = pol.Vertical()
-    proj = beam.get_polarization_magnetic_projection_norm(mag_field)
+    proj = beam.get_polarization_quant_dict(mag_field)
     assert np.allclose(_unpack(proj), (0.5, 0.5, 0))
     # 1.e) Any linear > sigma
     beam.direction = (0, -1, 0)  # take an arbitrary direction for the test
     mag_field = beam.direction
     beam.polarization = pol.Linear(angle=np.pi / 8)
-    proj = beam.get_polarization_magnetic_projection_norm(mag_field)
+    proj = beam.get_polarization_quant_dict(mag_field)
     assert np.allclose(_unpack(proj), (0.5, 0.5, 0))
 
     # 2) laser colinear with B, and same direction
@@ -281,19 +281,19 @@ def _LaserBeam_classes_generic_polarization_test(LaserBeamClass):
     beam.direction = (-1, 0, 1)  # take an arbitrary direction for the test
     mag_field = -beam.direction
     beam.polarization = pol.CircularRight()
-    proj = beam.get_polarization_magnetic_projection_norm(mag_field)
+    proj = beam.get_polarization_quant_dict(mag_field)
     assert np.allclose(_unpack(proj), (0, 1, 0))
     # 2.b) Circular Left > sigma -
     beam.direction = (0, 1, 2)  # take an arbitrary direction for the test
     mag_field = -beam.direction
     beam.polarization = pol.CircularLeft()
-    proj = beam.get_polarization_magnetic_projection_norm(mag_field)
+    proj = beam.get_polarization_quant_dict(mag_field)
     assert np.allclose(_unpack(proj), (1, 0, 0))
     # 2.cd) Any linear > sigma
     beam.direction = (0, -1, 0)  # take an arbitrary direction for the test
     mag_field = -beam.direction
     beam.polarization = pol.Linear(angle=np.pi / 8)
-    proj = beam.get_polarization_magnetic_projection_norm(mag_field)
+    proj = beam.get_polarization_quant_dict(mag_field)
     assert np.allclose(_unpack(proj), (0.5, 0.5, 0))
 
     # 3) laser orthogonal to B
@@ -301,50 +301,54 @@ def _LaserBeam_classes_generic_polarization_test(LaserBeamClass):
     beam.direction = (0, 0, 1)
     mag_field = (1, 0, 0)
     beam.polarization = pol.CircularRight()
-    proj = beam.get_polarization_magnetic_projection_norm(mag_field)
+    proj = beam.get_polarization_quant_dict(mag_field)
     assert np.allclose(_unpack(proj), (0.25, 0.25, 0.5))
     # 3.b) circular left > sigma + pi
     beam.direction = (0, 1, 1)
     mag_field = (0, 1, -1)
     beam.polarization = pol.CircularLeft()
-    proj = beam.get_polarization_magnetic_projection_norm(mag_field)
+    proj = beam.get_polarization_quant_dict(mag_field)
     assert np.allclose(_unpack(proj), (0.25, 0.25, 0.5))
     # 3.c) B aligned with polarization > pi
     beam.direction = (0, 0, 1)
     mag_field = (1, 0, 0)
     beam.polarization = pol.Vertical()
-    proj = beam.get_polarization_magnetic_projection_norm(mag_field)
+    proj = beam.get_polarization_quant_dict(mag_field)
     assert np.allclose(_unpack(proj), (0, 0, 1))
     # 3.d) B aligned with polarization > pi
     beam.direction = (0, 0, 1)
     mag_field = (0, 1, 0)
     beam.polarization = pol.Horizontal()
-    proj = beam.get_polarization_magnetic_projection_norm(mag_field)
+    proj = beam.get_polarization_quant_dict(mag_field)
     assert np.allclose(_unpack(proj), (0, 0, 1))
     # 3.e) B aligned with polarization > pi
     beam.direction = (0, 0, 1)
     mag_field = (1, 1, 0)
     beam.polarization = pol.Linear(angle=np.pi / 4)
-    proj = beam.get_polarization_magnetic_projection_norm(mag_field)
+    proj = beam.get_polarization_quant_dict(mag_field)
     assert np.allclose(_unpack(proj), (0, 0, 1))
     # 3.e) B aligned with polarization > pi
     beam.direction = (1, 1, 1)
     mag_field = beam._convert_vector_to_lab_frame((1, 0, 0))
     beam.polarization = pol.Vertical()
-    proj = beam.get_polarization_magnetic_projection_norm(mag_field)
+    proj = beam.get_polarization_quant_dict(mag_field)
     assert np.allclose(_unpack(proj), (0, 0, 1))
     # 3.f) B orthogonal to polarization > sigma
     beam.direction = (0, 0, 1)
     mag_field = (0, 1, 0)
     beam.polarization = pol.Vertical()
-    proj = beam.get_polarization_magnetic_projection_norm(mag_field)
+    proj = beam.get_polarization_quant_dict(mag_field)
     assert np.allclose(_unpack(proj), (0.5, 0.5, 0))
     # 3.g) B orthogonal to polarization > sigma
     beam.direction = (0, 0, 1)
     mag_field = (1, 0, 0)
     beam.polarization = pol.Horizontal()
-    proj = beam.get_polarization_magnetic_projection_norm(mag_field)
+    proj = beam.get_polarization_quant_dict(mag_field)
     assert np.allclose(_unpack(proj), (0.5, 0.5, 0))
+
+    # -- check vectorization
+    _check_vector_field_value_function(beam.get_polarization_quant)
+    _check_vector_field_value_function(beam.get_polarization_quant_amplitude)
 
 
 def _LaserBeam_classes_generic_exception_test(LaserBeamClass):
@@ -515,6 +519,7 @@ def _laserBeam_classes_generic_methods_test(LaserBeamClass):
     # - check vectorization
     _check_vector_field_value_function(beam._convert_vector_to_laser_frame)
     _check_vector_field_value_function(beam._convert_vector_to_lab_frame)
+
     # -- intensity function
     _check_scalar_field_value_function(beam.get_intensity)
 
