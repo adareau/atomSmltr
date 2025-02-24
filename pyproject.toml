@@ -21,6 +21,7 @@ packages = [{include = "atomsmltr", from = "src"}]
 pytest = "^8.3.4"
 ipykernel = "^6.29.5"
 tqdm = "^4.67.1"
+line-profiler = "^4.2.0"
 
 
 [tool.poetry.group.wayland.dependencies]
