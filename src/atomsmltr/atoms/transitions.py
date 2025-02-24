@@ -253,14 +253,8 @@ class J0J1Transition(AtomicTransition):
         detuning: float,  # laser detuning (in rad/s !!!!!!)
     ):
         # -- get projections
-        assert (
-            np.asanyarray(polarization).size == 3
-        ), "`polarization` should be a list/array of size 3"
-        assert np.allclose(
-            np.sum(polarization), 1
-        ), "the sum of all polarization amplitudes should be one"
-
-        proj_pi, proj_sigm_plus, proj_sigm_minus = polarization
+        # TODO : checks here
+        proj_pi, proj_sigm_plus, proj_sigm_minus = polarization.T
 
         # -- Zeeman effect
         # NB : detuning is 2 * pi * (f_laser - f_atom)
@@ -289,7 +283,7 @@ class J0J1Transition(AtomicTransition):
         # sum
         scatt_total = scatt_pi + scatt_sigm_minus + scatt_sigm_plus
 
-        return scatt_total
+        return scatt_total.T
 
     def get_resonant_speed(
         self,
