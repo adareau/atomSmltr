@@ -350,6 +350,9 @@ def _LaserBeam_classes_generic_polarization_test(LaserBeamClass):
     _check_vector_field_value_function(beam.get_polarization_quant)
     _check_vector_field_value_function(beam.get_polarization_quant_amplitude)
 
+    # -- other
+    beam.print_polar_proj((0, 1, 0))
+
 
 def _LaserBeam_classes_generic_exception_test(LaserBeamClass):
     # - init

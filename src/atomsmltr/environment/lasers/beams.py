@@ -758,7 +758,8 @@ class BaseLaserBeam(EnvObject):
         print(info_str.generate())
 
     def print_polar_proj(self, mag_field_vector):
-        res = self.get_polarization_magnetic_projection_norm(mag_field_vector)
+        mag_field_vector = check_position_array(mag_field_vector)
+        res = self.get_polarization_quant_dict(mag_field_vector)
         print("> Local polarization projection")
         print(f"   + B  = {mag_field_vector*1e4} (G)")
         print(f"   + π  = {res["pi"]:.2f}")
