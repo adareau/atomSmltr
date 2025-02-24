@@ -5,7 +5,6 @@
 # % IMPORTS
 import numpy.typing as npt
 import numpy as np
-from scipy.interpolate import interp1d
 from abc import abstractmethod
 
 
@@ -185,8 +184,7 @@ class InterpolatedField1D1D(InterpolatedField):
         data_y = data_y[i_sort]
 
         # -- interpolate
-        fill_value = (data_y[0], data_y[-1])
-        interp_fun = interp1d(data_x, data_y, fill_value=fill_value, bounds_error=False)
+        interp_fun = lambda x: np.interp(x, data_x, data_y)
 
         # -- store
         self.__fun = interp_fun
