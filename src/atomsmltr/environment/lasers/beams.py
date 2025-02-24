@@ -179,17 +179,15 @@ class BaseLaserBeam(EnvObject):
         # see function docstring and documentation for rotation & frames definitions
         theta = self._unit_vector_theta
         phi = self._unit_vector_phi
-        x_laser = (
-            x * np.cos(theta) * np.cos(phi)
-            + y * np.cos(theta) * np.sin(phi)
-            - z * np.sin(theta)
-        )
-        y_laser = -x * np.sin(phi) + y * np.cos(phi)
-        z_laser = (
-            x * np.sin(theta) * np.cos(phi)
-            + y * np.sin(theta) * np.sin(phi)
-            + z * np.cos(theta)
-        )
+        # shorthands
+        costheta = np.cos(theta)
+        sintheta = np.sin(theta)
+        cosphi = np.cos(phi)
+        sinphi = np.sin(phi)
+        # compute
+        x_laser = x * costheta * cosphi + y * costheta * sinphi - z * sintheta
+        y_laser = -x * sinphi + y * cosphi
+        z_laser = x * sintheta * cosphi + y * sintheta * sinphi + z * costheta
 
         vec_laser = np.array([x_laser, y_laser, z_laser]).T
         return vec_laser
