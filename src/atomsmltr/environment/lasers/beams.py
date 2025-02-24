@@ -151,6 +151,9 @@ class BaseLaserBeam(EnvObject):
     def _convert_vector_to_laser_frame(self, vec):
         """Rotates a vector from lab frame to laser frame.
 
+        'vec' should be an array of shape (3,) or (n1,n2,..,3)
+        last axis contains vector coordinates x, y, z
+
         The unit vector defining laser propagation is defined with two angles, theta
         and phi : theta is the angle between the unit vector and the z axis of the lab
         frame, and phi is the angle of the unit vector project on the (x, y) plane of the
@@ -164,15 +167,14 @@ class BaseLaserBeam(EnvObject):
             (x', y', z') > (x_laser, y_laser, z_laser)
 
         Args:
-            vec (array of size 3): vector cartesian coordinates in the lab frame (x, y, z)
+            vec (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates in lab frame
 
         Returns:
-            vec_laser (array of size 3): vector cartesian coordinates in the laser frame (x_laser, y_laser, z_laser)
+            vec_laser (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates in laser frame
         """
         # convert vec
-        vec = np.asanyarray(vec)
-        assert vec.size == 3, "`vec` should be an array of size 3"
-        x, y, z = vec
+        vec = check_position_array(vec)
+        x, y, z = vec.T
         # rotate : phi around z axis, then theta along new y axis
         # see function docstring and documentation for rotation & frames definitions
         theta = self._unit_vector_theta
@@ -189,7 +191,7 @@ class BaseLaserBeam(EnvObject):
             + z * np.cos(theta)
         )
 
-        vec_laser = np.array([x_laser, y_laser, z_laser])
+        vec_laser = np.array([x_laser, y_laser, z_laser]).T
         return vec_laser
 
     def _convert_vector_to_lab_frame(self, vec):
@@ -199,15 +201,14 @@ class BaseLaserBeam(EnvObject):
         See `_convert_vector_to_laser_frame` docstring for more information
 
         Args:
-            vec (array of size 3): vector cartesian coordinates in the laser frame (x_laser, y_laser, z_laser)
+            vec (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates in laser frame
 
         Returns:
-            vec_lab (array of size 3): vector cartesian coordinates in the lab frame (x, y, z)
+            vec_lab (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates in lab frame
         """
         # convert vec
-        vec = np.asanyarray(vec)
-        # assert vec.size == 3, "`vec` should be an array of size 3"
-        x, y, z = vec
+        vec = check_position_array(vec)
+        x, y, z = vec.T
         # rotate : phi around z axis, then theta along new y axis
         # see function docstring and documentation for rotation & frames definitions
         theta = self._unit_vector_theta
@@ -224,7 +225,7 @@ class BaseLaserBeam(EnvObject):
         )
         z_lab = -x * np.sin(theta) + z * np.cos(theta)
 
-        vec_lab = np.array([x_lab, y_lab, z_lab])
+        vec_lab = np.array([x_lab, y_lab, z_lab]).T
         return vec_lab
 
     def get_polarization_vector_in_laser_frame(self):

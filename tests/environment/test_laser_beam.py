@@ -512,6 +512,9 @@ def _laserBeam_classes_generic_methods_test(LaserBeamClass):
                 assert np.allclose(vec, bwd(fwd(vec)))
                 assert np.allclose(vec, fwd(bwd(vec)))
 
+    # - check vectorization
+    _check_vector_field_value_function(beam._convert_vector_to_laser_frame)
+    _check_vector_field_value_function(beam._convert_vector_to_lab_frame)
     # -- intensity function
     _check_scalar_field_value_function(beam.get_intensity)
 
