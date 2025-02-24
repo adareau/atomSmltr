@@ -241,7 +241,7 @@ class BaseLaserBeam(EnvObject):
         Returns:
             p_vec: numpy array of size 3, containing the cartesian coordinates of the polarization vector (laser frame)
         """
-        return self.polarization.get_polarization_vector()
+        return self.polarization.vector
 
     def get_polarization_vector_in_lab_frame(self):
         """Returns the polarization vector describing the current polarization state, in the **LAB** frame
@@ -256,7 +256,7 @@ class BaseLaserBeam(EnvObject):
         Returns:
             p_vec: numpy array of size 3, containing the cartesian coordinates of the polarization vector (lab frame)
         """
-        p_vec_laser_frame = self.polarization.get_polarization_vector()
+        p_vec_laser_frame = self.polarization.vector
         p_vec_lab_frame = self._convert_vector_to_lab_frame(p_vec_laser_frame)
         return p_vec_lab_frame
 
@@ -674,9 +674,7 @@ class BaseLaserBeam(EnvObject):
 
         # - get laser information
         unit_vector = np.asanyarray(self._unit_vector)
-        polar_vector_laserframe = np.asanyarray(
-            self.polarization.get_polarization_vector()
-        )
+        polar_vector_laserframe = np.asanyarray(self.polarization.vector)
         polar_vector = self._convert_vector_to_lab_frame(polar_vector_laserframe)
         waist_position = np.asanyarray(self.waist_position)
         # - scale

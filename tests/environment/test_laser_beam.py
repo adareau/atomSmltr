@@ -224,7 +224,7 @@ def _LaserBeam_classes_generic_polarization_test(LaserBeamClass):
 
     # test setter # 2
     beam.polarization = pol.Vector((0, 0, 1))
-    assert np.allclose(beam.polarization.get_polarization_vector(), (0, 0, 1))
+    assert np.allclose(beam.polarization.vector, (0, 0, 1))
 
     # - testing polarization vector conversions (lab frame) <> (laser frame)
     # vertical (x) polarization, propagation along -z

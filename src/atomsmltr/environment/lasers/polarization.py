@@ -51,32 +51,17 @@ class BasePolarization(ABC):
                                    definition of the polarization vector (see docstring & documentation)
                                    Defaults to None
         """
+        self._vector = None
+        self._u = None
+        self._v = None
+
+    # -- PROPERTIES
+    @property
+    def vector(self):
+        vector = np.asanyarray(self._vector)
+        return vector
 
     # -- METHODS
-
-    def get_polarization_vector(self):
-        """Returns the polarization vector describing the current polarization state.
-
-        See documentation for the exact definition of the vector. In short :
-
-        > p_vec = (1, 0, 0)  : linear polarization along x (vertical)
-        > p_vec = (0, 1, 0)  : linear polarization along y (horizontal)
-        > p_vec = (0, 0, 1)  : circular right polarization
-        > p_vec = (0, 0, -1) : circular left polarization
-
-        Returns:
-            p_vec: numpy array of size 3, containing the cartesian coordinates of the polarization vector
-        """
-        # we keep this method public to display the docstring
-        # and hide the calculation in a private method that has to be implemented for each
-        # polarization class
-        return self._get_polarization_vector()
-
-    @abstractmethod
-    def _get_polarization_vector(self):
-        """Has to be implemented for each specifica class.
-        See `get_polarization_vector()`public method for more information
-        """
 
     def get_polarization_vector_angles(self):
         """Gives the angles describing the current polarization vector.
@@ -93,10 +78,16 @@ class BasePolarization(ABC):
             u (float): the u angle (polar angle)
             v (float): the v angle (azimuthal angle)
         """
-        x, y, z = self.get_polarization_vector()
+        u = self._u
+        v = self._v
+        return u, v
+
+    def refresh_polarization_vector_angles(self):
+        x, y, z = self.vector
         u = np.arctan2(np.sqrt(x**2 + y**2), z)
         v = np.arctan2(y, x)
-        return u, v
+        self._u = u
+        self._v = v
 
     def get_polarization_vector_projection(self, target: str):
         """Returns the scalar projection of the current polarization vector on a target polarization state
@@ -204,7 +195,7 @@ class BasePolarization(ABC):
         # vector
         info.add_section("Polarization vector")
         u, v = self.get_polarization_vector_angles()
-        x, y, z = self.get_polarization_vector()
+        x, y, z = self.vector
         info.add_element("coords", f"({x:.2f}, {y:.2f}, {z:.2f})")
         info.add_element("polar angle u", f"{u/np.pi:.2f} pi")
         info.add_element("azimt angle v", f"{v/np.pi:.2f} pi")
@@ -245,48 +236,40 @@ class Vertical(BasePolarization):
     """Vertical polarization (along x in the laser frame)"""
 
     def __init__(self):
-        super().__init__()
+        super(Vertical, self).__init__()
         self.type = "Vertical"
-
-    def _get_polarization_vector(self):
-        """For vertical polarization (along x) > (1, 0, 0)"""
-        return (1, 0, 0)
+        self._vector = (1, 0, 0)
+        self.refresh_polarization_vector_angles()
 
 
 class Horizontal(BasePolarization):
     """Horizontal polarization (along y in the laser frame)"""
 
     def __init__(self):
-        super().__init__()
+        super(Horizontal, self).__init__()
         self.type = "Horizontal"
-
-    def _get_polarization_vector(self):
-        """For horizontal polarization (along y) > (0, 1, 0)"""
-        return (0, 1, 0)
+        self._vector = (0, 1, 0)
+        self.refresh_polarization_vector_angles()
 
 
 class CircularLeft(BasePolarization):
     """Circular Left polarization (observer point of vue)"""
 
     def __init__(self):
-        super().__init__()
+        super(CircularLeft, self).__init__()
         self.type = "Circular Left"
-
-    def _get_polarization_vector(self):
-        """For circular left polarization > (0, 0, -1)"""
-        return (0, 0, -1)
+        self._vector = (0, 0, -1)
+        self.refresh_polarization_vector_angles()
 
 
 class CircularRight(BasePolarization):
     """Circular Right polarization (observer point of vue)"""
 
     def __init__(self):
-        super().__init__()
+        super(CircularRight, self).__init__()
         self.type = "Circular Right"
-
-    def _get_polarization_vector(self):
-        """For circular right polarization > (0, 0, 1)"""
-        return (0, 0, 1)
+        self._vector = (0, 0, 1)
+        self.refresh_polarization_vector_angles()
 
 
 class Linear(BasePolarization):
@@ -299,13 +282,9 @@ class Linear(BasePolarization):
         Args:
             angle (float): angle of the arbitrary linear polarization w.r.t the x axis
         """
-        super().__init__()
+        super(Linear, self).__init__()
         self.type = "Linear"
         self.angle = angle
-
-    def _get_polarization_vector(self):
-        """For arbitrary linear polarization > (cos(theta), sin(theta), 1)"""
-        return (np.cos(self.angle), np.sin(self.angle), 0)
 
     @property
     def angle(self) -> float:
@@ -321,6 +300,8 @@ class Linear(BasePolarization):
             raise ValueError("Angle must be a float")
 
         self._angle = value
+        self._vector = (np.cos(self.angle), np.sin(self.angle), 0)
+        self.refresh_polarization_vector_angles()
 
 
 class Vector(BasePolarization):
@@ -340,17 +321,14 @@ class Vector(BasePolarization):
         Args:
             vector (array, size 3): vector polarization (see documentation for its exact definition)
         """
-        super().__init__()
+        super(Vector, self).__init__()
         self.type = "Linear"
         self.vector = vector
 
-    def _get_polarization_vector(self):
-        """In this case, simply return the (normalized) provided vector"""
-        return self.vector
-
     @property
-    def vector(self) -> npt.ArrayLike:
-        return self._vector
+    def vector(self):
+        vector = np.asanyarray(self._vector)
+        return vector
 
     @vector.setter
     def vector(self, value: npt.ArrayLike) -> None:
@@ -363,3 +341,4 @@ class Vector(BasePolarization):
         if norm == 0:
             raise ValueError("Wrong value for 'vector'': norm is zero")
         self._vector = value / norm
+        self.refresh_polarization_vector_angles()
