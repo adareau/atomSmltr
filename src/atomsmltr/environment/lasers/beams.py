@@ -80,7 +80,7 @@ class BaseLaserBeam(EnvObject):
         super().__init__(tag=tag)
 
     # -- COMMON METHODS DEFINED HERE
-    def _convert_coordinates_to_laser_frame(self, position):
+    def _convert_coordinates_to_laser_frame(self, position, nocheck=False):
         """Converts lab frame cartesian coordinates to laser frame coordinates.
 
         'position' should be an array of shape (3,) or (n1,n2,..,3)
@@ -117,7 +117,7 @@ class BaseLaserBeam(EnvObject):
             laser_position (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates in laser frame
         """
         # convert to array if needed
-        position = check_position_array(position)
+        position = check_position_array(position, nocheck)
         # get coordinates
         x, y, z = position.T
         # shift center
@@ -148,7 +148,7 @@ class BaseLaserBeam(EnvObject):
         position_laser = np.array([x_laser, y_laser, z_laser]).T
         return position_laser
 
-    def _convert_vector_to_laser_frame(self, vec):
+    def _convert_vector_to_laser_frame(self, vec, nocheck=False):
         """Rotates a vector from lab frame to laser frame.
 
         'vec' should be an array of shape (3,) or (n1,n2,..,3)
@@ -173,17 +173,15 @@ class BaseLaserBeam(EnvObject):
             vec_laser (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates in laser frame
         """
         # convert vec
-        vec = check_position_array(vec)
+        vec = check_position_array(vec, nocheck)
         x, y, z = vec.T
         # rotate : phi around z axis, then theta along new y axis
         # see function docstring and documentation for rotation & frames definitions
-        theta = self._unit_vector_theta
-        phi = self._unit_vector_phi
         # shorthands
-        costheta = np.cos(theta)
-        sintheta = np.sin(theta)
-        cosphi = np.cos(phi)
-        sinphi = np.sin(phi)
+        costheta = self.__costheta
+        sintheta = self.__sintheta
+        cosphi = self.__cosphi
+        sinphi = self.__sinphi
         # compute
         x_laser = x * costheta * cosphi + y * costheta * sinphi - z * sintheta
         y_laser = -x * sinphi + y * cosphi
@@ -192,7 +190,7 @@ class BaseLaserBeam(EnvObject):
         vec_laser = np.array([x_laser, y_laser, z_laser]).T
         return vec_laser
 
-    def _convert_vector_to_lab_frame(self, vec):
+    def _convert_vector_to_lab_frame(self, vec, nocheck=False):
         """Rotates a vector from laser frame to lab frame.
 
         Realizes the reverse operation of `_convert_vector_to_laser_frame`.
@@ -205,23 +203,19 @@ class BaseLaserBeam(EnvObject):
             vec_lab (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates in lab frame
         """
         # convert vec
-        vec = check_position_array(vec)
+        vec = check_position_array(vec, nocheck)
         x, y, z = vec.T
         # rotate : phi around z axis, then theta along new y axis
         # see function docstring and documentation for rotation & frames definitions
-        theta = self._unit_vector_theta
-        phi = self._unit_vector_phi
-        x_lab = (
-            x * np.cos(theta) * np.cos(phi)
-            - y * np.sin(phi)
-            + z * np.sin(theta) * np.cos(phi)
-        )
-        y_lab = (
-            x * np.cos(theta) * np.sin(phi)
-            + y * np.cos(phi)
-            + z * np.sin(theta) * np.sin(phi)
-        )
-        z_lab = -x * np.sin(theta) + z * np.cos(theta)
+        # shorthands
+        costheta = self.__costheta
+        sintheta = self.__sintheta
+        cosphi = self.__cosphi
+        sinphi = self.__sinphi
+        # compute
+        x_lab = x * costheta * cosphi - y * sinphi + z * sintheta * cosphi
+        y_lab = x * costheta * sinphi + y * cosphi + z * sintheta * sinphi
+        z_lab = -x * sintheta + z * costheta
 
         vec_lab = np.array([x_lab, y_lab, z_lab]).T
         return vec_lab
@@ -258,7 +252,7 @@ class BaseLaserBeam(EnvObject):
         p_vec_lab_frame = self._convert_vector_to_lab_frame(p_vec_laser_frame)
         return p_vec_lab_frame
 
-    def get_polarization_quant_amplitude(self, quantization_axis):
+    def get_polarization_quant_amplitude(self, quantization_axis, nocheck=False):
         """Returns the projection of the polarization state |Ψ⟩ on |σ+⟩, |σ-⟩ and |π⟩, using
         the vector `quantization_axis` as a quantification axis. See documentation
         for a derivation of this projection.
@@ -286,14 +280,14 @@ class BaseLaserBeam(EnvObject):
 
         # -- process input
         # - check
-        quantization_axis = check_position_array(quantization_axis)
+        quantization_axis = check_position_array(quantization_axis, nocheck)
 
         # -- compute angles of B field w.r.t k vector, in the laser frame
         # 1) coordinates of uB in laser frame
-        uB_laser = self._convert_vector_to_laser_frame(quantization_axis)
+        uB_laser = self._convert_vector_to_laser_frame(quantization_axis, nocheck)
         # 2) compute angles
         xl, yl, zl = uB_laser.T
-        alpha = np.arctan2(np.sqrt(xl**2 + yl**2), zl)  # polar angle
+        alpha = np.arctan2(np.sqrt(xl * xl + yl * yl), zl)  # polar angle
         beta = np.arctan2(yl, xl)  # azimuthal angle
 
         # -- get angles of polarization vector in the laser frame
@@ -330,7 +324,7 @@ class BaseLaserBeam(EnvObject):
 
         return polar_amp
 
-    def get_polarization_quant(self, quantization_axis):
+    def get_polarization_quant(self, quantization_axis, nocheck=False):
         """Returns **squared norm** the projection of the polarization state |Ψ⟩ on |σ+⟩, |σ-⟩ and |π⟩, using
         the vector `quantization_axis` as a quantification axis. See documentation
         for a derivation of this projection.
@@ -355,7 +349,7 @@ class BaseLaserBeam(EnvObject):
         Returns:
             polar_norm (array): array of shape (3,) or (n1, n2, ..., 3) containing the polarization amplitude for π, σ+ and σ- components
         """
-        polar_amp = self.get_polarization_quant_amplitude(quantization_axis)
+        polar_amp = self.get_polarization_quant_amplitude(quantization_axis, nocheck)
         polar_norm = np.abs(polar_amp) ** 2
         return polar_norm
 
@@ -412,7 +406,7 @@ class BaseLaserBeam(EnvObject):
 
     # -- REQUIRED ABSTRACT METHODS
 
-    def get_intensity(self, position: np.ndarray) -> np.ndarray:
+    def get_intensity(self, position: np.ndarray, nocheck=False) -> np.ndarray:
         """Returns laser intensity at a given position in the lab frame
 
             position is an array_like object, with shape (3,) or (n1, n2, .., 3).
@@ -425,7 +419,7 @@ class BaseLaserBeam(EnvObject):
             intensity (float or array): laser intensity at positions, with dimension matching the 'position' input.
         """
         # Check position
-        position = check_position_array(position)
+        position = check_position_array(position, nocheck)
         # call hidden function that actually does the computation
         return self._intensity_func(self, position)
 
@@ -538,6 +532,11 @@ class BaseLaserBeam(EnvObject):
         self._unit_vector_phi = phi
         self._unit_vector_theta = theta
         self._direction = value
+        # pre compute some values, for later
+        self.__costheta = np.cos(theta)
+        self.__sintheta = np.sin(theta)
+        self.__cosphi = np.cos(phi)
+        self.__sinphi = np.sin(phi)
 
     # - polarization
     @property

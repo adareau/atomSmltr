@@ -8,8 +8,10 @@ import numpy as np
 # % ARGUMENT PROCESSORS / CHECKERS
 
 
-def check_position_array(position):
+def check_position_array(position, nocheck=False):
     """Checks position vectors required for laser intensity, mag field, etc.. value compuation"""
+    if nocheck:
+        return position
     # convert to array
     position = np.asanyarray(position)
     # check that shape is fine : should be (3,) or (n,3)
