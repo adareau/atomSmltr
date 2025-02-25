@@ -110,7 +110,9 @@ class BaseSimulator(ABC):
         pass
 
     # -- RUN
-    def run(self, t, npools=0, verbose=False):
+    def run(self, t, u0_list=None, npools=0, verbose=False):
+        if u0_list is not None:
+            self.u0_list = u0_list
         if not isinstance(npools, int):
             return TypeError("'npools' should be an int")
         if npools:
