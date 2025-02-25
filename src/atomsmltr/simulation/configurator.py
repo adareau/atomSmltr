@@ -118,7 +118,8 @@ class Configuration(object):
             raise KeyError(msg)
 
     def reset_atomlight_coupling(self):
-        self.__atomlight.clear()
+        for transition in self.__atomlight:
+            self.__atomlight[transition].clear()
 
     # -- GETTING VALUES
     def getB(self, position):
@@ -444,7 +445,7 @@ class Configuration(object):
         if not self.__atomlight:
             # if dict not empty, clear it
             self.__atomlight.clear()
-            warnings.warn("Resetting atom-light dictionnary...")
+            # warnings.warn("Resetting atom-light dictionnary...")
         for transition_tag in self.atom.list_transitions():
             self.__atomlight[transition_tag] = {}
 
