@@ -123,12 +123,4 @@ def test_ScipyIVP_3D_batch():
 
 if __name__ == "__main__":
     res = test_ScipyIVP_3D_integrator()
-    _, _, z1, _, _, vz1 = res.y
     res_coll = test_ScipyIVP_3D_batch()
-    plt.figure()
-    for res in res_coll:
-        x, y, z, vx, vy, vz = res.y
-        plt.plot(z, vz, color="C1", linewidth=0.5)
-    plt.plot(z1, vz1)
-
-    plt.show()
