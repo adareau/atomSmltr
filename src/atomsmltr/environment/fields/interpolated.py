@@ -183,13 +183,12 @@ class InterpolatedField1D1D(InterpolatedField):
         data_x = data_x[i_sort]
         data_y = data_y[i_sort]
 
-        # -- interpolate
-        interp_fun = lambda x: np.interp(x, data_x, data_y)
-
         # -- store
-        self.__fun = interp_fun
         self.__data_x = data_x
         self.__data_y = data_y
+
+    def __fun(self, x):
+        return np.interp(x, self.__data_x, self.__data_y)
 
     def gen_infostring_obj(self):
         """Generates an info string object"""

@@ -8,6 +8,8 @@ from scipy.integrate import solve_ivp
 from scipy import constants as csts
 from abc import ABC, abstractmethod
 from multiprocessing import Pool
+from tqdm import tqdm
+from functools import partial
 
 # % LOCAL IMPORTS
 from .configurator import Configuration
@@ -68,6 +70,7 @@ class BaseSimulator(ABC):
         super(BaseSimulator, self).__init__()
         if config is not None:
             self.config = config
+        self.u0_list = []
 
     # -- SETTERS AND GETTERS
     @property
@@ -79,6 +82,15 @@ class BaseSimulator(ABC):
         if not isinstance(value, Configuration):
             raise TypeError("'config' should be a `Configuration` object.")
         self.__config = value
+
+    @property
+    def u0_list(self):
+        return self.__u0_list
+
+    @u0_list.setter
+    def u0_list(self, value):
+        value = self._u0_list_checker(value)
+        self.__u0_list = value
 
     # -- REQUESTED FUNCTIONS
     @abstractmethod
@@ -93,9 +105,34 @@ class BaseSimulator(ABC):
     def dudt(self, t, u):
         pass
 
-    # -- INITIAL CONDITIONS HANDLING
+    @abstractmethod
+    def _u0_list_checker(self, value):
+        pass
 
     # -- RUN
+    def run(self, t, npools=0, verbose=False):
+        if not isinstance(npools, int):
+            return TypeError("'npools' should be an int")
+        if npools:
+            map_fun = partial(self.integrate, t=t)
+            if verbose:
+                Nmax = len(self.u0_list)
+                res_list = []
+                with Pool(npools) as p, tqdm(total=Nmax) as pbar:
+                    for res in p.imap(map_fun, self.u0_list):
+                        pbar.update()
+                        pbar.refresh()
+                        res_list.append(res)
+            else:
+                with Pool(npools) as p:
+                    res_list = p.map(map_fun, self.u0_list)
+        else:
+            res_list = []
+            u0_list = tqdm(self.u0_list) if verbose else self.u0_list
+            for u0 in u0_list:
+                res = self.integrate(u0, t)
+                res_list.append(res)
+        return res_list
 
 
 # % SIMULATOR BASED ON SCIPY'S SOLVE_IVP
@@ -139,3 +176,12 @@ class ScipyIVP_3D(BaseSimulator):
             **self.solve_ivp_args,
         )
         return res
+
+    def _u0_list_checker(self, value):
+        if not hasattr(value, "__iter__"):
+            raise ValueError("'u0_list' should be an iterable object")
+        if value:
+            for u0 in value:
+                if np.asanyarray(u0).shape != (6,):
+                    raise ValueError("'u0_list' should be a list of arrays of size 6")
+        return value

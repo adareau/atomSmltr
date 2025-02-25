@@ -1,5 +1,6 @@
 import pytest
 import os
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -75,9 +76,59 @@ def test_ScipyIVP_3D_integrator():
     return res
 
 
+def test_ScipyIVP_3D_batch():
+    from atomsmltr.simulation import ScipyIVP_3D
+
+    # - init simulation object
+    sim = ScipyIVP_3D(method="Radau")
+    config = _init_config()
+    sim.config = config
+
+    # - batch preparation
+    # checking errors
+    with pytest.raises(ValueError) as excinfo:
+        sim.u0_list = 0
+    with pytest.raises(ValueError) as excinfo:
+        sim.u0_list = [(1, 1, 1, 1, 1, 1), (1, 1, 1, 1)]
+    # good usage
+    vz_list = np.linspace(10, 300, 40)
+    u0_list = [(0, 0, -0.15, 0, 0, v) for v in vz_list]
+    sim.u0_list = u0_list
+
+    # - run batch
+    t = np.linspace(0, 0.05, 1000)
+    # 1) no pool, no verbose
+    start_time = time.time()
+    res_list = sim.run(t, npools=0, verbose=False)
+    print(f"--- {time.time() - start_time:.2g} seconds ---")
+    # 2) no pool, verbose
+    start_time = time.time()
+    res_list = sim.run(t, npools=0, verbose=True)
+    print(f"--- {time.time() - start_time:.2g} seconds ---")
+    # 3) pool
+    start_time = time.time()
+    res_list = sim.run(t, npools=3, verbose=False)
+    print(f"--- {time.time() - start_time:.2g} seconds ---")
+    # 3) pool / verbose
+    start_time = time.time()
+    res_list = sim.run(t, npools=3, verbose=True)
+    print(f"--- {time.time() - start_time:.2g} seconds ---")
+    # 3) larger pool
+    start_time = time.time()
+    res_list = sim.run(t, npools=10, verbose=False)
+    print(f"--- {time.time() - start_time:.2g} seconds ---")
+
+    return res_list
+
+
 if __name__ == "__main__":
     res = test_ScipyIVP_3D_integrator()
-    x, y, z, vx, vy, vz = res.y
+    _, _, z1, _, _, vz1 = res.y
+    res_coll = test_ScipyIVP_3D_batch()
     plt.figure()
-    plt.plot(z, vz)
+    for res in res_coll:
+        x, y, z, vx, vy, vz = res.y
+        plt.plot(z, vz, color="C1", linewidth=0.5)
+    plt.plot(z1, vz1)
+
     plt.show()
