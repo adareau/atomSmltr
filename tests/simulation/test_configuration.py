@@ -33,6 +33,9 @@ def test_configuration_collection_management():
     config.add_objects(las1, verbose=True)
     config.add_objects([mag2, las2], verbose=True)
 
+    # -- getting a copy of all objects
+    obj = config.objects
+
     # -- listing and removing
     for tag in config.list_lasers():
         config.rm_object("laser", tag)
@@ -224,8 +227,43 @@ def test_configuration_print_info():
     config.print_info()
 
 
+def test_configuration_operators():
+    from atomsmltr.simulation import Configuration
+    from atomsmltr.atoms.collection import Ytterbium, Strontium
+
+    # -- init
+    mag_field_1, mag_field_2, laser_1, laser_2 = _get_env_objects()
+    conf = Configuration(atom=Ytterbium())
+    conf.add_objects([mag_field_1, laser_1])
+    # -- addition
+    # perform operations
+    conf2 = conf + laser_2
+    conf2.atom = Strontium()
+    conf3 = conf + [laser_2, mag_field_2]
+    # check
+    assert isinstance(conf.atom, Ytterbium)
+    assert isinstance(conf2.atom, Strontium)
+    assert isinstance(conf3.atom, Ytterbium)
+    assert "laser2" not in conf.list_lasers()
+    assert "laser2" in conf2.list_lasers()
+    assert "laser1" in conf2.list_lasers()
+    assert "offset2" not in conf2.list_magnetic_fields()
+    assert "laser2" in conf3.list_lasers()
+    assert "laser1" in conf3.list_lasers()
+    assert "offset2" in conf3.list_magnetic_fields()
+
+    # -- increment
+    conf += laser_2
+    assert "laser2" in conf.list_lasers()
+    conf.rm_all_lasers()
+    conf += laser_1, laser_2
+    assert "laser1" in conf.list_lasers()
+    assert "laser2" in conf.list_lasers()
+
+
 if __name__ == "__main__":
     # test_configuration_collection_management()
     # test_configuration_exceptions()
     # test_configuration_atom_light()
-    test_configuration_print_info()
+    # test_configuration_print_info()
+    test_configuration_operators()

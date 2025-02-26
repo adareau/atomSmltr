@@ -6,7 +6,7 @@ to make a consistent configuration for the simulator
 # % IMPORTS
 import warnings
 import numpy as np
-from copy import copy
+from copy import copy, deepcopy
 
 # % LOCAL IMPORTS
 from ..environment import BaseLaserBeam, MagneticField
@@ -449,6 +449,13 @@ class Configuration(object):
         for transition_tag in self.atom.list_transitions():
             self.__atomlight[transition_tag] = {}
 
+    @property
+    def objects(self) -> dict:
+        out = {}
+        for k, v in self.__implemented_collections.items():
+            out[k] = copy(v)
+        return out
+
     # -- INFO PRINTER
     def gen_atomlight_infostring_obj(self):
         info = InfoString("Atom-light couplings")
@@ -512,3 +519,16 @@ class Configuration(object):
         for info in info_list:
             print(info.generate())
         print(SEP_STR.format("CONFIG INFO > STOP "))
+
+    # -- OPERATORS OVERLOADING
+
+    def __add__(self, object: EnvObject):
+        """returns a copy of the configuration, with the object added"""
+        new_config = deepcopy(self)
+        new_config.add_objects(object)
+        return new_config
+
+    def __iadd__(self, object: EnvObject):
+        """adds the objects"""
+        self.add_objects(object)
+        return self
