@@ -532,3 +532,8 @@ class Configuration(object):
         """adds the objects"""
         self.add_objects(object)
         return self
+
+    def __imod__(self, object: EnvObject):
+        """updates the objects"""
+        self.update_objects(object)
+        return self
