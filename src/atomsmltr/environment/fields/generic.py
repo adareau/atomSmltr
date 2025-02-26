@@ -45,7 +45,7 @@ class Field(EnvObject):
         # Check position
         position = check_position_array(position)
         # call hidden function that actually does the computation
-        return self._field_value_func(self, position)
+        return self._field_value_func(position)
 
     @abstractmethod
     def _field_value_func(self, position):
@@ -258,7 +258,6 @@ class OffsetField(Field):
 
     # -- requested methods for Field
     # pylint : disable=method_hidden
-    @staticmethod
     def _field_value_func(self, position):
         """Returns field value at point position
 
@@ -324,7 +323,6 @@ class GradientField(Field):
 
     # -- value
     # pylint : disable=method_hidden
-    @staticmethod
     def _field_value_func(self, position):
         """Returns field value at point position
 
@@ -436,3 +434,193 @@ class GradientField(Field):
         self.__field_direction = self._check_3D_vector(
             value, "field_direction", norm=True
         )
+
+
+class BaseQuadrupoleField(Field):
+    """To generate perfect quadrupoles"""
+
+    def __init__(
+        self,
+        origin: npt.ArrayLike,
+        strong_axis: npt.ArrayLike,
+        slope: float,
+        tag: str = None,
+    ):
+        """Base Quadrupole Field
+
+        See below for arguments.
+
+        Note that 'stron_axis' is meant to be a unit vector, but the class will take care of normalizing
+        any non normalized entry
+
+
+        Args:
+            origin (npt.ArrayLike): origin for the quadrupole (array of size 3)
+            strong_axis (npt.ArrayLike): the direction for the strong axis
+            slope (float): the slope of the gradient (scalar)
+        """
+        self.slope = slope
+        self.origin = origin
+        self.strong_axis = strong_axis
+
+        super(BaseQuadrupoleField, self).__init__(tag)
+
+    # -- getters and setters
+    # -
+    @property
+    def slope(self) -> npt.ArrayLike:
+        return self.__slope
+
+    @slope.setter
+    def slope(self, value: npt.ArrayLike):
+        self.__slope = self._check_real_number(value, "slope")
+
+    # -
+    @property
+    def origin(self) -> npt.ArrayLike:
+        return self.__origin
+
+    @origin.setter
+    def origin(self, value: npt.ArrayLike):
+        self.__origin = self._check_3D_vector(value, "origin")
+
+    # -
+    @property
+    def strong_axis(self) -> npt.ArrayLike:
+        return self.__strong_axis
+
+    @strong_axis.setter
+    def strong_axis(self, value: npt.ArrayLike):
+        value = self._check_3D_vector(value, "strong_axis", norm=True)
+        assert np.allclose(
+            np.linalg.norm(value), 1
+        ), "We did not manage to normalize strong_axis, something is fishy.."
+        # compute angles
+        ux, uy, uz = value
+        theta = np.arctan2(np.sqrt(ux**2 + uy**2), uz)
+        phi = np.arctan2(uy, ux)
+        self.__strong_axis = value
+        self.__theta = theta
+        self.__phi = phi
+
+    def gen_infostring_obj(self):
+        """Generates an info string object"""
+        unit = self.unit
+        title = self.type
+        title = title[:1].upper() + title[1:]  # capitalize first letter
+        info = InfoString(title=title)
+        info.add_section("Parameters")
+        info.add_element("type", "perfect quadrupole")
+        info.add_element("tag", self.tag)
+        info.add_element(f"slope ({unit}/m)", f"{self.slope:.3g}")
+        info.add_element("strong axis", f"{self.strong_axis}")
+        info.add_element(f"origin (m)", f"{self.origin}")
+        return info
+
+
+class QuadrupoleFieldX(BaseQuadrupoleField):
+    """docstring for XQuadrupoleField."""
+
+    def __init__(
+        self,
+        origin: npt.ArrayLike,
+        slope: float,
+        tag: str = None,
+    ):
+        super(QuadrupoleFieldX, self).__init__(
+            origin=origin, slope=slope, tag=tag, strong_axis=(1, 0, 0)
+        )
+
+    def _field_value_func(self, position):
+        """Returns field value at point position
+
+        position should be an array of shape (3,) or (n1,n2,..,3)
+        last axis contains coordinates x, y, z
+
+        NB: position is already checked and converted to an array in the
+            `Field` class
+        """
+        # - get X, Y, and Z
+        x, y, z = position.T
+
+        # - get coordinates w.r.t origin
+        x0, y0, z0 = self.origin
+        xc, yc, zc = x - x0, y - y0, z - z0
+
+        # - compute
+        slope = self.slope
+        value = np.array([-2 * slope * xc, slope * yc, slope * zc]).T
+
+        return value
+
+
+class QuadrupoleFieldY(BaseQuadrupoleField):
+    """docstring for YQuadrupoleField."""
+
+    def __init__(
+        self,
+        origin: npt.ArrayLike,
+        slope: float,
+        tag: str = None,
+    ):
+        super(QuadrupoleFieldY, self).__init__(
+            origin=origin, slope=slope, tag=tag, strong_axis=(0, 1, 0)
+        )
+
+    def _field_value_func(self, position):
+        """Returns field value at point position
+
+        position should be an array of shape (3,) or (n1,n2,..,3)
+        last axis contains coordinates x, y, z
+
+        NB: position is already checked and converted to an array in the
+            `Field` class
+        """
+        # - get X, Y, and Z
+        x, y, z = position.T
+
+        # - get coordinates w.r.t origin
+        x0, y0, z0 = self.origin
+        xc, yc, zc = x - x0, y - y0, z - z0
+
+        # - compute
+        slope = self.slope
+        value = np.array([slope * xc, -2 * slope * yc, slope * zc]).T
+
+        return value
+
+
+class QuadrupoleFieldZ(BaseQuadrupoleField):
+    """docstring for YQuadrupoleField."""
+
+    def __init__(
+        self,
+        origin: npt.ArrayLike,
+        slope: float,
+        tag: str = None,
+    ):
+        super(QuadrupoleFieldZ, self).__init__(
+            origin=origin, slope=slope, tag=tag, strong_axis=(0, 0, 1)
+        )
+
+    def _field_value_func(self, position):
+        """Returns field value at point position
+
+        position should be an array of shape (3,) or (n1,n2,..,3)
+        last axis contains coordinates x, y, z
+
+        NB: position is already checked and converted to an array in the
+            `Field` class
+        """
+        # - get X, Y, and Z
+        x, y, z = position.T
+
+        # - get coordinates w.r.t origin
+        x0, y0, z0 = self.origin
+        xc, yc, zc = x - x0, y - y0, z - z0
+
+        # - compute
+        slope = self.slope
+        value = np.array([slope * xc, slope * yc, -2 * slope * zc]).T
+
+        return value

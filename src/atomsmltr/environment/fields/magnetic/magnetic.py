@@ -7,7 +7,14 @@ import numpy.typing as npt
 
 
 # % LOCAL IMPORTS
-from ..generic import Field, GradientField, OffsetField
+from ..generic import (
+    Field,
+    GradientField,
+    OffsetField,
+    QuadrupoleFieldX,
+    QuadrupoleFieldZ,
+    QuadrupoleFieldY,
+)
 from ..interpolated import InterpolatedField1D1D
 
 # % CLASSES
@@ -90,6 +97,78 @@ class MagneticGradient(MagneticField, GradientField):
     @property
     def type(self):
         return "magnetic field gradient"
+
+
+class MagneticQuadrupoleX(MagneticField, QuadrupoleFieldX):
+    """docstring for MagneticQuadrupoleX."""
+
+    def __init__(
+        self,
+        origin: npt.ArrayLike,
+        slope: float,
+        tag: str = None,
+    ):
+        """Perfect Quadrupole field, with strong axis along x
+
+        Generates a magnetic field of the form B = slope * (-2x, y, z)
+
+        Args:
+            origin (npt.ArrayLike): origin for the quadrupole (array of size 3)
+            slope (float): the slope of the gradient (scalar)
+        """
+        super(MagneticQuadrupoleX, self).__init__(origin=origin, slope=slope, tag=tag)
+
+    @property
+    def type(self):
+        return "magnetic quadrupole x"
+
+
+class MagneticQuadrupoleY(MagneticField, QuadrupoleFieldY):
+    """docstring for MagneticQuadrupoleY."""
+
+    def __init__(
+        self,
+        origin: npt.ArrayLike,
+        slope: float,
+        tag: str = None,
+    ):
+        """Perfect Quadrupole field, with strong axis along y
+
+        Generates a magnetic field of the form B = slope * (x, -2y, z)
+
+        Args:
+            origin (npt.ArrayLike): origin for the quadrupole (array of size 3)
+            slope (float): the slope of the gradient (scalar)
+        """
+        super(MagneticQuadrupoleY, self).__init__(origin=origin, slope=slope, tag=tag)
+
+    @property
+    def type(self):
+        return "magnetic quadrupole y"
+
+
+class MagneticQuadrupoleZ(MagneticField, QuadrupoleFieldZ):
+    """docstring for MagneticQuadrupoleZ."""
+
+    def __init__(
+        self,
+        origin: npt.ArrayLike,
+        slope: float,
+        tag: str = None,
+    ):
+        """Perfect Quadrupole field, with strong axis along z
+
+        Generates a magnetic field of the form B = slope * (x, y, -2z)
+
+        Args:
+            origin (npt.ArrayLike): origin for the quadrupole (array of size 3)
+            slope (float): the slope of the gradient (scalar)
+        """
+        super(MagneticQuadrupoleZ, self).__init__(origin=origin, slope=slope, tag=tag)
+
+    @property
+    def type(self):
+        return "magnetic quadrupole z"
 
 
 # -- INTERPOLATED

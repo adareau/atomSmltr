@@ -188,12 +188,78 @@ def test_magpy_integration():
     _check_vector_field_value_function(mag_field.value)
 
 
+def test_magnetic_quadrupole():
+    from atomsmltr.environment.fields.magnetic import (
+        MagneticQuadrupoleX,
+        MagneticQuadrupoleZ,
+        MagneticQuadrupoleY,
+    )
+
+    # -- Quadrupole X
+    # init
+    mag_field = MagneticQuadrupoleX(
+        origin=(0, 0, 0),
+        slope=0.5,
+    )
+    mag_field.print_info()
+    # basic tests
+    _generic_magfield_test(mag_field)
+    _check_vector_field_value_function(mag_field.value)
+    # value test
+    slope = mag_field.slope
+    for x in [-5, 8, -9, 7]:
+        for y in [0, 1, 2, 3, -9]:
+            for z in [-8, 8, 6, 10]:
+                B = mag_field.value((x, y, z))
+                B_exp = (-2 * slope * x, slope * y, slope * z)
+                assert np.allclose(B, B_exp)
+
+    # -- Quadrupole Y
+    # init
+    mag_field = MagneticQuadrupoleY(
+        origin=(0, 0, 0),
+        slope=0.5,
+    )
+    mag_field.print_info()
+    # basic tests
+    _generic_magfield_test(mag_field)
+    _check_vector_field_value_function(mag_field.value)
+    # value test
+    slope = mag_field.slope
+    for x in [-5, 8, -9, 7]:
+        for y in [0, 1, 2, 3, -9]:
+            for z in [-8, 8, 6, 10]:
+                B = mag_field.value((x, y, z))
+                B_exp = (slope * x, -2 * slope * y, slope * z)
+                assert np.allclose(B, B_exp)
+
+    # -- Quadrupole Z
+    # init
+    mag_field = MagneticQuadrupoleZ(
+        origin=(0, 0, 0),
+        slope=0.66,
+    )
+    mag_field.print_info()
+    # basic tests
+    _generic_magfield_test(mag_field)
+    _check_vector_field_value_function(mag_field.value)
+    # value test
+    slope = mag_field.slope
+    for x in [-5, 8, -9, 7]:
+        for y in [0, 1, 2, 3, -9]:
+            for z in [-8, 8, 6, 10]:
+                B = mag_field.value((x, y, z))
+                B_exp = (slope * x, slope * y, -2 * slope * z)
+                assert np.allclose(B, B_exp)
+
+
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     # test_magnetic_import()
     # test_magnetic_offset()
     # test_magnetic_gradient()
-    test_magpy_integration()
+    # test_magpy_integration()
+    test_magnetic_quadrupole()
 
     # plt.show()

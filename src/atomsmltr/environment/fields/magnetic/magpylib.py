@@ -32,7 +32,6 @@ class MagpylibWrapper(MagneticField):
 
     # -- requested methods for Field
     # pylint : disable=method_hidden
-    @staticmethod
     def _field_value_func(self, position):
         """Returns field value at point position
 
