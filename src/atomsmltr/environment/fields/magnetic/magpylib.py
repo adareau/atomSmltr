@@ -17,7 +17,7 @@ import magpylib as magpy
 class MagpylibWrapper(MagneticField):
     """Our magnetic field class"""
 
-    def __init__(self, magpy_object, tag: str = ""):
+    def __init__(self, magpy_object, tag: str = None):
         """Generates a constant offset magnetic field
 
         Args:

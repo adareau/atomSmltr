@@ -4,6 +4,7 @@
 
 # % IMPORTS
 import numpy as np
+from random import choice
 
 # % ARGUMENT PROCESSORS / CHECKERS
 
@@ -18,3 +19,15 @@ def check_position_array(position, nocheck=False):
     if not position.shape or position.shape[-1] != 3:
         raise ValueError("The position array should be of shape (3,) or (n, m, .., 3)")
     return position
+
+
+# % RANDOM TAG
+
+
+def random_word(syl=3):
+    voy = "aeiou"
+    cons = "zrtpqsdfghklmwxvbn"
+    res = ""
+    for i in range(syl):
+        res += choice(cons) + choice(voy)
+    return res

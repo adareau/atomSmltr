@@ -66,7 +66,7 @@ class BaseLaserBeam(EnvObject):
         direction: npt.ArrayLike,
         direction_type: str = "vector",
         polarization: BasePolarization = Vertical(),
-        tag: str = "",
+        tag: str = None,
     ):
         self.wavelength = wavelength
         self.waist = waist

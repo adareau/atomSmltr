@@ -23,7 +23,7 @@ class InterpolatedField(Field):
         data_y: npt.ArrayLike,
         origin: npt.ArrayLike = (0, 0, 0),
         scale: float = 1.0,
-        tag: str = "",
+        tag: str = None,
     ):
         self.origin = origin
         self.scale = scale
@@ -89,7 +89,7 @@ class InterpolatedField1D1D(InterpolatedField):
         x_direction: npt.ArrayLike = (1, 0, 0),
         origin: npt.ArrayLike = (0, 0, 0),
         scale: float = 1.0,
-        tag: str = "",
+        tag: str = None,
     ):
         self.field_direction = field_direction
         self.x_direction = x_direction

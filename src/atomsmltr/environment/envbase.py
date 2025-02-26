@@ -7,7 +7,7 @@ from abc import abstractmethod
 
 # % LOCAL IMPORTS
 from ..utils.plotter import Plottable
-from ..utils.infostring import InfoString
+from ..utils.misc import random_word
 
 # % ABSTRACT CLASSES
 
@@ -18,7 +18,10 @@ class EnvObject(Plottable):
     For the moment, only ensures that the "tag" property is defined
     """
 
-    def __init__(self, tag: str):
+    def __init__(self, tag: str = None):
+        # init tag with random word if None
+        if tag is None:
+            tag = random_word()
         self.tag = tag
         super(EnvObject, self).__init__()
 

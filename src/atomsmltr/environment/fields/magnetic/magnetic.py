@@ -38,7 +38,7 @@ class MagneticField(Field):
 class MagneticOffset(MagneticField, OffsetField):
     """Our magnetic field class"""
 
-    def __init__(self, offset: float, tag: str = ""):
+    def __init__(self, offset: float, tag: str = None):
         """Generates a constant offset magnetic field
 
         Args:
@@ -61,7 +61,7 @@ class MagneticGradient(MagneticField, GradientField):
         gradient_direction: npt.ArrayLike,
         field_direction: npt.ArrayLike,
         offset: float = 0.0,
-        tag: str = "",
+        tag: str = None,
     ):
         """Magnetic field perfect gradient
 

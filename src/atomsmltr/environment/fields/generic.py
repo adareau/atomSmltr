@@ -237,7 +237,7 @@ class Field(EnvObject):
 class OffsetField(Field):
     """To generate perfect field offset"""
 
-    def __init__(self, offset: npt.ArrayLike = (0, 0, 0), tag: str = ""):
+    def __init__(self, offset: npt.ArrayLike = (0, 0, 0), tag: str = None):
         """Generates a constant offset field
 
         Args:
@@ -297,7 +297,7 @@ class GradientField(Field):
         gradient_direction: npt.ArrayLike,
         field_direction: npt.ArrayLike,
         offset: float = 0.0,
-        tag: str = "",
+        tag: str = None,
     ):
         """Base Gradient
 
