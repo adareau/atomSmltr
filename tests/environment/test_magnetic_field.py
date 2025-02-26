@@ -74,6 +74,22 @@ def test_magnetic_offset():
     mag_field.print_info()
     assert np.allclose(mag_field.value((1, 4, 8)), new_offset)
 
+    # - checking copy
+    # init mag_field
+    mag_field.tag = "old mag_field"
+    mag_field.offset = (0, 0, 0)
+    # init copy
+    mag_field_copy = mag_field.copy()
+    # check copied properties
+    assert mag_field_copy.tag != "old mag_field"
+    assert np.allclose(mag_field_copy.offset, (0, 0, 0))
+    # update and check old not affected
+    mag_field_copy.offset = (1, 2, 3)
+    assert np.allclose(mag_field_copy.offset, (1, 2, 3))
+    assert np.allclose(mag_field.offset, (0, 0, 0))
+    mag_field_copy = mag_field.copy(new_tag="new mag_field")
+    assert mag_field_copy.tag == "new mag_field"
+
 
 def test_magnetic_gradient():
     from atomsmltr.environment.fields.magnetic import MagneticGradient

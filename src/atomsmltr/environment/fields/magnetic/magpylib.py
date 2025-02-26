@@ -58,5 +58,6 @@ class MagpylibWrapper(MagneticField):
         info = InfoString(title=title)
         info.add_section("Parameters")
         info.add_element("type", "magpylib object")
+        info.add_element("tag", self.tag)
         # TODO can we have more info ?
         return info

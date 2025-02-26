@@ -198,6 +198,7 @@ class InterpolatedField1D1D(InterpolatedField):
         info = InfoString(title=title)
         info.add_section("Parameters")
         info.add_element("type", "interpolated 1D-1D field")
+        info.add_element("tag", self.tag)
         info.add_element("origin (m)", f"{self.origin}")
         info.add_element("field direction", f"{self.field_direction}")
         info.add_element("x direction", f"{self.x_direction}")

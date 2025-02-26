@@ -733,6 +733,7 @@ class BaseLaserBeam(EnvObject):
         info = InfoString(title=title)
         info.add_section("Parameters")
         info.add_element(f"type", f"{self.disp_type}")
+        info.add_element(f"tag", f"{self.tag}")
         info.add_element(f"waist (m)", f"{self.waist:.3g}")
         info.add_element(f"power (W)", f"{self.power:.3g}")
         info.add_element(f"waist position (m)", f"{self.waist_position}")

@@ -282,6 +282,7 @@ class OffsetField(Field):
         info = InfoString(title=title)
         info.add_section("Parameters")
         info.add_element("type", "offset (constant field)")
+        info.add_element("tag", self.tag)
         info.add_element(f"value ({unit})", f"{self.offset}")
         info.add_element(f"norm ({unit})", f"{np.linalg.norm(self.offset):.3g}")
         return info
@@ -370,6 +371,7 @@ class GradientField(Field):
         info = InfoString(title=title)
         info.add_section("Parameters")
         info.add_element("type", "perfect gradient")
+        info.add_element("tag", self.tag)
         info.add_element(f"slope ({unit}/m)", f"{self.slope:.3g}")
         info.add_element("gradient direction", f"{self.gradient_direction}")
         info.add_element("field direction", f"{self.field_direction}")

@@ -202,6 +202,22 @@ def _LaserBeam_classes_generic_properties_test(LaserBeamClass):
     assert np.allclose(beam._unit_vector_phi, expected_phi)
     assert np.allclose(beam._unit_vector_theta, expected_theta)
 
+    # - checking copy
+    # init beam
+    beam.tag = "old beam"
+    beam.wavelength = 400e-9
+    # init copy
+    beam_copy = beam.copy()
+    # check copied properties
+    assert beam_copy.tag != "old beam"
+    assert beam_copy.wavelength == 400e-9
+    # update and check old not affected
+    beam_copy.wavelength = 500e-9
+    assert beam_copy.wavelength == 500e-9
+    assert beam.wavelength == 400e-9
+    beam_copy = beam.copy(new_tag="new beam")
+    assert beam_copy.tag == "new beam"
+
 
 def _LaserBeam_classes_generic_polarization_test(LaserBeamClass):
     import atomsmltr.environment.lasers.polarization as pol

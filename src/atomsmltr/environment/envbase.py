@@ -4,6 +4,7 @@
 
 # % IMPORTS
 from abc import abstractmethod
+from copy import copy
 
 # % LOCAL IMPORTS
 from ..utils.plotter import Plottable
@@ -34,6 +35,14 @@ class EnvObject(Plottable):
         if not isinstance(value, str):
             raise TypeError("'tag' should be a string")
         self._tag = value
+
+    # -- COPY
+    def copy(self, new_tag=None):
+        object_copy = copy(self)
+        if new_tag is None:
+            new_tag = f"{self.tag}-{random_word()}"
+        object_copy.tag = new_tag
+        return object_copy
 
     # -- INFO STRING / OBJECT MANAGEMENT
     @abstractmethod
