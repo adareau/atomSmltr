@@ -29,6 +29,7 @@ def _generic_magfield_test(mag_field):
     # - check value function behaviour
     _check_position_exceptions(mag_field.value)
     check_vector_field_value_function(mag_field.value)
+    check_scalar_field_value_function(mag_field.norm)
 
 
 def test_magnetic_import():

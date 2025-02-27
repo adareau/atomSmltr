@@ -31,7 +31,7 @@ class Field(EnvObject):
         pass
 
     def value(self, position: np.ndarray) -> np.ndarray:
-        """Returns laser intensity at a given position in the lab frame
+        """Returns the field value at a given position in the lab frame
 
             position is an array_like object, with shape (3,) or (n1, n2, .., 3).
             In all cases, the last dimension contains cordinates (x, y, z), in meter and in the lab frame
@@ -40,7 +40,7 @@ class Field(EnvObject):
             position (array_like, shape (3,) or (n,3)) : positions at which the intensity is computed
 
         Returns:
-            intensity (float or array): laser intensity at positions, with dimension matching the 'position' input.
+            value (float or array): same shape as 'positions', returns the field value.
         """
         # Check position
         position = check_position_array(position)
@@ -50,6 +50,23 @@ class Field(EnvObject):
     @abstractmethod
     def _field_value_func(self, position):
         """Actual method for field computation ; defined for each subclass"""
+
+    def norm(self, position: np.ndarray) -> np.ndarray:
+        """Returns the field norm at a given position in the lab frame
+
+            position is an array_like object, with shape (3,) or (n1, n2, .., 3).
+            In all cases, the last dimension contains cordinates (x, y, z), in meter and in the lab frame
+
+        Args:
+            position (array_like, shape (3,) or (n,3)) : positions at which the intensity is computed
+
+        Returns:
+            norm (float or array): shape (1,) or (n,1), norm of the field
+        """
+        F = self.value(position)
+        Fx, Fy, Fz = F.T
+        F_norm = np.sqrt(Fx**2 + Fy**2 + Fz**2).T
+        return F_norm
 
     # -- PLOT
     # TODO > plot methods, at this level !!!
