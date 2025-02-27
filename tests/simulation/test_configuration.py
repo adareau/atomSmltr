@@ -1,6 +1,11 @@
 import pytest
 import numpy as np
 
+from atomsmltr.utils.misc import (
+    check_scalar_field_value_function,
+    check_vector_field_value_function,
+)
+
 
 def _get_env_objects():
     from atomsmltr.environment.fields.magnetic import MagneticOffset
@@ -227,6 +232,19 @@ def test_configuration_print_info():
     config.print_info()
 
 
+def test_configuration_methods():
+    from atomsmltr.simulation import Configuration
+    from atomsmltr.atoms.collection import Ytterbium, Strontium
+
+    # -- init
+    mag_field_1, mag_field_2, laser_1, laser_2 = _get_env_objects()
+    conf = Configuration(atom=Ytterbium())
+    conf.add_objects([mag_field_1, laser_1, mag_field_2, laser_2])
+
+    check_scalar_field_value_function(conf.getBnorm)
+    check_vector_field_value_function(conf.getB)
+
+
 def test_configuration_operators():
     from atomsmltr.simulation import Configuration
     from atomsmltr.atoms.collection import Ytterbium, Strontium
@@ -267,3 +285,4 @@ if __name__ == "__main__":
     # test_configuration_atom_light()
     # test_configuration_print_info()
     test_configuration_operators()
+    test_configuration_methods()
