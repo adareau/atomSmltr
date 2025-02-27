@@ -60,7 +60,7 @@ def test_zones_collections():
     coll_2 = coll_1 + low_y
     coll_2 += up_y
     # - plot
-    if True:
+    if False:
         grid = np.mgrid[-10:15:100j, -20:20:101j, 0:0:1j]
         position = grid.T
         X, Y, _ = grid
