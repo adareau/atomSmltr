@@ -59,11 +59,11 @@ class BaseLaserBeam(EnvObject):
 
     def __init__(
         self,
-        wavelength: float,
-        waist: float,
-        power: float,
-        waist_position: npt.ArrayLike,
-        direction: npt.ArrayLike,
+        wavelength: float = 399e-9,
+        waist: float = 1e-3,
+        power: float = 1e-3,
+        waist_position: npt.ArrayLike = (0, 0, 0),
+        direction: npt.ArrayLike = (0, 0, 1),
         direction_type: str = "vector",
         polarization: BasePolarization = Vertical(),
         tag: str = None,
@@ -77,7 +77,7 @@ class BaseLaserBeam(EnvObject):
         self.direction = direction
         self.polarization = polarization
 
-        super().__init__(tag=tag)
+        super(BaseLaserBeam, self).__init__(tag=tag)
 
     # -- COMMON METHODS DEFINED HERE
     def _convert_coordinates_to_laser_frame(self, position, nocheck=False):
@@ -838,4 +838,66 @@ class GaussianLaserBeam(BaseLaserBeam):
         info.add_element(
             "Rayleigh length", f"{self.rayleigh_length:.2g} m", section="Parameters"
         )
+        return info
+
+
+class PlaneWaveLaserBeam(GaussianLaserBeam):
+    """Implements a plane wave. For convenience, we still define the waist and power, and
+    the intensity is constant and corresponds to the peak intensity of a Gaussian beam with
+    same power and waist."""
+
+    @property
+    def type(self):
+        return "Plane Wave Laser Beam"
+
+    @property
+    def disp_type(self) -> str:
+        return "Plane wave beam"
+
+    # -- REQUIRED METHOD FOR LASER BEAM CLASSES
+    # pylint : disable=method_hidden
+    @staticmethod
+    def _intensity_func(self, position):
+        """Returns laser intensity at point position
+
+        position should be an array of shape (3,) or (n1,n2,..,3)
+        last axis contains coordinates x, y, z
+
+        NB: position is already checked and converted to an array in the
+            `BaseLaserBeam` class
+        """
+        # - get coordinates in laser frame
+        # NB : x, y and phi are not needed here
+        x, _, _ = position.T
+        # - compute gaussian beam intensity
+        intensity = _intensity_gauss(
+            0 * x, 0 * x, self.waist, self.power, self.wavelength
+        )
+
+        return intensity
+
+    def set_power_from_I(self, target_I: float) -> None:
+        """Sets the laser power to get a desired peak intensity.
+
+        Args:
+            target_I (float): target peak intensity, in W/m^2
+        """
+        # NB, for a Gaussian beam : I0 = 2 * P / np.pi / w0**2
+        power = target_I * self.waist**2 * np.pi / 2
+        self.power = power
+
+    def set_waist_from_I(self, target_I: float) -> None:
+        """Sets the laser waist to get a desired peak intensity.
+
+        Args:
+            target_I (float): target peak intensity, in W/m^2
+        """
+        # NB, for a Gaussian beam : I0 = 2 * P / np.pi / w0**2
+        waist = np.sqrt(2 * self.power / np.pi * target_I)
+        self.waist = waist
+
+    def gen_infostring_obj(self, show_polar=True):
+        info = super().gen_infostring_obj(show_polar)
+        info.rm_element("Rayleigh length", section="Parameters")
+        info.rm_element("waist position (m)", section="Parameters")
         return info

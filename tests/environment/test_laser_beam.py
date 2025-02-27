@@ -586,8 +586,53 @@ def test_Gaussian_laser_beam_polarization():
     _LaserBeam_classes_generic_polarization_test(GaussianLaserBeam)
 
 
+# -- Plane wave beams
+
+
+def test_PlaneWave_laser_beam_exception():
+    from atomsmltr.environment.lasers.beams import PlaneWaveLaserBeam
+
+    _LaserBeam_classes_generic_exception_test(PlaneWaveLaserBeam)
+
+
+def test_PlaneWave_laser_beam_properties_setters_and_getters():
+    from atomsmltr.environment.lasers.beams import PlaneWaveLaserBeam
+
+    _LaserBeam_classes_generic_properties_test(PlaneWaveLaserBeam)
+
+
+def test_PlaneWave_laser_beam_methods():
+    from atomsmltr.environment.lasers.beams import PlaneWaveLaserBeam
+
+    _laserBeam_classes_generic_methods_test(PlaneWaveLaserBeam)
+
+    # -- specific
+    beam = PlaneWaveLaserBeam()
+    position = np.mgrid[-100:100:10j, -100:100:10j, -100:100:10j].T
+    # -
+    beam.set_power_from_I(1)
+    intensity = beam.get_intensity(position)
+    expected_intensity = np.ones_like(intensity)
+    assert np.allclose(intensity, expected_intensity)
+    # -
+    beam.set_power_from_I(np.sqrt(2))
+    intensity = beam.get_intensity(position)
+    expected_intensity = np.ones_like(intensity) * np.sqrt(2)
+    assert np.allclose(intensity, expected_intensity)
+
+
+def test_PlaneWave_laser_beam_polarization():
+    from atomsmltr.environment.lasers.beams import PlaneWaveLaserBeam
+
+    _LaserBeam_classes_generic_polarization_test(PlaneWaveLaserBeam)
+
+
 if __name__ == "__main__":
     test_Gaussian_laser_beam_properties_setters_and_getters()
     test_Gaussian_laser_beam_exception()
     test_Gaussian_laser_beam_methods()
     test_Gaussian_laser_beam_polarization()
+    test_PlaneWave_laser_beam_properties_setters_and_getters()
+    test_PlaneWave_laser_beam_exception()
+    test_PlaneWave_laser_beam_methods()
+    test_PlaneWave_laser_beam_polarization()
