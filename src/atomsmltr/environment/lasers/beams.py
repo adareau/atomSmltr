@@ -427,6 +427,14 @@ class BaseLaserBeam(EnvObject):
     def _intensity_func(self, position):
         """Actual method for field computation ; defined for each subclass"""
 
+    @abstractmethod
+    def set_power_from_I(self, target_I: float):
+        """sets the power to get a target peak intensity"""
+
+    @abstractmethod
+    def set_waist_from_I(self, target_I: float):
+        """sets the waist to get a target peak intensity"""
+
     # -- CLASS PROPERTIES GETTERS & SETTERS
     # - wavelength
     @property
@@ -800,6 +808,26 @@ class GaussianLaserBeam(BaseLaserBeam):
         )
 
         return intensity
+
+    def set_power_from_I(self, target_I: float) -> None:
+        """Sets the laser power to get a desired peak intensity.
+
+        Args:
+            target_I (float): target peak intensity, in W/m^2
+        """
+        # NB, for a Gaussian beam : I0 = 2 * P / np.pi / w0**2
+        power = target_I * self.waist**2 * np.pi / 2
+        self.power = power
+
+    def set_waist_from_I(self, target_I: float) -> None:
+        """Sets the laser waist to get a desired peak intensity.
+
+        Args:
+            target_I (float): target peak intensity, in W/m^2
+        """
+        # NB, for a Gaussian beam : I0 = 2 * P / np.pi / w0**2
+        waist = np.sqrt(2 * self.power / np.pi * target_I)
+        self.waist = waist
 
     @property
     def rayleigh_length(self) -> float:

@@ -542,6 +542,20 @@ def _laserBeam_classes_generic_methods_test(LaserBeamClass):
     # -- intensity function
     _check_scalar_field_value_function(beam.get_intensity)
 
+    # -- check intensity setter
+    beam.waist = 30e-6
+    beam.power = 1e-3
+    beam.waist_position = (0, 0, 0)
+    # -
+    beam.set_power_from_I(12.5)
+    assert np.allclose(beam.get_intensity((0, 0, 0)), 12.5)
+    assert beam.waist == 30e-6
+    # -
+    beam.power = 1e-3
+    beam.set_waist_from_I(1.0)
+    assert np.allclose(beam.get_intensity((0, 0, 0)), 1.0)
+    assert beam.power == 1e-3
+
 
 # % ACTUAL IMPLEMENTATION
 
