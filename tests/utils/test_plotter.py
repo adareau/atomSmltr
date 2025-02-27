@@ -148,7 +148,7 @@ def test_mag_field_plotter():
 
     # -- Constant
     mag_field = MagneticOffset([0, 0, 1])
-    mag_field.plot3D((-10, 10, -10, 10, -10, 10), (5, 10, 10))
+    mag_field.plot3D((-10, 10, -10, 10, -10, 10), (6, 7, 8))
     # -- Gradient
 
     mag_field = MagneticGradient(
@@ -160,16 +160,18 @@ def test_mag_field_plotter():
     )
     # plot 3Dc
     limits = (-10, 10, -10, 10, -10, 10)
-    Npoints = (10, 4, 4)
+    Npoints = (6, 7, 8)
     mag_field.plot3D(
         limits=limits, Npoints=Npoints, show=False, color="C2", normalize=True, scale=5
     )
 
     # plot 2D
     mag_field.offset = 0
-    mag_field.plot2D(plane="XY", limits=(-10, 10, -10, 10), Npoints=10)
-    mag_field.plot2D(plane="YZ", limits=(-10, 10, -10, 10), Npoints=10)
-    mag_field.plot2D(plane="ZX", limits=(-10, 10, -10, 10), Npoints=10, cmap="jet")
+    mag_field.plot2D(plane="XY", limits=(-10, 10, -10, 10), Npoints=(10, 11))
+    mag_field.plot2D(plane="YZ", limits=(-10, 10, -10, 10), Npoints=(10, 11))
+    mag_field.plot2D(
+        plane="ZX", limits=(-10, 10, -10, 10), Npoints=(10, 11), cmap="jet"
+    )
 
 
 def test_mag_field_plotter_for_magpylib():
@@ -181,7 +183,7 @@ def test_mag_field_plotter_for_magpylib():
 
     # plot 3Dc
     limits = (-10, 10, -10, 10, -10, 10)
-    Npoints = (10, 4, 4)
+    Npoints = (10, 11, 12)
     mag_field.plot3D(
         limits=limits, Npoints=Npoints, show=False, color="C2", normalize=True, scale=5
     )
@@ -191,7 +193,7 @@ def test_mag_field_plotter_for_magpylib():
     cyl = magpy.magnet.Cylinder(polarization=(0.5, 0.5, 0), dimension=(40, 20))
     mag_field = MagpylibWrapper(cyl)
     limits = (-50, 50, -50, 50)
-    Npoints = 100
+    Npoints = (100, 101)
     mag_field.plot2D(plane="XY", limits=limits, Npoints=Npoints)
     mag_field.plot2D(plane="YZ", limits=limits, Npoints=Npoints)
     mag_field.plot2D(plane="ZX", limits=limits, Npoints=Npoints)

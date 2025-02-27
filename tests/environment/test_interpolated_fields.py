@@ -3,7 +3,21 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-from test_magnetic_field import _check_vector_field_value_function
+from atomsmltr.utils.misc import check_vector_field_value_function
+
+# % GENERIC TESTS
+
+
+def _check_position_exceptions(func):
+    # - 0 check exceptions
+    with pytest.raises(ValueError) as excinfo:
+        func(0)
+    with pytest.raises(ValueError) as excinfo:
+        func((0, 0))
+    with pytest.raises(ValueError) as excinfo:
+        func(np.linspace(0, 1, 20))
+    with pytest.raises(ValueError) as excinfo:
+        func(np.mgrid[0:1:10j, 0:1:10j, 0:1:10j])
 
 
 def test_interpolated_1D_1D():
@@ -18,7 +32,8 @@ def test_interpolated_1D_1D():
     # -- interpolate
     mag_field = InterpMag1D1D(data_x, data_y, field_direction=(1, 1, 0))
     mag_field.print_info()
-    _check_vector_field_value_function(mag_field.value)
+    _check_position_exceptions(mag_field.value)
+    check_vector_field_value_function(mag_field.value)
 
     # -- check values
     # -

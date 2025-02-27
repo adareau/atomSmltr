@@ -104,6 +104,9 @@ class Field(EnvObject):
         # - compute field
         mag_field = self.value(position)
         Bx, By, Bz = mag_field.T
+        Bx = Bx.T
+        By = By.T
+        Bz = Bz.T
         # - get relevant part
         match plane.upper():
             case "XY":

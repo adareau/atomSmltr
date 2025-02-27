@@ -1,14 +1,15 @@
 import pytest
 import numpy as np
 
+from atomsmltr.utils.misc import (
+    check_scalar_field_value_function,
+    check_vector_field_value_function,
+)
+
 # % GENERIC TESTS
 
 
-def _check_vector_field_value_function(func):
-    """Checks that a function yielding values of a 3D field
-    field behaves correctly with numpy arrays.
-    """
-
+def _check_position_exceptions(func):
     # - 0 check exceptions
     with pytest.raises(ValueError) as excinfo:
         func(0)
@@ -19,26 +20,15 @@ def _check_vector_field_value_function(func):
     with pytest.raises(ValueError) as excinfo:
         func(np.mgrid[0:1:10j, 0:1:10j, 0:1:10j])
 
-    # - 1 check that it works with a single position
-    position = (0, 0, 0)
-    value = func(position)
-    assert value.shape == (3,)
-
-    # - 2 with arrays
-    # -
-    position = np.mgrid[0:1:8j, 0:5:10j, 0:0:1j].T
-    value = func(position)
-    assert value.shape == position.shape
-    # -
-    position = position[0]
-    value = func(position)
-    assert value.shape == position.shape
-
 
 def _generic_magfield_test(mag_field):
     new_tag = "super magnet"
     mag_field.tag = new_tag
     assert mag_field.tag == new_tag
+
+    # - check value function behaviour
+    _check_position_exceptions(mag_field.value)
+    check_vector_field_value_function(mag_field.value)
 
 
 def test_magnetic_import():
@@ -61,9 +51,6 @@ def test_magnetic_offset():
     mag_field.print_info()
     assert mag_field.tag == "offset"
     _generic_magfield_test(mag_field)
-
-    # - check value function behaviour
-    _check_vector_field_value_function(mag_field.value)
 
     # - check values
     # -
@@ -107,9 +94,6 @@ def test_magnetic_gradient():
     mag_field.print_info()
     assert mag_field.tag == "gradient"
     _generic_magfield_test(mag_field)
-
-    # -- check value function behaviour
-    _check_vector_field_value_function(mag_field.value)
 
     # -- check values
     # - (1) gradient along x, field at pi/4 wrt. y
@@ -185,8 +169,6 @@ def test_magpy_integration():
 
     mag_field.value([0, 0, 0])
 
-    _check_vector_field_value_function(mag_field.value)
-
 
 def test_magnetic_quadrupole():
     from atomsmltr.environment.fields.magnetic import (
@@ -204,7 +186,6 @@ def test_magnetic_quadrupole():
     mag_field.print_info()
     # basic tests
     _generic_magfield_test(mag_field)
-    _check_vector_field_value_function(mag_field.value)
     # value test
     slope = mag_field.slope
     for x in [-5, 8, -9, 7]:
@@ -223,7 +204,8 @@ def test_magnetic_quadrupole():
     mag_field.print_info()
     # basic tests
     _generic_magfield_test(mag_field)
-    _check_vector_field_value_function(mag_field.value)
+    _check_position_exceptions(mag_field.value)
+    check_vector_field_value_function(mag_field.value)
     # value test
     slope = mag_field.slope
     for x in [-5, 8, -9, 7]:
@@ -242,7 +224,8 @@ def test_magnetic_quadrupole():
     mag_field.print_info()
     # basic tests
     _generic_magfield_test(mag_field)
-    _check_vector_field_value_function(mag_field.value)
+    _check_position_exceptions(mag_field.value)
+    check_vector_field_value_function(mag_field.value)
     # value test
     slope = mag_field.slope
     for x in [-5, 8, -9, 7]:

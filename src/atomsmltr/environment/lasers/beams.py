@@ -806,7 +806,7 @@ class GaussianLaserBeam(BaseLaserBeam):
         intensity = _intensity_gauss(
             rho_laser, z_laser, self.waist, self.power, self.wavelength
         )
-
+        intensity = intensity.T
         return intensity
 
     def set_power_from_I(self, target_I: float) -> None:
@@ -869,6 +869,7 @@ class PlaneWaveLaserBeam(GaussianLaserBeam):
         # - get coordinates in laser frame
         # NB : x, y and phi are not needed here
         x, _, _ = position.T
+        x = x.T
         # - compute gaussian beam intensity
         intensity = _intensity_gauss(
             0 * x, 0 * x, self.waist, self.power, self.wavelength

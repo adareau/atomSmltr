@@ -95,4 +95,4 @@ class Plottable(ABC):
                 position = position[0]
                 Y, _, X = position.T
 
-        return ax, position, X, Y
+        return ax, position, X.T, Y.T

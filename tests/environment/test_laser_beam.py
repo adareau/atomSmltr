@@ -1,16 +1,14 @@
 import pytest
 import numpy as np
-
+from atomsmltr.utils.misc import (
+    check_scalar_field_value_function,
+    check_vector_field_value_function,
+)
 
 # % GENERIC TESTS
 
 
-def _check_scalar_field_value_function(func):
-    """Checks that a function yielding values of a 3D field
-    field behaves correctly with numpy arrays. Typically used to
-    check intensities.
-    """
-
+def _check_position_exceptions(func):
     # - 0 check exceptions
     with pytest.raises(ValueError) as excinfo:
         func(0)
@@ -20,54 +18,6 @@ def _check_scalar_field_value_function(func):
         func(np.linspace(0, 1, 20))
     with pytest.raises(ValueError) as excinfo:
         func(np.mgrid[0:1:10j, 0:1:10j, 0:1:10j])
-
-    # - 1 check that it works with a single position
-    position = (0, 0, 0)
-    value = func(position)
-    assert value.ndim == 0
-
-    # - 2 with arrays
-    # -
-    position = np.mgrid[0:1:8j, 0:5:10j, 0:0:1j].T
-    X, _, _ = position.T
-    value = func(position)
-    assert value.shape == X.shape
-    # -
-    position = position[0]
-    X, _, _ = position.T
-    value = func(position)
-    assert value.shape == X.shape
-
-
-def _check_vector_field_value_function(func):
-    """Checks that a function yielding values of a 3D field
-    field behaves correctly with numpy arrays.
-    """
-
-    # - 0 check exceptions
-    with pytest.raises(ValueError) as excinfo:
-        func(0)
-    with pytest.raises(ValueError) as excinfo:
-        func((0, 0))
-    with pytest.raises(ValueError) as excinfo:
-        func(np.linspace(0, 1, 20))
-    with pytest.raises(ValueError) as excinfo:
-        func(np.mgrid[0:1:10j, 0:1:10j, 0:1:10j])
-
-    # - 1 check that it works with a single position
-    position = (0, 0, 0)
-    value = func(position)
-    assert value.shape == (3,)
-
-    # - 2 with arrays
-    # -
-    position = np.mgrid[0:1:8j, 0:5:10j, 0:0:1j].T
-    value = func(position)
-    assert value.shape == position.shape
-    # -
-    position = position[0]
-    value = func(position)
-    assert value.shape == position.shape
 
 
 def _LaserBeam_classes_generic_properties_test(LaserBeamClass):
@@ -363,8 +313,10 @@ def _LaserBeam_classes_generic_polarization_test(LaserBeamClass):
     assert np.allclose(_unpack(proj), (0.5, 0.5, 0))
 
     # -- check vectorization
-    _check_vector_field_value_function(beam.get_polarization_quant)
-    _check_vector_field_value_function(beam.get_polarization_quant_amplitude)
+    _check_position_exceptions(beam.get_polarization_quant)
+    _check_position_exceptions(beam.get_polarization_quant_amplitude)
+    check_vector_field_value_function(beam.get_polarization_quant)
+    check_vector_field_value_function(beam.get_polarization_quant_amplitude)
 
     # -- other
     beam.print_polar_proj((0, 1, 0))
@@ -480,7 +432,8 @@ def _laserBeam_classes_generic_methods_test(LaserBeamClass):
     assert np.allclose(expected_res, res)
 
     # 2 - vectorization check
-    _check_vector_field_value_function(beam._convert_coordinates_to_laser_frame)
+    _check_position_exceptions(beam._convert_coordinates_to_laser_frame)
+    check_vector_field_value_function(beam._convert_coordinates_to_laser_frame)
 
     # -- vector rotations
     # - stupid check : in the laser frame, the beam_direction is aligned with z
@@ -536,11 +489,14 @@ def _laserBeam_classes_generic_methods_test(LaserBeamClass):
                 assert np.allclose(vec, fwd(bwd(vec)))
 
     # - check vectorization
-    _check_vector_field_value_function(beam._convert_vector_to_laser_frame)
-    _check_vector_field_value_function(beam._convert_vector_to_lab_frame)
+    _check_position_exceptions(beam._convert_vector_to_laser_frame)
+    _check_position_exceptions(beam._convert_vector_to_lab_frame)
+    check_vector_field_value_function(beam._convert_vector_to_laser_frame)
+    check_vector_field_value_function(beam._convert_vector_to_lab_frame)
 
     # -- intensity function
-    _check_scalar_field_value_function(beam.get_intensity)
+    _check_position_exceptions(beam.get_intensity)
+    check_scalar_field_value_function(beam.get_intensity)
 
     # -- check intensity setter
     beam.waist = 30e-6
