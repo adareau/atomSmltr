@@ -55,6 +55,17 @@ class InfoString(object):
             raise Warning(f"section '{section}' already has an element {name}")
         self.__elements[section][name] = value
 
+    def rm_element(self, name: str, section=None):
+        if section is None:
+            section = self.__current_section
+        if section not in self.__elements:
+            raise Warning(f"section '{section}' does not exist")
+        # switch current section
+        self.__current_section = section
+        if name not in self.__elements[section]:
+            raise Warning(f"section '{section}' does not have an element {name}")
+        del self.__elements[section][name]
+
     def absorb_section(self, info, target_section, new_name=None):
         """incorporates the section 'section' from a info object 'info'"""
         # assert

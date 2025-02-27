@@ -31,6 +31,9 @@ def test_info_string():
     info2.merge(info3, prefix="(mag fields) ")
     print(info2.generate())
 
+    info3.rm_element("param1", "Settings A")
+    print(info3.generate())
+
 
 if __name__ == "__main__":
     test_info_string()
