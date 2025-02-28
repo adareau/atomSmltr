@@ -13,6 +13,7 @@ def _init_config():
     from atomsmltr.environment.lasers.beams import GaussianLaserBeam
     from atomsmltr.environment.lasers.polarization import Linear
     from atomsmltr.environment.fields.magnetic import MagneticOffset, InterpMag1D1D
+    from atomsmltr.environment.zones import LowerLimit, UpperLimit
 
     # -- CONFIG
     # - init
@@ -47,6 +48,11 @@ def _init_config():
         tag="461",
     )
     config.add_objects(laser461)
+
+    # -- zones
+    z_max = UpperLimit(0.3, axis=2, target="position", action="stop")
+    vz_min = LowerLimit(0, axis=2, target="speed")
+    config.add_objects(z_max, vz_min)
 
     # -- ATOM-LIGHT
     main = config.atom.trans["main"]
