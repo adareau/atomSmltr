@@ -9,7 +9,7 @@ import numpy as np
 from copy import copy, deepcopy
 
 # % LOCAL IMPORTS
-from ..environment import BaseLaserBeam, MagneticField
+from ..environment import BaseLaserBeam, MagneticField, Zone
 from ..environment.envbase import EnvObject
 from ..atoms import Atom
 from ..utils.infostring import InfoString
@@ -189,6 +189,9 @@ class Configuration(object):
         elif isinstance(obj, BaseLaserBeam):
             collection = self.__lasers
             name = "lasers"
+        elif isinstance(obj, Zone):
+            collection = self.__zones
+            name = "zones"
         else:
             msg = f"Objects of type {type(obj)} are not handled yet.. where did you find this ?"
             raise TypeError(msg)
