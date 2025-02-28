@@ -70,17 +70,32 @@ class Zone(EnvObject):
 
     # -- OPERATORS OVERLOADING
 
-    def __add__(self, object):
-        collection = ZoneCollection()
-        collection.add_zone(self)
-        collection.__add__(object)
-        return collection
+    def __and__(self, object):
+        if isinstance(object, Zone):
+            new_collection = ANDCollection()
+            new_collection.add_zone(deepcopy(self))
+            new_collection.add_zone(deepcopy(object))
+            return new_collection
+        else:
+            raise TypeError("only 'Zones' objects can be combined")
 
-    def __iadd__(self, object):
-        collection = ZoneCollection()
-        collection.add_zone(self)
-        collection.__add__(object)
-        return collection
+    def __or__(self, object):
+        if isinstance(object, Zone):
+            new_collection = ORCollection()
+            new_collection.add_zone(deepcopy(self))
+            new_collection.add_zone(deepcopy(object))
+            return new_collection
+        else:
+            raise TypeError("only 'Zones' objects can be combined")
+
+    def __xor__(self, object):
+        if isinstance(object, Zone):
+            new_collection = XORCollection()
+            new_collection.add_zone(deepcopy(self))
+            new_collection.add_zone(deepcopy(object))
+            return new_collection
+        else:
+            raise TypeError("only 'Zones' objects can be combined")
 
 
 class ZoneCollection(Zone):
@@ -105,10 +120,6 @@ class ZoneCollection(Zone):
     def reset(self):
         self.__zones = []
 
-    def _in_zone(self, vector):
-        res_list = [zone.in_zone(vector) for zone in self.zones]
-        return np.logical_and.reduce(res_list)
-
     # -- INFOSTRING
 
     def gen_infostring_obj(self):
@@ -117,7 +128,7 @@ class ZoneCollection(Zone):
         title = title[:1].upper() + title[1:]  # capitalize first letter
         info = InfoString(title=title)
         info.add_section("Parameters")
-        info.add_element("type", "zone collection")
+        info.add_element("type", self.type)
         info.add_element("tag", self.tag)
         info.add_element(f"zones", f"{[z.tag for z in self.zones]}")
         info.add_element(f"inverted", f"{self.inverted}")
@@ -137,30 +148,73 @@ class ZoneCollection(Zone):
     # -- OPERATORS OVERLOADING
 
     def __add__(self, object):
-        collection = ZoneCollection()
+        # then operator acts on a new collection
+        collection = self.__class__()
         for z in self.zones:
-            collection.add_zone(copy(z))
-        if isinstance(object, ZoneCollection):
-            for z in object.zones:
-                collection.add_zone(copy(z))
-            return collection
-        elif isinstance(object, Zone):
-            collection.add_zone(copy(object))
-            return collection
-        else:
-            raise TypeError(
-                "a ZoneCollection can only be added with a Zone or another ZoneCollection"
-            )
+            collection.add_zone(deepcopy(z))
+        return self.__add_operator__(object, collection)
 
     def __iadd__(self, object):
-        if isinstance(object, ZoneCollection):
+        """let's handle additions between zonecollections
+
+        add behaves as a shorthand for "add_zones"
+        we will only allow collections of same type to be added
+
+        """
+        # then operator acts on self
+        return self.__add_operator__(object, self)
+
+    def __add_operator__(self, object, coll):
+        """a function to factor the __add__ and __iadd__ operators"""
+        # case 1 > same type of zone, then we add all the zones
+        if isinstance(object, self.__class__):
             for z in object.zones:
-                self.add_zone(copy(z))
-            return self
-        elif isinstance(object, Zone):
-            self.add_zone(copy(object))
-            return self
+                new_zone = deepcopy(z)
+                if object.inverted:
+                    new_zone.invert()
+                coll.add_zone(new_zone)
+            return coll
+        # case 2 > it is a zone, not a collection
+        elif isinstance(object, Zone) and not isinstance(object, ZoneCollection):
+            coll.add_zone(deepcopy(object))
+            return coll
         else:
             raise TypeError(
-                "a ZoneCollection can only be added with a Zone or another ZoneCollection"
+                "a ZoneCollection can only be added with a Zone or another ZoneCollection of same type"
             )
+
+
+class ANDCollection(ZoneCollection):
+
+    # -- METHODS AND PROPERTIES
+    @property
+    def type(self):
+        return "AND Zone Collection"
+
+    def _in_zone(self, vector):
+        res_list = [zone.in_zone(vector) for zone in self.zones]
+        return np.logical_and.reduce(res_list)
+
+
+class ORCollection(ZoneCollection):
+
+    # -- METHODS AND PROPERTIES
+    @property
+    def type(self):
+        return "OR Zone Collection"
+
+    def _in_zone(self, vector):
+        res_list = [zone.in_zone(vector) for zone in self.zones]
+        return np.logical_or.reduce(res_list)
+
+
+class XORCollection(ZoneCollection):
+
+    # -- METHODS AND PROPERTIES
+    @property
+    def type(self):
+        return "XOR Zone Collection"
+
+    def _in_zone(self, vector):
+        res_list = [zone.in_zone(vector) for zone in self.zones]
+        return np.logical_xor.reduce(res_list)

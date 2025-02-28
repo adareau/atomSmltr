@@ -49,18 +49,58 @@ def _generic_zones_test(zone):
 def test_zones_collections():
     from atomsmltr.environment.zones import LowerLimit, UpperLimit
 
+    # -- init simple zones
     low_x = LowerLimit(-5, 0, tag="lowx")
     up_x = UpperLimit(5, 0, tag="upx")
     low_y = LowerLimit(0, 1, tag="lowy")
     up_y = UpperLimit(10, 1, tag="upy")
 
-    coll_1 = low_x + up_x
-    _generic_zones_test(coll_1)
+    # -- test AND
+    and_coll = low_x & up_x
+    _generic_zones_test(and_coll)
+    new_and_coll = and_coll + low_y
+    _generic_zones_test(new_and_coll)
+    and_coll += up_y
+    _generic_zones_test(and_coll)
+    and_coll += new_and_coll
+    _generic_zones_test(and_coll)
+    and_coll = and_coll & low_x
+    _generic_zones_test(and_coll)
 
-    coll_2 = coll_1 + low_y
-    coll_2 += up_y
+    # -- test OR
+    or_coll = low_x | up_x
+    _generic_zones_test(or_coll)
+    new_or_coll = or_coll + low_y
+    _generic_zones_test(new_or_coll)
+    or_coll += up_y
+    _generic_zones_test(or_coll)
+    or_coll += new_or_coll
+    _generic_zones_test(or_coll)
+    or_coll = or_coll | low_x
+    _generic_zones_test(or_coll)
+
+    # -- test XOR
+    xor_coll = low_x ^ up_x
+    _generic_zones_test(xor_coll)
+    new_xor_coll = xor_coll + low_y
+    _generic_zones_test(new_xor_coll)
+    xor_coll += up_y
+    _generic_zones_test(xor_coll)
+    xor_coll += new_xor_coll
+    _generic_zones_test(xor_coll)
+    xor_coll = xor_coll ^ low_x
+    _generic_zones_test(xor_coll)
+
+    # -- exceptions
+    with pytest.raises(TypeError) as excinfo:
+        coll = or_coll + and_coll
+    with pytest.raises(TypeError) as excinfo:
+        coll = or_coll + xor_coll
+
     # - plot
     if False:
+        coll_1 = low_x | low_y
+        coll_2 = coll_1 ^ (up_x | up_y)
         grid = np.mgrid[-10:15:100j, -20:20:101j, 0:0:1j]
         position = grid.T
         X, Y, _ = grid
