@@ -255,11 +255,19 @@ def test_configuration_methods():
 
     # -- init
     mag_field_1, mag_field_2, laser_1, laser_2, lim_up, lim_low = _get_env_objects()
-    conf = Configuration(atom=Ytterbium())
-    conf.add_objects([mag_field_1, laser_1, mag_field_2, laser_2])
+    lim_up.target = "position"
+    lim_low.target = "speed"
 
+    conf = Configuration(atom=Ytterbium())
+    conf.add_objects([mag_field_1, laser_1, mag_field_2, laser_2, lim_low, lim_up])
     check_scalar_field_value_function(conf.getBnorm)
     check_vector_field_value_function(conf.getB)
+
+    # check stop zones getter
+    pos, speed = conf.get_stop_zones()
+    assert len(pos) == len(speed) == 1
+    assert pos[0].tag == "x_max"
+    assert speed[0].tag == "x_min"
 
 
 def test_configuration_operators():
@@ -305,5 +313,5 @@ if __name__ == "__main__":
     # test_configuration_atom_light()
     # test_configuration_print_info()
     # test_configuration_operators()
-    # test_configuration_methods()
+    test_configuration_methods()
     pass

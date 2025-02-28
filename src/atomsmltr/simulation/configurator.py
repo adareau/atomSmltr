@@ -157,6 +157,21 @@ class Configuration(object):
         B_norm = np.sqrt(Bx**2 + By**2 + Bz**2).T
         return B_norm
 
+    # -- GETTING ZONES
+    def get_stop_zones(self):
+        """Returns two lists, 'stop_position' and 'stop_speed', containing the zones
+        with 'action' set to 'stop' and targets to 'position' & 'speed', respectively
+        """
+        stop_speed = []
+        stop_position = []
+        for zone in self.__zones.values():
+            if zone.action == "stop":
+                if zone.target == "speed":
+                    stop_speed.append(deepcopy(zone))
+                elif zone.target == "position":
+                    stop_position.append(deepcopy(zone))
+        return stop_position, stop_speed
+
     # -- COLLECTION HANDLING METHODS
 
     # ADDING
