@@ -15,8 +15,8 @@ from ...utils.infostring import InfoString
 class Limit(Zone):
     """docstring for UpperLimit."""
 
-    def __init__(self, value: float, axis: int = 0, tag: str = None):
-        super(Limit, self).__init__(tag=tag)
+    def __init__(self, value: float, axis: int = 0, *args, **kwargs):
+        super(Limit, self).__init__(*args, **kwargs)
         self.axis = axis
         self.value = value
 
@@ -53,6 +53,8 @@ class Limit(Zone):
         elif isinstance(self, LowerLimit):
             info.add_element("type", "1D lower limit")
         info.add_element("tag", self.tag)
+        info.add_element("target", self.target)
+        info.add_element("action", self.action)
         info.add_element(f"value", f"{self.value}")
         info.add_element(f"axis", f"{self.axis}")
         info.add_element(f"inverted", f"{self.inverted}")
@@ -73,14 +75,14 @@ class Limit(Zone):
 class UpperLimit(Limit):
     """Zone defined by its upper limit, set by parameter 'value'"""
 
-    def __init__(self, value: float, axis: int = 0, tag: str = None):
+    def __init__(self, value: float, axis: int = 0, *args, **kwargs):
         """Defines a zone by its (1D) upper limit
 
         Args:
             value (float): the upper limit
             axis (int, optional): axis to consider (0:x, 1:y, 2:z)
         """
-        super(UpperLimit, self).__init__(value=value, axis=axis, tag=tag)
+        super(UpperLimit, self).__init__(value, axis, *args, **kwargs)
 
     def _in_zone(self, vector):
         u = {}
@@ -96,14 +98,14 @@ class UpperLimit(Limit):
 class LowerLimit(Limit):
     """Zone defined by its lower limit, set by parameter 'value'"""
 
-    def __init__(self, value: float, axis: int = 0, tag: str = None):
+    def __init__(self, value: float, axis: int = 0, *args, **kwargs):
         """Defines a zone by its (1D) lower limit
 
         Args:
             value (float): the lower limit
             axis (int, optional): axis to consider (0:x, 1:y, 2:z)
         """
-        super(LowerLimit, self).__init__(value=value, axis=axis, tag=tag)
+        super(LowerLimit, self).__init__(value, axis, *args, **kwargs)
 
     def _in_zone(self, vector):
         u = {}

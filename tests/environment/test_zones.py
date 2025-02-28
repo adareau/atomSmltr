@@ -124,6 +124,7 @@ def test_1D_zones():
     # -- upper limit
     # init
     upper = UpperLimit(5, 0, tag="up")
+    upper.target = "speed"
     _generic_zones_test(upper)
 
     # few tests

@@ -14,12 +14,17 @@ from ...utils.infostring import InfoString
 
 # % ABSTRACT CLASSES
 
+IMPLEMENTED_ACTIONS = ["stop"]
+IMPLEMENTED_TARGETS = ["position", "speed"]
+
 
 class Zone(EnvObject):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, target="position", action="stop", *args, **kwargs):
         super(Zone, self).__init__(*args, **kwargs)
         self.inverted = False
+        self.target = target
+        self.action = action
 
     # -- GETTERS & SETTERS
 
@@ -32,6 +37,28 @@ class Zone(EnvObject):
         if not isinstance(value, bool):
             raise TypeError("'inverted' should be a boolean")
         self.__inverted = value
+
+    @property
+    def target(self):
+        return self.__target
+
+    @target.setter
+    def target(self, value):
+        if value not in IMPLEMENTED_TARGETS:
+            raise ValueError(f"implemented targets are : {IMPLEMENTED_TARGETS}")
+        self.__target = value
+
+    @property
+    def action(self):
+        return self.__action
+
+    @action.setter
+    def action(self, value):
+        if value not in IMPLEMENTED_ACTIONS:
+            raise ValueError(f"implemented actions are : {IMPLEMENTED_ACTIONS}")
+        self.__action = value
+
+    # -- functions
 
     def invert(self):
         """toggles the 'inverted' status"""
@@ -130,6 +157,8 @@ class ZoneCollection(Zone):
         info.add_section("Parameters")
         info.add_element("type", self.type)
         info.add_element("tag", self.tag)
+        info.add_element("target", self.target)
+        info.add_element("action", self.action)
         info.add_element(f"zones", f"{[z.tag for z in self.zones]}")
         info.add_element(f"inverted", f"{self.inverted}")
         return info
