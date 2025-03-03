@@ -167,6 +167,23 @@ def test_limits_zones():
     assert not limits.in_zone((-8, 0, 8))
 
 
+def test_3D_zones():
+    from atomsmltr.environment.zones import Box
+
+    # -- Box
+    box = Box(-1, 1, 0, 0.5, -10, 10)
+    _generic_zones_test(box)
+    assert box.in_zone((0, 0.2, 0))
+    assert not box.in_zone((-5, 0.2, 0))
+    assert not box.in_zone((1, 0.2, 0))
+    assert not box.in_zone((0, 0, 0))
+    assert not box.in_zone((0, 0.8, 0))
+    assert not box.in_zone((0, 0.2, -96))
+    assert not box.in_zone((0, 0.2, 96))
+    assert not box.in_zone((100, 100, 100))
+
+
 if __name__ == "__main__":
-    test_limits_zones()
+    # test_limits_zones()
     # test_zones_collections()
+    test_3D_zones()
