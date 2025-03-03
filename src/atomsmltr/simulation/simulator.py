@@ -60,6 +60,50 @@ def get_force_vec(pos_speed_vector, config):
     return force
 
 
+def get_force_n6_convention(pos_speed_vector, config):
+    """Computes the force on an atom, by adding all radiations pressures
+    Note : we could refine the modul using a rate model, as in atomECS
+
+    The function is vectorized to be compatible with Scipy's `solve_ivp`
+
+    The position/speed vector 'pos_speed_vector' should be of shape (..,6)
+    with the first dimension containing (x, y, z, vx, vy, vz) in the lab frame
+
+    Args:
+        pos_speed_vector (array like): position and speed, shape (..,6)
+        config (Configuration): a Configuration object for the simulation
+
+    Returns:
+        force (array like): the force, shape (...,3)
+    """
+    # TODO should we move that to the Configuration class ???
+    # - get position and speed
+    x, y, z, vx, vy, vz = pos_speed_vector.T
+    position = np.array([x, y, z]).T
+    speed = np.array([vx, vy, vz]).T
+    # - get magnetic field value & norm
+    B = config.getB(position)
+    Bx, By, Bz = B.T
+    B_norm = np.sqrt(Bx**2 + By**2 + Bz**2).T
+    # - initialize force
+    force = np.zeros_like(position, dtype=float)
+    # - loop over atom-light couplings
+    atomlight_couples = config.get_atomlight_couples()
+    for elements in atomlight_couples:
+        transition, laser, detuning = elements
+        laser_intensity = laser.get_intensity(position)
+        polarization = laser.get_polarization_quant(B)
+        # Doppler
+        det_Doppler = -np.dot(speed, laser.kvec)
+        scattering_rate = transition.get_scattering_rate(
+            laser_intensity, B_norm, polarization, detuning + det_Doppler
+        )
+        radiation_pressure = csts.hbar * transition.k * scattering_rate
+        force = force + radiation_pressure[..., np.newaxis] * laser.unit_vector
+
+    return force
+
+
 # % DEFINE THE BASE CLASS
 
 
@@ -177,6 +221,10 @@ class ScipyIVP_3D(BaseSimulator):
     # -- REQUESTED FUNCTIONS
     def get_force(self, u):
         force = get_force_vec(u, self.config)
+        return force
+
+    def get_force_n6(self, u):
+        force = get_force_n6_convention(u, self.config)
         return force
 
     def dudt(self, t, u):

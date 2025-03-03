@@ -255,6 +255,9 @@ class J0J1Transition(AtomicTransition):
         # -- get projections
         # TODO : checks here
         proj_pi, proj_sigm_plus, proj_sigm_minus = polarization.T
+        proj_pi = proj_pi.T
+        proj_sigm_minus = proj_sigm_minus.T
+        proj_sigm_plus = proj_sigm_plus.T
 
         # -- Zeeman effect
         # NB : detuning is 2 * pi * (f_laser - f_atom)
@@ -283,7 +286,7 @@ class J0J1Transition(AtomicTransition):
         # sum
         scatt_total = scatt_pi + scatt_sigm_minus + scatt_sigm_plus
 
-        return scatt_total.T
+        return scatt_total
 
     def get_resonant_speed(
         self,
