@@ -1,1 +1,1 @@
-from .D1 import UpperLimit, LowerLimit
+from .limits import UpperLimit, LowerLimit, Limits

@@ -118,8 +118,8 @@ def test_zones_collections():
         plt.show()
 
 
-def test_1D_zones():
-    from atomsmltr.environment.zones import LowerLimit, UpperLimit
+def test_limits_zones():
+    from atomsmltr.environment.zones import LowerLimit, UpperLimit, Limits
 
     # -- upper limit
     # init
@@ -156,7 +156,17 @@ def test_1D_zones():
     assert invlow.value == 0
     assert lower.value == 6.0
 
+    # -- Limits (min and max)
+    # init
+    limits = Limits(min=0, max=10, axis=0, tag="xlim")
+    _generic_zones_test(limits)
+    assert limits.in_zone((0.1, 5, 4))
+    assert limits.in_zone((8, -9, 8))
+    assert not limits.in_zone((0, -9, 8))
+    assert not limits.in_zone((89, 0, 0))
+    assert not limits.in_zone((-8, 0, 8))
+
 
 if __name__ == "__main__":
-    test_1D_zones()
-    test_zones_collections()
+    test_limits_zones()
+    # test_zones_collections()
