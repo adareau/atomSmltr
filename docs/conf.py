@@ -3,6 +3,36 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+
+# -- Python imports -----------------------------------------------------
+import os
+import sys
+
+# Location of Sphinx files
+sys.path.insert(0, os.path.abspath("./../"))  ##Add the folder one level above
+os.environ["SPHINX_APIDOC_OPTIONS"] = (
+    "members,show-inheritance"  ## Hide undocumented members
+)
+import sphinx.ext.apidoc
+
+
+def setup(app):
+    app.add_css_file("css/stylesheet.css")
+    app.add_js_file("webcode/summaryOpen.js")
+    sphinx.ext.apidoc.main(
+        [
+            "-f",  # Overwrite existing files
+            "-T",  # Create table of contents
+            "-e",  # Give modules their own pages
+            "-E",  # user docstring headers
+            "-M",  # Modules first
+            "-o",  # Output the files to:
+            "./_autogen/",  # Output Directory
+            "./../src/atomsmltr",  # Main Module directory
+        ]
+    )
+
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
@@ -18,6 +48,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.coverage",
     "sphinx.ext.autosummary",
+    "sphinx.ext.viewcode",
     # "sphinx.ext.ifconfig",
     "matplotlib.sphinxext.plot_directive",
     "sphinx_copybutton",
@@ -29,7 +60,7 @@ extensions = [
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-
+source_suffix = [".rst", ".md"]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
@@ -39,3 +70,27 @@ pygments_style = "sphinx"
 
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
+html_theme_options = {
+    # "announcement": announcement,
+    "header_links_before_dropdown": 4,
+    "show_version_warning_banner": True,
+    "navbar_align": "content",  # [left, content, right] For testing that the navbar items align properly
+    "navbar_center": ["navbar-nav"],
+    "navbar_persistent": ["version-switcher"],
+    "check_switcher": True,
+    "navigation_with_keys": False,
+    "footer_start": ["copyright"],
+    "footer_end": [],
+    "use_edit_page_button": True,
+    "navigation_depth": 3,
+    "collapse_navigation": False,
+}
+html_context = {
+    "github_user": "adareau",
+    "github_repo": "atomsmltr",
+    "github_version": "main",
+    "doc_path": "docs/",
+}
+html_sidebars = {
+    "**": ["search-field.html", "sidebar-nav-bs.html", "sidebar-ethical-ads.html"],
+}

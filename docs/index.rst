@@ -10,7 +10,13 @@ Add your content using ``reStructuredText`` syntax. See the
 `reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
 documentation for details.
 
+Hum hum hu ?
+
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Contents:
+
+   _pages/user_guide/guide_index
+   _pages/api_reference.rst
