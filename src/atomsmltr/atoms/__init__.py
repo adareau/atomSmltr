@@ -1,4 +1,4 @@
-"""The `atomsmltr.atoms` subpackage provides classes to handle atomic species and their transitions.
+"""The :code:`atomsmltr.atoms` subpackage provides classes to handle atomic species and their transitions.
 """
 
 __all__ = [
