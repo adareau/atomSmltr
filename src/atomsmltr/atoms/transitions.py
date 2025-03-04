@@ -1,5 +1,22 @@
-# -*- coding: utf-8 -*-
-"""Defines the AtomicTransition class, later embedded in an Atom() object
+"""
+transitions
+=======================
+
+This module implements the ``AtomicTransition`` class, that is meant to be embedded
+in the ``Atom`` class.
+
+Example
+-------
+>>> from atomsmltr.atoms import Atom
+>>> from atomsmltr.atoms.transitions import DummyTransition
+>>> from scipy import constants as csts
+>>> atom = Atom(mass=4 * csts.m_u, name="Helium")
+>>> transition = DummyTransition("transition", Gamma=1, wavelength=1)
+>>> atom.add_transition(transition, tag="transition")
+
+See Also
+--------
+atomsmltr.atoms.generic.Atom
 """
 
 # % IMPORTS
@@ -20,14 +37,19 @@ from ..utils.infostring import InfoString
 
 
 def _w0(lbda: float) -> float:
-    """Returns the pulsation, in rad.s^-1
+    """returns the pulsation, in rad/s
 
-    Args:
-        lbda (float): wavelength (in meters)
+    Parameters
+    ----------
+    lbda : float
+        wavelength (m)
 
-    Returns:
-        w0 (float): pulsation (in rad/s)
+    Returns
+    -------
+    w0 : float
+        pulsation (rad/s)
     """
+
     w0 = 2 * np.pi * csts.c / lbda
     return w0
 
@@ -35,12 +57,17 @@ def _w0(lbda: float) -> float:
 def _Isat(lbda: float, Gamma: float) -> float:
     """Returns the saturation intensity, in W/m^2
 
-    Args:
-        lbda (float): vacuum wavelength (in meters)
-        Gamma (float): natural linewidth (in rad/s)
+    Parameters
+    ----------
+        lbda : float
+            vacuum wavelength (in meters)
+        Gamma : float
+            natural linewidth (in rad/s)
 
-    Returns:
-        Isat (float): saturation intensity (in W/m^2)
+    Returns
+    -------
+        Isat : float
+            saturation intensity (in W/m^2)
     """
     w0 = _w0(lbda)
     Isat = csts.hbar * Gamma * w0**3 / 12 / np.pi / csts.c**2
@@ -50,12 +77,17 @@ def _Isat(lbda: float, Gamma: float) -> float:
 def _Isat_mW_per_cm2(lbda: float, Gamma: float) -> float:
     """Returns the saturation intensity, in mW/cm^2
 
-    Args:
-        lbda (float): vacuum wavelength (in meters)
-        Gamma (float): natural linewidth (in rad/s)
+    Parameters
+    ----------
+        lbda : float
+            vacuum wavelength (in meters)
+        Gamma : float
+            natural linewidth (in rad/s)
 
-    Returns:
-        Isat (float): saturation intensity (in mW/cm^2)
+    Returns
+    -------
+        Isat: float
+            saturation intensity (in mW/cm^2)
     """
     Isat_SI = _Isat(lbda, Gamma)
     Isat = Isat_SI * 1e3 / (1e2) ** 2
@@ -65,13 +97,19 @@ def _Isat_mW_per_cm2(lbda: float, Gamma: float) -> float:
 def _OmegaR(lbda: float, Gamma: float, I: float) -> float:
     """Returns the bare Rabi frequency for a two level system
 
-    Args:
-        lbda (float): vacuum wavelength (in meters)
-        Gamma (float): natural linewidth (in rad/s)
-        I (float): saturation intensitu (in W/m^2)
+    Parameters
+    ----------
+        lbda : float
+            vacuum wavelength (in meters)
+        Gamma : float
+            natural linewidth (in rad/s)
+        I : float
+            saturation intensity (in W/m^2)
 
-    Returns:
-        OmegaR (float): the bare Rabi frequency (in rad/s)
+    Returns
+    -------
+        OmegaR : float
+            the bare Rabi frequency (in rad/s)
     """
     Isat = _Isat(lbda, Gamma)
     OmegaR = Gamma * np.sqrt(I / 2 / Isat)
@@ -83,14 +121,21 @@ def _sat_param(lbda: float, Gamma: float, I: float, detuning: float) -> float:
 
     Beware, detuning is 2pi * (f_laser - f_transition)
 
-    Args:
-        lbda (float): vacuum wavelength (in meters)
-        Gamma (float): natural linewidth (in rad/s)
-        I (float): saturation intensitu (in W/m^2)
-        detuning (float): laser detuning (in rad/s) (!!!)
+    Parameters
+    ----------
+        lbda : float
+            vacuum wavelength (in meters)
+        Gamma : float
+            natural linewidth (in rad/s)
+        I : float
+            saturation intensity (in W/m^2)
+        detuning float
+            laser detuning (in rad/s)
 
-    Returns:
-        s (float): the saturation parameter
+    Returns
+    -------
+        s : float
+            the saturation parameter
     """
     Isat = _Isat(lbda, Gamma)
     s = (I / Isat) * (Gamma**2 / 4) / (detuning**2 + Gamma**2 / 4)
@@ -102,14 +147,21 @@ def _scattering_rate(lbda: float, Gamma: float, I: float, detuning: float) -> fl
 
     Beware, detuning is 2pi * (f_laser - f_transition)
 
-    Args:
-        lbda (float): vacuum wavelength (in meters)
-        Gamma (float): natural linewidth (in rad/s)
-        I (float): saturation intensitu (in W/m^2)
-        detuning (float): laser detuning (in rad/s) (!!!)
+    Parameters
+    ----------
+        lbda : float
+            vacuum wavelength (in meters)
+        Gamma : float
+            natural linewidth (in rad/s)
+        I : float
+            saturation intensity (in W/m^2)
+        detuning float
+            laser detuning (in rad/s)
 
-    Returns:
-        gamma_scatt (float): the scattering rate (in /s)
+    Returns
+    -------
+        gamma_scatt : float
+            the scattering rate (in /s)
     """
     s = _sat_param(lbda, Gamma, I, detuning)
     gamma_scatt = 0.5 * Gamma * s / (1 + s)
@@ -120,6 +172,18 @@ def _scattering_rate(lbda: float, Gamma: float, I: float, detuning: float) -> fl
 
 
 class AtomicTransition(ABC):
+    """_summary_
+
+    Parameters
+    ----------
+    tag : str
+        a tag identifying the transition
+    Gamma : float
+        the transition natural linewidth (in rad/s)
+    wavelength : float
+        the vacuum wavelength (in m)
+    """
+
     def __init__(self, tag: str, Gamma: float, wavelength: float):
         self.__tag = tag
         self.__wavelength = wavelength
@@ -158,10 +222,12 @@ class AtomicTransition(ABC):
     def get_saturation_parameter(self, intensity: float) -> float:
         """Returns the saturation parameter (for a two-level system)
 
-        Args:
+        Parameters
+        ----------
             intensity (float): laser intensity in W/m^2
 
-        Returns:
+        Returns
+        -------
             s (float): the saturation parameter
         """
         s = _sat_param(self.wavelength, self.Gamma, intensity)

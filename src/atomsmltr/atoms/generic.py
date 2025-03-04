@@ -1,5 +1,5 @@
 """
-generic atom class
+atoms
 =======================
 
 This module implements the generic ``Atom`` class, that can be used to define
