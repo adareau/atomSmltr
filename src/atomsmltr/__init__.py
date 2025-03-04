@@ -17,7 +17,15 @@ Package structure
 
 __version__ = "0.0.1"
 __author__ = "Alexandre Dareau"
-__all__ = ["atoms", "datapipe", "lasers", "zones", "fields", "simulation", "utils"]
+__all__ = [
+    "atoms",
+    "datapipe",
+    "lasers",
+    "zones",
+    "fields",
+    "simulation",
+    "utils",
+]
 
 from atomsmltr import atoms
 from atomsmltr import datapipe
