@@ -27,8 +27,8 @@ Setup a Gaussian beam
 
 See also
 --------
-atomsmltr.environment.fields.beams
-atomsmltr.environment.fields.polarization
+atomsmltr.environment.lasers.beams
+atomsmltr.environment.lasers.polarization
 
 """
 

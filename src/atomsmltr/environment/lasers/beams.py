@@ -1,5 +1,33 @@
-# -*- coding: utf-8 -*-
-"""Defines the laser beam classes
+"""Laser Beams
+================
+
+Here we implement the generic ``LaserBeam`` class, as well as some actual
+laser beam classes
+
+Examples
+---------
+
+Setup a Gaussian beam
+
+.. code-block:: python
+
+    from atomsmltr.environment.lasers import GaussianLaserBeam
+    from atomsmltr.environment.lasers.polarization import CircularLeft
+
+
+    beam = GaussianLaserBeam(
+        wavelength=399e-9,
+        waist=50e-6,
+        power=30e-3,
+        waist_position=(0, 0, 0),
+        direction=(0, 0, 1),
+        polarization=CircularLeft(),
+    )
+
+See also
+--------
+atomsmltr.environment.lasers.polarization
+
 """
 
 # % IMPORTS
@@ -53,7 +81,29 @@ def _intensity_gauss(
 
 
 class LaserBeam(EnvObject):
-    """docstring for LaserBeam."""
+    """Representing laser beams
+
+    Parameters
+    ----------
+    wavelength : float, optional
+        vacuum wavelength (m), by default 399e-9
+    waist : float, optional
+        1/e^2 waist radius (m), by default 1e-3
+    power : float, optional
+        laser power (W), by default 1e-3
+    waist_position : array, shape (,3), optional
+        cartesian coordinates of the waist / focus position,
+        in meters and in the lab frame, by default (0, 0, 0)
+    direction : array, shape (,3) or (,2), optional
+        depending on 'direction type', a vector or a (theta, phi) couple
+        giving the propagation direction of the beam
+    direction_type : str, optional
+        type of direction : "vector" or "thetaphi", by default "vector"
+    polarization : Polarization, optional
+        laser polarization, by default Vertical()
+    tag : str, optional
+        laser tag, by default None
+    """
 
     def __init__(
         self,
@@ -66,6 +116,7 @@ class LaserBeam(EnvObject):
         polarization: Polarization = Vertical(),
         tag: str = None,
     ):
+
         self.wavelength = wavelength
         self.waist = waist
         self.power = power
@@ -78,8 +129,26 @@ class LaserBeam(EnvObject):
         super(LaserBeam, self).__init__(tag=tag)
 
     # -- COMMON METHODS DEFINED HERE
-    def _convert_coordinates_to_laser_frame(self, position, nocheck=False):
+    def _convert_coordinates_to_laser_frame(
+        self, position: np.ndarray, nocheck=False
+    ) -> np.ndarray:
         """Converts lab frame cartesian coordinates to laser frame coordinates.
+
+        Parameters
+        ----------
+        position : array of shape (3,) or (n1, n2, ..., 3)
+            cartesian coordinates in the lab frame
+        nocheck : bool, optional
+            if set to True, function will not check that the shape of position
+            matches requirements, by default False
+
+        Returns
+        -------
+        position_laser : array of shape (3,) or (n1, n2, ..., 3) (same as position)
+            cartesian coordinates in the laser frame
+
+        Notes
+        -------
 
         'position' should be an array of shape (3,) or (n1,n2,..,3)
         last axis contains coordinates x, y, z
@@ -104,16 +173,15 @@ class LaserBeam(EnvObject):
 
         For convenience reasons, we also return polar coordinates in the laser frame
 
-        Note: in some cases (elliptical beams for instance) it might be interesting to include
-        a final rotation around the laser propagation axis in the laser frame. We decided that
-        this rotation will be handled in the `intensity()` method of the corresponding class.
 
-        Args:
-            position (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates in lab frame
+        Note
+        -----
 
-        Returns:
-            laser_position (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates in laser frame
+            Note: in some cases (elliptical beams for instance) it might be interesting to include
+            a final rotation around the laser propagation axis in the laser frame. We decided that
+            this rotation will be handled in the `intensity()` method of the corresponding class.
         """
+
         # convert to array if needed
         position = check_position_array(position, nocheck)
         # get coordinates
@@ -146,8 +214,26 @@ class LaserBeam(EnvObject):
         position_laser = np.array([x_laser, y_laser, z_laser]).T
         return position_laser
 
-    def _convert_vector_to_laser_frame(self, vec, nocheck=False):
+    def _convert_vector_to_laser_frame(
+        self, vec: np.ndarray, nocheck: bool = False
+    ) -> np.ndarray:
         """Rotates a vector from lab frame to laser frame.
+
+        Parameters
+        ----------
+        vec : array of shape (3,) or (n1, n2, ..., 3)
+            cartesian coordinates of the vectors in the lab frame
+        nocheck : bool, optional
+            if set to True, function will not check that the shape of position
+            matches requirements, by default False
+
+        Returns
+        -------
+        vec_laser : array of shape (3,) or (n1, n2, ..., 3)
+            cartesian coordinates of the vectors in the laser frame
+
+        Notes
+        -------
 
         'vec' should be an array of shape (3,) or (n1,n2,..,3)
         last axis contains vector coordinates x, y, z
@@ -164,12 +250,8 @@ class LaserBeam(EnvObject):
         2) we perform a rotation with an angle theta around the y' axis of the new frame:
             (x', y', z') > (x_laser, y_laser, z_laser)
 
-        Args:
-            vec (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates in lab frame
-
-        Returns:
-            vec_laser (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates in laser frame
         """
+
         # convert vec
         vec = check_position_array(vec, nocheck)
         x, y, z = vec.T
@@ -188,18 +270,32 @@ class LaserBeam(EnvObject):
         vec_laser = np.array([x_laser, y_laser, z_laser]).T
         return vec_laser
 
-    def _convert_vector_to_lab_frame(self, vec, nocheck=False):
+    def _convert_vector_to_lab_frame(
+        self, vec: np.ndarray, nocheck=False
+    ) -> np.ndarray:
         """Rotates a vector from laser frame to lab frame.
+
+        Parameters
+        ----------
+        vec : array of shape (3,) or (n1, n2, ..., 3)
+            cartesian coordinates of the vectors in the laser frame
+        nocheck : bool, optional
+            if set to True, function will not check that the shape of position
+            matches requirements, by default False
+
+        Returns
+        -------
+        vec_lab : array of shape (3,) or (n1, n2, ..., 3)
+            cartesian coordinates of the vectors in the lab frame
+
+        Notes
+        ------
 
         Realizes the reverse operation of `_convert_vector_to_laser_frame`.
         See `_convert_vector_to_laser_frame` docstring for more information
 
-        Args:
-            vec (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates in laser frame
-
-        Returns:
-            vec_lab (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates in lab frame
         """
+
         # convert vec
         vec = check_position_array(vec, nocheck)
         x, y, z = vec.T
@@ -218,33 +314,41 @@ class LaserBeam(EnvObject):
         vec_lab = np.array([x_lab, y_lab, z_lab]).T
         return vec_lab
 
-    def get_polarization_vector_in_laser_frame(self):
+    def get_polarization_vector_in_laser_frame(self) -> np.ndarray:
         """Returns the polarization vector describing the current polarization state, in the **LASER** frame
 
-        See documentation for the exact definition of the vector. In short :
+        Returns
+        -------
+        p_vec : array of shape (,3)
+            cartesian coordinates of the polarization vector (laser frame)
 
-        > p_vec = (1, 0, 0)  : linear polarization along x (vertical)
-        > p_vec = (0, 1, 0)  : linear polarization along y (horizontal)
-        > p_vec = (0, 0, 1)  : circular right polarization
-        > p_vec = (0, 0, -1) : circular left polarization
+        Notes
+        ------
+         See documentation for the exact definition of the vector. In short :
 
-        Returns:
-            p_vec: numpy array of size 3, containing the cartesian coordinates of the polarization vector (laser frame)
+        | ``> p_vec = (1, 0, 0)``  : linear polarization along x (vertical)
+        | ``> p_vec = (0, 1, 0)``  : linear polarization along y (horizontal)
+        | ``> p_vec = (0, 0, 1)``  : circular right polarization
+        | ``> p_vec = (0, 0, -1)`` : circular left polarization
         """
         return self.polarization.vector
 
-    def get_polarization_vector_in_lab_frame(self):
+    def get_polarization_vector_in_lab_frame(self) -> np.ndarray:
         """Returns the polarization vector describing the current polarization state, in the **LAB** frame
 
-        See documentation for the exact definition of the vector. In short :
+        Returns
+        -------
+        p_vec : array of shape (,3)
+            cartesian coordinates of the polarization vector (lab frame)
 
-        > p_vec = (1, 0, 0)  : linear polarization along x (vertical)
-        > p_vec = (0, 1, 0)  : linear polarization along y (horizontal)
-        > p_vec = (0, 0, 1)  : circular right polarization
-        > p_vec = (0, 0, -1) : circular left polarization
+        Notes
+        ------
+         See documentation for the exact definition of the vector. In short :
 
-        Returns:
-            p_vec: numpy array of size 3, containing the cartesian coordinates of the polarization vector (lab frame)
+        | ``> p_vec = (1, 0, 0)``  : linear polarization along x (vertical)
+        | ``> p_vec = (0, 1, 0)``  : linear polarization along y (horizontal)
+        | ``> p_vec = (0, 0, 1)``  : circular right polarization
+        | ``> p_vec = (0, 0, -1)`` : circular left polarization
         """
         p_vec_laser_frame = self.polarization.vector
         p_vec_lab_frame = self._convert_vector_to_lab_frame(p_vec_laser_frame)
@@ -773,7 +877,29 @@ class LaserBeam(EnvObject):
 
 
 class GaussianLaserBeam(LaserBeam):
-    """docstring for GaussianLaserBeam."""
+    """A Gaussian laser beam
+
+    Parameters
+    ----------
+    wavelength : float, optional
+        vacuum wavelength (m), by default 399e-9
+    waist : float, optional
+        1/e^2 waist radius (m), by default 1e-3
+    power : float, optional
+        laser power (W), by default 1e-3
+    waist_position : array, shape (,3), optional
+        cartesian coordinates of the waist / focus position,
+        in meters and in the lab frame, by default (0, 0, 0)
+    direction : array, shape (,3) or (,2), optional
+        depending on 'direction type', a vector or a (theta, phi) couple
+        giving the propagation direction of the beam
+    direction_type : str, optional
+        type of direction : "vector" or "thetaphi", by default "vector"
+    polarization : Polarization, optional
+        laser polarization, by default Vertical()
+    tag : str, optional
+        laser tag, by default None
+    """
 
     @property
     def type(self):
