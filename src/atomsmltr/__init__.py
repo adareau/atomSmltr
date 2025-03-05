@@ -1,6 +1,6 @@
 """
 atomSmltr
------------------
+================
 
 a python package for atomic physics simulations.
 
