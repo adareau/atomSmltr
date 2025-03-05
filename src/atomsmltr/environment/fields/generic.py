@@ -1,5 +1,14 @@
-# -*- coding: utf-8 -*-
-"""Defines the generic Field Class (for vector fields)
+"""
+generic fields
+=======================
+
+This module implements the generic ``Field`` class, and some perfect fields
+(Offset, Gradient, Quadrupole). Those are abstract classes, and actual implementations
+are gathered in other packages
+
+See also
+---------
+atomsmltr.environment.fields.magnetic
 """
 
 # % IMPORTS
@@ -19,7 +28,7 @@ from ...utils.misc import check_position_array
 
 
 class Field(EnvObject):
-    """A generic, abstract class to handle fields (magnetic mostly)"""
+    """A generic class to describe Field objects."""
 
     def __init__(self, *args, **kwargs):
         super(Field, self).__init__(*args, **kwargs)
@@ -27,20 +36,33 @@ class Field(EnvObject):
     @property
     @abstractmethod
     def unit():
-        """unit has to be defined in the concrete class"""
+        """str: returns the unit of the field"""
         pass
 
     def value(self, position: np.ndarray) -> np.ndarray:
-        """Returns the field value at a given position in the lab frame
+        """returns the value of the field at a given position.
 
-            position is an array_like object, with shape (3,) or (n1, n2, .., 3).
-            In all cases, the last dimension contains cordinates (x, y, z), in meter and in the lab frame
+        Parameters
+        ----------
+        position : np.ndarray, shape (,3) or (n1, n2, .., 3)
+            positions at which the intensity is computed, given as cartesian coordinates
+            in the lab frame.
 
-        Args:
-            position (array_like, shape (3,) or (n,3)) : positions at which the intensity is computed
+        Returns
+        -------
+        value : np.ndarray, same shape as position
+            returns the (vector) field value
 
-        Returns:
-            value (float or array): same shape as 'positions', returns the field value.
+        Notes
+        -------
+        `position` is an array_like object, with shape (3,) or (n1, n2, .., 3).
+        In all cases, the last dimension contains cordinates (x, y, z), in meter and in the lab frame
+
+        The field value is returned as an array with the same shape as `position`.
+
+        >>> field_value = field.value(position)
+        >>> X, Y, Z = position.T
+        >>> Fx, Fy, Fz = field_value.T
         """
         # Check position
         position = check_position_array(position)
@@ -54,14 +76,16 @@ class Field(EnvObject):
     def norm(self, position: np.ndarray) -> np.ndarray:
         """Returns the field norm at a given position in the lab frame
 
-            position is an array_like object, with shape (3,) or (n1, n2, .., 3).
-            In all cases, the last dimension contains cordinates (x, y, z), in meter and in the lab frame
+        Parameters
+        ----------
+        position : np.ndarray, shape (,3) or (n1, n2, .., 3)
+            positions at which the intensity is computed, given as cartesian coordinates
+            in the lab frame.
 
-        Args:
-            position (array_like, shape (3,) or (n,3)) : positions at which the intensity is computed
-
-        Returns:
-            norm (float or array): shape (1,) or (n,1), norm of the field
+        Returns
+        -------
+        norm : np.ndarray, shape (,1) or (n1, n2, .., 1)
+            returns the (scalar) field norm
         """
         F = self.value(position)
         Fx, Fy, Fz = F.T
@@ -77,38 +101,54 @@ class Field(EnvObject):
         self,
         limits: np.ndarray,
         Npoints: np.ndarray,
-        cut=0,
+        cut: float = 0.0,
         ax=None,
-        plane="XY",
+        plane: str = "XY",
         cmap=None,
-        show=False,
-        space_scale=1.0,
+        show: bool = False,
+        space_scale: float = 1.0,
     ):
-        """Plots a 2D cut of the field.
+        """Plots a 2D cut of the field, using Matplotlib streamplot()
 
+        Parameters
+        ----------
+        limits : array, shape (4,)
+            an array of size 4, providing (xmin, xmax, ymin, ymax).
+        Npoints : int or array of shape (2,)
+            number of points for each dimension,
+            either a int or an array of two ints (Nx, Ny).
+        cut : float, optional
+            coordinate of the third axis for the cut. Defaults to 0.
+        ax : Matplotlib Axes, optional
+            the matplotlib axis on which to plot.
+            If None is given a new figure is created.
+            Defaults to None.
+        plane : str, optional
+            the plane for the cut. Accepted values are "XY", "YZ" and "ZX". Defaults to "XY".
+        cmap : Matplotlib cmap, optional
+            passed to matplotlib streamplot() function
+        show : bool, optional
+            whether to show the figure after calling the method. Defaults to False.
+        space_scale : float, optional
+            space coordinates will be multiplied by this when plotting. Defaults to 1.
+
+        Returns
+        -------
+        ax : Matplotlib Axes
+            the axis on which the plot was performed.
+
+        Notes
+        ------
         The limits are given via an array of size 4 'limits', providing providing (xmin, xmax, ymin, ymax)
         Number of points are given with 'Npoints', either as an integer (same value for x and y) or an array of size 2
         the coordinate of the cut axis is given by 'cut'
 
-        Examples:
-            > field.plot2D(limits=(-5, 5, -4, 4), Npoints=200)
-            > field.plot2D(limits=(-5, 5, -4, 4), Npoints=200, cut=-5)
-            > field.plot2D(limits=(-5, 5, -4, 4), Npoints=(200, 100))
+        Examples
+        ---------
+        >>> field.plot2D(limits=(-5, 5, -4, 4), Npoints=200)
+        >>> field.plot2D(limits=(-5, 5, -4, 4), Npoints=200, cut=-5)
+        >>> field.plot2D(limits=(-5, 5, -4, 4), Npoints=(200, 100))
 
-
-        Args:
-            limits (array): An array of size 4, providing (xmin, xmax, ymin, ymax).
-            Npoints (int or array, optional): Number of points for each dimension. Either a int or an array of two ints (Nx, Ny).
-            cut (float, optional): coordinate of the third axis for the cut. Defaults to 0.
-            ax (matploblit ax, optional): The axis on which to plot. Defaults to None.
-            plane (string, optional): The plane for the cut. Accepted values are "XY", "YZ" and "ZX". Defaults to "XY".
-            cmap (optional): passed to matplotlib streamplot() function
-            show (bool, optional): whether to show the figure after calling the method. Defaults to False.
-            space_scale (float, optional): space coordinates will be multiplied by this when plotting. Defaults to 1.
-
-
-        Returns:
-            ax (matplotlib axis): the axis
         """
         # - process arguments using the Plottable builtin method
         ax, position, X, Y = self._process_2D_plot_args(
@@ -168,21 +208,37 @@ class Field(EnvObject):
         scale=1.0,
         normalize=False,
     ):
-        """plots a 3D representation of the field.
+        """plots a 3D representation of the field, using Matplotlib quiver()
 
-        Args:
-            limits (array of size 6): limits for the plot (xmin, xmax, ymin, ymax, zmin, zmax)
-            Npoints (int or array): Number of points for each dimension. Either a int or an array of trhee ints (Nx, Ny, Nz)
-            ax (custom Axes3D, optional): The axis in which to plot. If None is given (default value) a new ax is generated
-            color (string, optional): A matplotlib compatible color. Defaults to None.
-            name (string, optional): The name of the laser, passed as a label when plotting. Defaults to None.
-            show (bool, optional): Whether the show the figure after calling the method. Defaults to False.
-            scale (float, optional): A scale factor for plotting the arrows (defaults to 1)
-            normalize (bool, optional): if set to True, we normalize the magnetic field to have a max value of 1 before plotting
+        Parameters
+        ----------
+        limits : array, shape (,6)
+            limits for the plot (xmin, xmax, ymin, ymax, zmin, zmax)
+        Npoints : int or array of shape (,3)
+            number of points for each dimension,
+            either a int or an array of three ints (Nx, Ny, Nz)
+        ax : custom Axes3D, optional
+            the axis in which to plot.
+            If None is given (default value) a new ax is generated
+        color : str, optional
+            a matplotlib compatible color. Defaults to None.
+        name : str, optional
+            the name of the field, passed as a label when plotting. Defaults to None.
+        show : bool, optional
+            whether the show the figure after calling the method. Defaults to False.
+        scale : float, optional
+            a scale factor for plotting the arrows (defaults to 1)
+        normalize : bool, optional
+            if set to True, we normalize the magnetic field to have a max value of 1 before plotting.
+            Defaults to False
 
-        Returns:
-            ax: the figure axis in which the laser is plotted.
+        Returns
+        -------
+        ax : Matplotlib Axes
+            the axis on which the plot was performed.
+
         """
+
         # ------------------------- START ARGUMENT CHECKING ----------------
         # - check plot config
         assert ax is None or isinstance(ax, Axes), "'ax' should be a matplotlib axis."
@@ -255,25 +311,28 @@ class Field(EnvObject):
 
 
 class OffsetField(Field):
-    """To generate perfect field offset"""
+    """Generates a constant offset
 
-    def __init__(self, offset: npt.ArrayLike = (0, 0, 0), tag: str = None):
-        """Generates a constant offset field
+    Parameters
+    ----------
+    offset : np.ndarray, shape (3,), optional
+        Offset field value, by default (0, 0, 0)
+    tag : str, optional
+        Field tag, by default None
+    """
 
-        Args:
-            offset (npt.ArrayLike): offset of the field (array of size 3)
-        """
+    def __init__(self, offset: np.ndarray = (0, 0, 0), tag: str = None):
         self.offset = offset
         super(Field, self).__init__(tag)
 
     # -- getters and setters
 
     @property
-    def offset(self) -> npt.ArrayLike:
+    def offset(self) -> np.ndarray:
         return self.__offset
 
     @offset.setter
-    def offset(self, value: npt.ArrayLike):
+    def offset(self, value: np.ndarray):
         self.__offset = self._check_3D_vector(value, "offset")
 
     # -- requested methods for Field
@@ -294,7 +353,6 @@ class OffsetField(Field):
         return value
 
     def gen_infostring_obj(self):
-        """Generates an info string object"""
         unit = self.unit
         title = self.type
         title = title[:1].upper() + title[1:]  # capitalize first letter
@@ -308,32 +366,52 @@ class OffsetField(Field):
 
 
 class GradientField(Field):
-    """To generate perfect gradients"""
+    """A perfect linear field gradient
 
-    def __init__(
-        self,
-        origin: npt.ArrayLike,
-        slope: float,
-        gradient_direction: npt.ArrayLike,
-        field_direction: npt.ArrayLike,
-        offset: float = 0.0,
-        tag: str = None,
-    ):
-        """Base Gradient
+    Parameters
+    ----------
+    origin : array, shape (,3)
+        origin for the gradient, in cartesian coordinates in the lab frame
+    slope : float
+        the slope of the gradient, in 'field unit' / m
+    gradient_direction : array, shape (.3)
+        the direction of the gradient
+    field_direction : array, shae (,3)
+        the direction of the field
+    offset : float, optional
+        an offset for the field amplitude at origin, in 'field unit', by default 0.0
+    tag : str, optional
+        field tag, by default None
 
-        See below for arguments.
-
+    Notes
+    -----
         Note that 'gradient_direction' and 'field_direction' are meant to be
         unit vectors, but the class will take care of normalizing any non normalized entry
 
+    Examples
+    ---------
 
-        Args:
-            origin (npt.ArrayLike): origin for the gradient (array of size 3)
-            slope (float): the slope of the gradient (scalar)
-            gradient_direction (npt.ArrayLike): the direction of the gradient (array of size 3)
-            field_direction (npt.ArrayLike): the field direction (array of size 3)
-            offset (float, optional): the field offset, at origin (scalar). Defaults to 0.0.
-        """
+    Create a field pointing along z, with a amplitude increasing linearly along x
+
+    >>> gradient = GradientField(
+    ...  origin=(0, 0, 0),
+    ...  slope=1,
+    ...  gradient_direction=(1, 0, 0),
+    ...  field_direction=(0, 0, 1),
+    ...  tag="gradient",
+    ... )
+
+    """
+
+    def __init__(
+        self,
+        origin: np.ndarray,
+        slope: float,
+        gradient_direction: np.ndarray,
+        field_direction: np.ndarray,
+        offset: float = 0.0,
+        tag: str = None,
+    ):
         self.slope = slope
         self.offset = offset
         self.origin = origin
@@ -400,38 +478,42 @@ class GradientField(Field):
     # -- getters and setters
     # -
     @property
-    def slope(self) -> npt.ArrayLike:
+    def slope(self) -> float:
+        """float: the field amplitude gradient slope"""
         return self.__slope
 
     @slope.setter
-    def slope(self, value: npt.ArrayLike):
+    def slope(self, value: float):
         self.__slope = self._check_real_number(value, "slope")
 
     # -
     @property
-    def offset(self) -> npt.ArrayLike:
+    def offset(self) -> float:
+        """float: the field amplitude value at origin"""
         return self.__offset
 
     @offset.setter
-    def offset(self, value: npt.ArrayLike):
+    def offset(self, value: float):
         self.__offset = self._check_real_number(value, "offset")
 
     # -
     @property
-    def origin(self) -> npt.ArrayLike:
+    def origin(self) -> np.ndarray:
+        """array, shape (,3): the origin for the gradient"""
         return self.__origin
 
     @origin.setter
-    def origin(self, value: npt.ArrayLike):
+    def origin(self, value: np.ndarray):
         self.__origin = self._check_3D_vector(value, "origin")
 
     # -
     @property
-    def gradient_direction(self) -> npt.ArrayLike:
+    def gradient_direction(self) -> np.ndarray:
+        """array, shape (,3): the gradient direction"""
         return self.__gradient_direction
 
     @gradient_direction.setter
-    def gradient_direction(self, value: npt.ArrayLike):
+    def gradient_direction(self, value: np.ndarray):
         value = self._check_3D_vector(value, "gradient_direction", norm=True)
         assert np.allclose(
             np.linalg.norm(value), 1
@@ -446,39 +528,46 @@ class GradientField(Field):
 
     # -
     @property
-    def field_direction(self) -> npt.ArrayLike:
+    def field_direction(self) -> np.ndarray:
+        """array, shape (,3): the field direction"""
         return self.__field_direction
 
     @field_direction.setter
-    def field_direction(self, value: npt.ArrayLike):
+    def field_direction(self, value: np.ndarray):
         self.__field_direction = self._check_3D_vector(
             value, "field_direction", norm=True
         )
 
 
 class BaseQuadrupoleField(Field):
-    """To generate perfect quadrupoles"""
+    """A perfect quadrupole field
+
+    Parameters
+    ----------
+    origin : array, shape (,3)
+        origin for the quadrupole, in cartesian coordinates in the lab frame
+    strong_axis : array, shape (,3)
+        the direction of the strong axis
+    slope : float
+        the gradient of the weak axes
+    tag : str, optional
+        field tag, by default None
+
+    Notes
+    ------
+
+    Note that 'strong_axis' is meant to be a unit vector, but the class will take care of normalizing
+    any non normalized entry
+
+    """
 
     def __init__(
         self,
-        origin: npt.ArrayLike,
-        strong_axis: npt.ArrayLike,
+        origin: np.ndarray,
+        strong_axis: np.ndarray,
         slope: float,
         tag: str = None,
     ):
-        """Base Quadrupole Field
-
-        See below for arguments.
-
-        Note that 'stron_axis' is meant to be a unit vector, but the class will take care of normalizing
-        any non normalized entry
-
-
-        Args:
-            origin (npt.ArrayLike): origin for the quadrupole (array of size 3)
-            strong_axis (npt.ArrayLike): the direction for the strong axis
-            slope (float): the slope of the gradient (scalar)
-        """
         self.slope = slope
         self.origin = origin
         self.strong_axis = strong_axis
@@ -488,29 +577,32 @@ class BaseQuadrupoleField(Field):
     # -- getters and setters
     # -
     @property
-    def slope(self) -> npt.ArrayLike:
+    def slope(self) -> float:
+        """float: the gradient of the weak axes"""
         return self.__slope
 
     @slope.setter
-    def slope(self, value: npt.ArrayLike):
+    def slope(self, value: float):
         self.__slope = self._check_real_number(value, "slope")
 
     # -
     @property
-    def origin(self) -> npt.ArrayLike:
+    def origin(self) -> np.ndarray:
+        """array, shape (3,): the origin of the quadrupole"""
         return self.__origin
 
     @origin.setter
-    def origin(self, value: npt.ArrayLike):
+    def origin(self, value: np.ndarray):
         self.__origin = self._check_3D_vector(value, "origin")
 
     # -
     @property
-    def strong_axis(self) -> npt.ArrayLike:
+    def strong_axis(self) -> np.ndarray:
+        """array, shape (3,): the direction of the strong axis"""
         return self.__strong_axis
 
     @strong_axis.setter
-    def strong_axis(self, value: npt.ArrayLike):
+    def strong_axis(self, value: np.ndarray):
         value = self._check_3D_vector(value, "strong_axis", norm=True)
         assert np.allclose(
             np.linalg.norm(value), 1
@@ -539,11 +631,28 @@ class BaseQuadrupoleField(Field):
 
 
 class QuadrupoleFieldX(BaseQuadrupoleField):
-    """docstring for XQuadrupoleField."""
+    """A perfect quadrupole field with strong axis along X
+
+    Parameters
+    ----------
+    origin : array, shape (,3)
+        origin for the quadrupole, in cartesian coordinates in the lab frame
+    slope : float
+        the gradient of the weak axes
+    tag : str, optional
+        field tag, by default None
+
+    Notes
+    ------
+
+    Note that 'strong_axis' is meant to be a unit vector, but the class will take care of normalizing
+    any non normalized entry
+
+    """
 
     def __init__(
         self,
-        origin: npt.ArrayLike,
+        origin: np.ndarray,
         slope: float,
         tag: str = None,
     ):
@@ -575,11 +684,28 @@ class QuadrupoleFieldX(BaseQuadrupoleField):
 
 
 class QuadrupoleFieldY(BaseQuadrupoleField):
-    """docstring for YQuadrupoleField."""
+    """A perfect quadrupole field with strong axis along Y
+
+    Parameters
+    ----------
+    origin : array, shape (,3)
+        origin for the quadrupole, in cartesian coordinates in the lab frame
+    slope : float
+        the gradient of the weak axes
+    tag : str, optional
+        field tag, by default None
+
+    Notes
+    ------
+
+    Note that 'strong_axis' is meant to be a unit vector, but the class will take care of normalizing
+    any non normalized entry
+
+    """
 
     def __init__(
         self,
-        origin: npt.ArrayLike,
+        origin: np.ndarray,
         slope: float,
         tag: str = None,
     ):
@@ -611,11 +737,28 @@ class QuadrupoleFieldY(BaseQuadrupoleField):
 
 
 class QuadrupoleFieldZ(BaseQuadrupoleField):
-    """docstring for YQuadrupoleField."""
+    """A perfect quadrupole field with strong axis along Z
+
+    Parameters
+    ----------
+    origin : array, shape (,3)
+        origin for the quadrupole, in cartesian coordinates in the lab frame
+    slope : float
+        the gradient of the weak axes
+    tag : str, optional
+        field tag, by default None
+
+    Notes
+    ------
+
+    Note that 'strong_axis' is meant to be a unit vector, but the class will take care of normalizing
+    any non normalized entry
+
+    """
 
     def __init__(
         self,
-        origin: npt.ArrayLike,
+        origin: np.ndarray,
         slope: float,
         tag: str = None,
     ):
