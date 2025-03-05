@@ -1,9 +1,15 @@
-# -*- coding: utf-8 -*-
-"""Defines the generic interpolated field classes
+"""
+interpolated fields
+=======================
+
+This module implements the generic ``InterpolatedField`` class
+
+See also
+---------
+atomsmltr.environment.fields.magnetic
 """
 
 # % IMPORTS
-import numpy.typing as npt
 import numpy as np
 from abc import abstractmethod
 
@@ -15,16 +21,33 @@ from ...utils.infostring import InfoString
 
 
 class InterpolatedField(Field):
-    """A generic class to handle fields interpolated from external data"""
+    """Creates an interpolated field from input values.
+
+    Parameters
+    ----------
+    data_x : array
+        the 'position' data of the field to interpolate
+    data_y : array
+        the 'value' data of the field to interpolate
+    origin : array, shape (3,), optional
+        cartesian coordinates of the origin for the field.
+        If not set to (0,0,0), it will shift the interpolated field
+        w.r.t the initial data, by default (0, 0, 0)
+    scale : float, optional
+        a scale factor for the interpolated field, by default 1.0
+    tag : str, optional
+        the field tag, by default None
+    """
 
     def __init__(
         self,
-        data_x: npt.ArrayLike,
-        data_y: npt.ArrayLike,
-        origin: npt.ArrayLike = (0, 0, 0),
+        data_x: np.ndarray,
+        data_y: np.ndarray,
+        origin: np.ndarray = (0, 0, 0),
         scale: float = 1.0,
         tag: str = None,
     ):
+
         self.origin = origin
         self.scale = scale
         self.interpolate(data_x, data_y)
@@ -32,12 +55,20 @@ class InterpolatedField(Field):
 
     # -- requested method
     @abstractmethod
-    def interpolate(self, data_x, data_y):
-        """initializes the interpolation"""
+    def interpolate(self, data_x: np.ndarray, data_y: np.ndarray):
+        """(re)initialize the interpolation
+
+        Parameters
+        ----------
+        data_x : array
+            the 'position' data of the field to interpolate
+        data_y : array
+            the 'value' data of the field to interpolate
+        """
         pass
 
     @abstractmethod
-    def _interp_fun(self, x):
+    def _interp_fun(self, x: np.ndarray):
         """result of interpolation, has to be assigned via 'interpolate'"""
         pass
 
@@ -61,32 +92,55 @@ class InterpolatedField(Field):
     # -- getters and setters
     # -
     @property
-    def origin(self) -> npt.ArrayLike:
+    def origin(self) -> np.ndarray:
+        """array, shape (,3): the origin for the interpolated field"""
         return self.__origin
 
     @origin.setter
-    def origin(self, value: npt.ArrayLike):
+    def origin(self, value: np.ndarray):
         self.__origin = self._check_3D_vector(value, "origin")
 
     # -
     @property
-    def scale(self) -> npt.ArrayLike:
+    def scale(self) -> float:
+        """float: a scale factor for the field"""
         return self.__scale
 
     @scale.setter
-    def scale(self, value: npt.ArrayLike):
+    def scale(self, value: float):
         self.__scale = self._check_real_number(value, "scale")
 
 
 class InterpolatedField1D1D(InterpolatedField):
+    """Creates an interpolated 1D field from 1D input values.
+
+    Parameters
+    ----------
+    data_x : array, shape (,n)
+        the 'position' data of the field to interpolate
+    data_y : array, shape (,n)
+        the amplitude of the field to interpolate
+    field_direction : array, shape (,3)
+        the direction to which the interpolated field will point at
+    x_direction : array, shape (,3)
+        the direction corresponding to the data_x 'position' array
+    origin : array, shape (3,), optional
+        cartesian coordinates of the origin for the field.
+        If not set to (0,0,0), it will shift the interpolated field
+        w.r.t the initial data, by default (0, 0, 0)
+    scale : float, optional
+        a scale factor for the interpolated field, by default 1.0
+    tag : str, optional
+        the field tag, by default None
+    """
 
     def __init__(
         self,
-        data_x: npt.ArrayLike,
-        data_y: npt.ArrayLike,
-        field_direction: npt.ArrayLike = (1, 0, 0),
-        x_direction: npt.ArrayLike = (1, 0, 0),
-        origin: npt.ArrayLike = (0, 0, 0),
+        data_x: np.ndarray,
+        data_y: np.ndarray,
+        field_direction: np.ndarray = (1, 0, 0),
+        x_direction: np.ndarray = (1, 0, 0),
+        origin: np.ndarray = (0, 0, 0),
         scale: float = 1.0,
         tag: str = None,
     ):
@@ -102,7 +156,15 @@ class InterpolatedField1D1D(InterpolatedField):
         )
 
     # -- Interp fun
-    def _interp_fun(self, position):
+    def _interp_fun(self, position: np.ndarray) -> np.ndarray:
+        """Returns field value at point position
+
+        position should be an array of shape (3,) or (n1,n2,..,3)
+        last axis contains coordinates x, y, z
+
+        NB: position is already checked and converted to an array in the
+            `Field` class
+        """
         # - get X, Y, and Z
         x, y, z = position.T
         x, y, z = x.T, y.T, z.T
@@ -131,31 +193,35 @@ class InterpolatedField1D1D(InterpolatedField):
     # -- GETTERS
     # -
     @property
-    def data_x(self):
+    def data_x(self) -> np.ndarray:
+        """array: x data used for interpolation"""
         return self.__data_x
 
     # -
     @property
-    def data_y(self):
+    def data_y(self) -> np.ndarray:
+        """array: y data used for interpolation"""
         return self.__data_y
 
     # -
     @property
-    def field_direction(self):
+    def field_direction(self) -> np.ndarray:
+        """array, shape (3,): direction of the field"""
         return self.__field_direction
 
     @field_direction.setter
-    def field_direction(self, value: npt.ArrayLike):
+    def field_direction(self, value: np.ndarray):
         value = self._check_3D_vector(value, "field_direction", norm=True)
         self.__field_direction = value
 
     # -
     @property
-    def x_direction(self):
+    def x_direction(self) -> np.ndarray:
+        """array, shape (,3) : the direction corresponding to the data_x 'position' array"""
         return self.__x_direction
 
     @x_direction.setter
-    def x_direction(self, value: npt.ArrayLike):
+    def x_direction(self, value: np.ndarray):
         value = self._check_3D_vector(value, "x_direction", norm=True)
         # compute angles
         ux, uy, uz = value

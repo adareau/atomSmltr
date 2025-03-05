@@ -43,7 +43,6 @@ class MagneticField(Field):
 
 # -- PERFECT FIELDS CLASSES
 class MagneticOffset(MagneticField, OffsetField):
-    """Our magnetic field class"""
 
     def __init__(self, offset: float, tag: str = None):
         """Generates a constant offset magnetic field
