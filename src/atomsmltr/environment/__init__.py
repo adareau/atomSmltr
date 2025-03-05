@@ -8,6 +8,6 @@ Content
 | ``atomsmltr.environment.zones``   : zones in position or speed space
 """
 
-from .fields.magnetic import MagneticField
-from .lasers.beams import LaserBeam
-from .zones.generic import Zone
+from .fields.magnetic import *
+from .lasers import *
+from .zones import *

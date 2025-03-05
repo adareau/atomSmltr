@@ -81,7 +81,9 @@ __all__ = [
     "LowerLimit",
     "Limits",
     "Box",
+    "Zone",
 ]
 
 from .limits import UpperLimit, LowerLimit, Limits
 from .volumes import Box
+from .generic import Zone

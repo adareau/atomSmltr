@@ -1,6 +1,21 @@
-# -*- coding: utf-8 -*-
-"""Defines the Configuration classes,
-to make a consistent configuration for the simulator
+"""configuration
+==================
+
+Here we implement the ``Configuration`` class, that allows to define
+consistent configurations that are later fed to the ``Simulation`` objects.
+
+Quick description
+--------------------
+
+A configuration consists of:
+
+* a atom (``Atom``)
+* a collection of laser beams (``LaserBeam``)
+* a collection of magnetic Fields (``MagneticField``)
+* a collection of zones (``Zone``)
+
+The coupling between atoms and lasers is stored in a ``atomlight`` dictionnary, that
+is setup with the ``add_atomlight_coupling()`` method.
 """
 
 # % IMPORTS
@@ -22,7 +37,45 @@ SEP_STR = "# ------------ {} ------------ #"
 
 
 class Configuration(object):
-    def __init__(self, object_list=None, atom=None):
+    """Defines a configuration for the simulation
+
+    Parameters
+    ----------
+    object_list : EnvObject | list, optional
+        list of environment objects (lasers, magnetic fields, zones)
+        to include in the configuration, by default None
+    atom : Atom, optional
+        atom for the simulation, by default None
+
+    Examples
+    ---------
+
+    .. code-block:: python
+
+        # - imports
+        from atomsmltr.environment import GaussianLaserBeam, MagneticOffset, Limits
+        from atomsmltr.atoms import Ytterbium
+        from atomsmltr.simulation import Configuration
+
+        # - setup environment objects
+        laser = GaussianLaserBeam(tag="laser")
+        mag_offset = MagneticOffset(offset=(0,1,0), tag="offset")
+        xlim = Limits(min=0, max=10, axis=0, target="position")
+
+        # - setup atom
+        yb = Ytterbium()
+
+        # - init configuration
+        config = Configuration(object_list=[laser, mag_offset, xlim], atom=yb)
+
+        # - print info
+        config.print_info()
+
+
+    """
+
+    def __init__(self, object_list: EnvObject | list = None, atom: Atom = None):
+
         # - initialize collections
         self.__lasers = {}
         self.__zones = {}
@@ -45,7 +98,14 @@ class Configuration(object):
 
     # -- ATOM-LIGHT INTERACTION HANDLING
 
-    def get_atomlight_couples(self):
+    def get_atomlight_couples(self) -> list:
+        """Returns a list of (transition, laser, detuning) tuples
+
+        Returns
+        -------
+        list
+            a list of tuples with (transition, laser, detuning)
+        """
         list = []
         for transition_tag, laser_dict in self.__atomlight.items():
             transition = self.atom.trans[transition_tag]
@@ -60,9 +120,35 @@ class Configuration(object):
         laser: str | LaserBeam,
         transition: str,
         detuning: float,
-        verbose=False,
-        override=False,
+        verbose: bool = False,
+        override: bool = False,
     ):
+        """Adds a atom-light coupling element in the configuration
+
+        Parameters
+        ----------
+        laser : str | LaserBeam
+            either a laser tag or a laser object. This object/tag has to be in the configuration laser list
+        transition : str
+            the tag of the transition. Should be part of the collection's atom transition list
+        detuning : float
+            detuning of the laser w.r.t to transition (rad/s), see notes for the definition
+        verbose : bool, optional
+            if True, will print messages when adding the couplint, by default False
+        override : bool, optional
+            if set to True, if a coupling between the laser and the transition already
+            exists, then it will be overriden. Otherwise it will raise an error, by default False
+
+        Notes
+        ------
+
+        The detuning δ is defined as:
+
+            δ = ωL - ω0
+
+        Where ωL is the laser pulsation and ω0 the atomic transition pulsation (hence, in rad/s)
+        Stated otherwise, detuning units is in units of 2π x Hz
+        """
         # - checking inputs
         # check laser argument
         if not isinstance(laser, (str, LaserBeam)):
@@ -100,6 +186,15 @@ class Configuration(object):
         laser: str | LaserBeam,
         transition: str,
     ):
+        """Removes an atom-light coupling
+
+        Parameters
+        ----------
+        laser : str | LaserBeam
+            laser coupled : tag (str) or directly the object
+        transition : str
+            transition tag
+        """
         # - checking inputs
         # check laser argument
         if not isinstance(laser, (str, LaserBeam)):
@@ -122,17 +217,67 @@ class Configuration(object):
             self.__atomlight[transition].clear()
 
     # -- GETTING VALUES
-    def getB(self, position):
-        """Returns magnetic field at a given position in the lab frame
+    def getB(self, position: np.ndarray) -> np.ndarray:
+        """Returns the total magnetic field at a given position in the lab frame
 
-            position is an array_like object, with shape (3,) or (n1, n2, .., 3).
-            In all cases, the last dimension contains cordinates (x, y, z), in meter and in the lab frame
+        Parameters
+        ----------
+        position : array, shape (3,) or (n1, n2, .., 3)
+            array of cartesian coordinates in the lab frame
 
-        Args:
-            position (array_like, shape (3,) or (n,3)) : positions at which the intensity is computed
+        Returns
+        -------
+        B : array, shape (3,) or (n1, n2, .., 3)
+            magnetic field at the position. shape matches the one of ``position``
 
-        Returns:
-            magnetic field (float or array): laser intensity at positions, with dimension matching the 'position' input.
+        Notes
+        ------
+        position is an array_like object, with shape (3,) or (n1, n2, .., 3).
+
+        In all cases, the last dimension contains cordinates (x, y, z),
+        in meter and in the lab frame
+
+        Example
+        -------
+
+        .. code-block:: python
+
+            ... init a proper config first
+            import numpy as np
+
+            # generate a grid of 100 x 100 points in the (x, y) plane
+            grid = np.mgrid[-10:10:100j, -10:-10:100j, 0:0:1j]
+            grid = np.squeeze(grid)
+
+            # get coordinates arrays (for plotting for instance)
+            X, Y, Z = grid
+
+            # generate the requested (..., 3) shaped position array
+            position = grid.T
+
+            # compute magnetic field
+            B = config.getB(position)
+
+            # get magnetic field components
+            Bx, By, Bz = B.T
+
+            # show shapes (to illustrate what we did)
+            print(f"{grid.shape=}")
+            print(f"{position.shape=}")
+            print(f"{B.shape=}")
+            print(f"{X.shape=}")
+            print(f"{Bx.shape=}")
+
+        This returns
+
+        .. code-block:: python
+
+            grid.shape=(3, 100, 100)
+            position.shape=(100, 100, 3)
+            B.shape=(100, 100, 3)
+            X.shape=(100, 100)
+            Bx.shape=(100, 100)
+
         """
         B = np.zeros_like(position, dtype=float)
         if self.__magfields:
@@ -141,16 +286,24 @@ class Configuration(object):
         return B
 
     def getBnorm(self, position):
-        """Returns magnetic field norm at a given position in the lab frame
+        """Returns the magnetic field amplitude (norm) at a given lab position
 
-            position is an array_like object, with shape (3,) or (n1, n2, .., 3).
-            In all cases, the last dimension contains cordinates (x, y, z), in meter and in the lab frame
+        Parameters
+        ----------
+        position : array, shape (3,) or (n1, n2, .., 3)
+            array of cartesian coordinates in the lab frame
 
-        Args:
-            position (array_like, shape (3,) or (n,3)) : positions at which the intensity is computed
+        Returns
+        -------
+        B_norm : array, shape (1,) or (n1, n2, .., 1)
+            magnetic field norm the position. shape matches the one of ``position``
 
-        Returns:
-            magnetic field (float or array): laser intensity at positions, with dimension matching the 'position' input.
+        Notes
+        ------
+        position is an array_like object, with shape (3,) or (n1, n2, .., 3).
+
+        In all cases, the last dimension contains cordinates (x, y, z),
+        in meter and in the lab frame
         """
         B = self.getB(position)
         Bx, By, Bz = B.T
@@ -159,9 +312,16 @@ class Configuration(object):
 
     # -- GETTING ZONES
     def get_stop_zones(self):
-        """Returns two lists, 'stop_position' and 'stop_speed', containing the zones
-        with 'action' set to 'stop' and targets to 'position' & 'speed', respectively
+        """Returns two list of the zones whose ``action`` are set to ``stop``
+
+        Returns
+        -------
+        stop_position: list
+            list of position stop zones (target=position)
+        stop_speed: list
+            list of speed stop zones (target=speed)
         """
+
         stop_speed = []
         stop_position = []
         for zone in self.__zones.values():
@@ -178,16 +338,43 @@ class Configuration(object):
     def add_objects(self, obj: EnvObject | list, verbose=False):
         """Add environment objects to the configuration.
 
+        Parameters
+        ----------
+        obj : EnvObject | list
+            a environment object or a list of objects
+        verbose : bool, optional
+            if set to True messages are displayed. Defaults to False.
+
+        Notes
+        -----
+
         The function takes a single environment object (laser, magnetic field...) or a collection
         of objects in the form of a tuple or a list.
 
         Objects of different subtypes can be added at the same time: the method will add them
         to the correct collection based on their classes
 
-        Args:
-            obj (EnvObject | list): a environment object or a list of objects
-            verbose (bool, optional): if set to True messages are displayed. Defaults to False.
+        Note
+        ----
+            The addition operator ``+`` also allows to add objects.
+            Hence, ``conf.add_objects([obj1, obj2, ...])`` is equivalent to
+            ``conf += obj1, obj2 , ...``
+
+        Examples
+        --------
+        .. code-block:: python
+
+            ... init a proper config first and env objects
+
+            # add objects
+            config.add_objects(laser1)
+            config.add_objects([mag_field, zone1, zone2, laser2])
+
+            # also works with += operator*
+            config += laser3, laser4
+
         """
+
         # - check argument
         self.__check_objects_arg(obj)
 
@@ -232,22 +419,27 @@ class Configuration(object):
     def update_objects(self, obj: EnvObject | list, verbose=False, error_on_fail=False):
         """Update an object or a list of objects
 
+        Parameters
+        ----------
+        obj : EnvObject | list
+            a environment object or a list of objects
+        verbose : bool, optional
+            if set to True messages are displayed. Defaults to False.
+        error_on_fail : bool, optional
+            if set to True, raises an error if it fails. Otherwise,
+            just raises a warning and continues. Defaults to False.
+
+        Notes
+        ------
         The function takes a single environment object (laser, magnetic field...) or a collection
         of objects in the form of a tuple or a list.
 
         For each object given as an input, if there is an object with:
-            (1) same type (laser, magnetic field)
-        AND (2) same tag
+
+        (1) same type (laser, magnetic field) **and**
+        (2) same tag
 
         then this object is replaced by the new one.
-
-        Args:
-            obj (EnvObject | list): a environment object or a list of objects
-            verbose (bool, optional): if set to True messages are displayed. Defaults to False.
-            error_on_fail (bool, optional): If set to True, raises an error if it fails. Otherwise, just raises a warning and continues. Defaults to False.
-
-        Raises:
-            TypeError: _description_
         """
         # - check argument
         self.__check_objects_arg(obj)
@@ -307,30 +499,48 @@ class Configuration(object):
     def rm_object(self, collection: str, tag: str):
         """Remove object from 'collection' with 'tag'
 
-        Collection must be in ['laser', 'magnetic field', 'zone'    ]
+        Collection must be in ['laser', 'magnetic field', 'zone']
 
-        Args:
-            collection (str): the collection from which the object should be removed
-            tag (str): the tag of the object
+        Parameters
+        ----------
+        collection : str
+            the collection from which the object should be removed
+        tag : str
+            the tag of the object
         """
+
         coll = self.__check_object_in_coll(collection, tag)
         del coll[tag]
 
     def rm_laser(self, tag: str):
-        """Remove lasers by tag
+        """Removes laser by tag
 
-        Args:
-            tag (str): laser tag
+        Parameters
+        ----------
+        tag : str
+            laser tag
         """
         return self.rm_object("laser", tag)
 
     def rm_magnetic_field(self, tag):
-        """Remove magnetic fields by tag
+        """Removes magnetic field by tag
 
-        Args:
-            tag (str): magnetic field tag
+        Parameters
+        ----------
+        tag : str
+            magnetic field tag
         """
         return self.rm_object("magnetic field", tag)
+
+    def rm_zone(self, tag):
+        """Removes zone by tag
+
+        Parameters
+        ----------
+        tag : str
+            zone tag
+        """
+        return self.rm_object("zone", tag)
 
     def rm_all_objects(self):
         """Remove all objects"""
@@ -352,76 +562,123 @@ class Configuration(object):
 
     # -- INFOS
 
-    def gen_object_infostring_object(self, collection, tag):
+    def gen_object_infostring_object(self, collection: str, tag: str) -> InfoString:
         """Generate infostring object for an object from 'collection' with 'tag'
 
-        Collection must be in ['laser', 'magnetic field', 'zone'    ]
+        Collection must be in ['laser', 'magnetic field', 'zone']
 
-        Args:
-            collection (str): the collection from which the object should be removed
-            tag (str): the tag of the object
+        Parameters
+        ----------
+        collection : str
+            the collection from which the object should be taken
+        tag : str
+            the tag of the object
+
+        Returns
+        -------
+        infostring: Infostring
+            an infostring object
+
+        See also
+        ---------
+        atomsmltr.utils.infostring
         """
+
         coll = self.__check_object_in_coll(collection, tag)
         info = coll[tag].gen_infostring_obj()
         info.title = f"{collection} | {tag=}"
         return info
 
-    def print_object_info(self, collection, tag):
+    def print_object_info(self, collection: str, tag: str):
         """Print info for an object from 'collection' with 'tag'
 
         Collection must be in ['laser', 'magnetic field', 'zone'    ]
 
-        Args:
-            collection (str): the collection from which the object should be removed
-            tag (str): the tag of the object
+        Parameters
+        ----------
+        collection : str
+            the collection from which the object should be taken
+        tag : str
+            the tag of the object
         """
         info = self.gen_object_infostring_object(collection, tag)
         print(info.generate())
 
-    def print_laser_info(self, tag):
+    def print_laser_info(self, tag: str):
         """Print info of the laser indentified by 'tag'
 
-        Args:
-            tag (str): laser tag
+        Parameters
+        ----------
+        tag : str
+            the tag of the laser
         """
         return self.print_object_info("laser", tag)
 
-    def print_magnetic_field_info(self, tag):
+    def print_magnetic_field_info(self, tag: str):
         """Print info of the magnetic field indentified by 'tag'
 
-        Args:
-            tag (str): magnetic field tag
+        Parameters
+        ----------
+        tag : str
+            the tag of the magnetic field
         """
         return self.print_object_info("magnetic field", tag)
 
+    def print_zone_info(self, tag: str):
+        """Print info of the zone indentified by 'tag'
+
+        Parameters
+        ----------
+        tag : str
+            the tag of the zone
+        """
+        return self.print_object_info("zone", tag)
+
     # -- GET OBJECTS
-    def get_object_copy(self, collection, tag) -> EnvObject:
+    def get_object_copy(self, collection: str, tag: str) -> EnvObject:
         """Returns a copy of an object from 'collection' with 'tag'
 
         Collection must be in ['laser', 'magnetic field', 'zone'    ]
 
-        Args:
-            collection (str): the collection from which the object should be removed
-            tag (str): the tag of the object
+        Parameters
+        ----------
+        collection : str
+            the collection from which the object should be taken
+        tag : str
+            the tag of the object
         """
         coll = self.__check_object_in_coll(collection, tag)
         return copy(coll[tag])
 
-    def get_laser_copy(self, tag):
+    def get_laser_copy(self, tag: str):
         """Returns a copy of the laser indentified by 'tag'
 
-        Args:
-            tag (str): laser tag
+        Parameters
+        ----------
+        tag : str
+            the tag of the laser
         """
         return self.get_object_copy("laser", tag)
 
-    def get_magnetic_field_copy(self, tag):
+    def get_magnetic_field_copy(self, tag: str):
         """Returns a copy of the magnetic field indentified by 'tag'
 
-        Args:
-            tag (str): magnetic field tag
+        Parameters
+        ----------
+        tag : str
+            the tag of the magnetic field
         """
         return self.get_object_copy("magnetic field", tag)
+
+    def get_zone_copy(self, tag: str):
+        """Returns a copy of the zone indentified by 'tag'
+
+        Parameters
+        ----------
+        tag : str
+            the tag of the zone
+        """
+        return self.get_object_copy("zone", tag)
 
     # -- COMMON METHODS
 
@@ -450,6 +707,7 @@ class Configuration(object):
     # -- GETTERS & SETTERS
     @property
     def atom(self) -> Atom:
+        """ "Atom: the configuration atom"""
         return self.__atom
 
     @atom.setter
@@ -469,6 +727,7 @@ class Configuration(object):
 
     @property
     def objects(self) -> dict:
+        """dict: the collection of objects"""
         out = {}
         for k, v in self.__implemented_collections.items():
             out[k] = copy(v)
@@ -491,6 +750,7 @@ class Configuration(object):
         return info
 
     def print_atomlight_info(self):
+        """Prints atom-light coupling information"""
         print(self.gen_atomlight_infostring_obj().generate())
 
     def gen_infostring_obj_list(self):
