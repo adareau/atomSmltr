@@ -354,30 +354,51 @@ class LaserBeam(EnvObject):
         p_vec_lab_frame = self._convert_vector_to_lab_frame(p_vec_laser_frame)
         return p_vec_lab_frame
 
-    def get_polarization_quant_amplitude(self, quantization_axis, nocheck=False):
+    def get_polarization_quant_amplitude(
+        self, quantization_axis: np.ndarray, nocheck: bool = False
+    ) -> np.ndarray:
         """Returns the projection of the polarization state |Ψ⟩ on |σ+⟩, |σ-⟩ and |π⟩, using
-        the vector `quantization_axis` as a quantification axis. See documentation
+        the vector ``quantization_axis`` as a quantification axis. See documentation
         for a derivation of this projection.
 
-        `quantization_axis` should be an array of shape (3,) or (n1, n2, .., 3), where the cartesian
-        coordinates of the quantization axis are stored in the last dimension (of size 3)
+        Parameters
+        ----------
+        quantization_axis : array of shape (3,) or (n1, n2, ..., 3)
+            cartesian coordinates of the quantization axis vector in the lab frame
+        nocheck : bool, optional
+            if set to True, function will not check that the shape of position
+            matches requirements, by default False
 
-        the result `polar_amp`is an array whose size matches the one of `quantization_axi`, where the last
+        Returns
+        -------
+        polar_amp : array of shape (3,) or (n1, n2, ..., 3)
+            contains the polarization amplitude for π, σ+ and σ- components
+
+        Notes
+        -----
+
+        The input ``quantization_axis`` should be an array of shape (3,) or (n1, n2, .., 3), where
+        the cartesian coordinates of the quantization axis are stored in the last dimension (of size 3)
+
+        the result ``polar_amp`` is an array whose size matches the one of ``quantization_axis``, where the last
         dimension of size 3 contains the projections of the polarization state on π, σ+ and σ-
 
-        That is : pi_amp, sigmaplus_amp, sigma_minus_amp = polar_amp.T
+        That is :
+
+        >>> pi_amp, sigmaplus_amp, sigma_minus_amp = polar_amp.T
 
         With:
 
-        pi_amp =  〈Ψ|π⟩
-        sigmaplus_amp =  〈Ψ|σ+⟩
-        sigma_minus_amp =  〈Ψ|σ-⟩
+        | ``pi_amp`` =  〈Ψ|π⟩
+        | ``sigmaplus_amp`` =  〈Ψ|σ+⟩
+        | ``sigma_minus_amp`` =  〈Ψ|σ-⟩
 
-        Args:
-            quantization_axis vec (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates of the quantization axis
+        See Also
+        --------
+        get_polarization_quant()
+        get_polarization_quant_amplitude_dict()
+        get_polarization_quant_dict()
 
-        Returns:
-            polar_amp (array): array of shape (3,) or (n1, n2, ..., 3) containing the polarization amplitude for π, σ+ and σ- components
         """
 
         # -- process input
@@ -426,51 +447,87 @@ class LaserBeam(EnvObject):
 
         return polar_amp
 
-    def get_polarization_quant(self, quantization_axis, nocheck=False):
+    def get_polarization_quant(
+        self, quantization_axis: np.ndarray, nocheck: bool = False
+    ) -> np.ndarray:
         """Returns **squared norm** the projection of the polarization state |Ψ⟩ on |σ+⟩, |σ-⟩ and |π⟩, using
-        the vector `quantization_axis` as a quantification axis. See documentation
+        the vector ``quantization_axis`` as a quantification axis. See documentation
         for a derivation of this projection.
 
-        `quantization_axis` should be an array of shape (3,) or (n1, n2, .., 3), where the cartesian
-        coordinates of the quantization axis are stored in the last dimension (of size 3)
+        Parameters
+        ----------
+        quantization_axis : array of shape (3,) or (n1, n2, ..., 3)
+            cartesian coordinates of the quantization axis vector in the lab frame
+        nocheck : bool, optional
+            if set to True, function will not check that the shape of position
+            matches requirements, by default False
 
-        the result `polar_norm`is an array whose size matches the one of `quantization_axi`, where the last
+        Returns
+        -------
+        polar_norm : array of shape (3,) or (n1, n2, ..., 3)
+            contains the polarization norm for π, σ+ and σ- components
+
+        Notes
+        -----
+
+        The input ``quantization_axis`` should be an array of shape (3,) or (n1, n2, .., 3), where
+        the cartesian coordinates of the quantization axis are stored in the last dimension (of size 3)
+
+        the result ``polar_norm`` is an array whose size matches the one of ``quantization_axis``, where the last
         dimension of size 3 contains the projections of the polarization state on π, σ+ and σ-
 
-        That is : pi_norm, sigmaplus_norm, sigma_minus_norm = polar_norm.T
+        That is :
+
+        >>> pi_amp, sigmaplus_amp, sigma_minus_amp = polar_norm.T
 
         With:
 
-        pi_norm =  |〈Ψ|π⟩| ** 2
-        sigmaplus_norm =  |〈Ψ|σ+⟩| ** 2
-        sigma_minus_norm =  |〈Ψ|σ-⟩| ** 2
+        | ``pi_amp`` =  | 〈Ψ|π⟩ | ** 2
+        | ``sigmaplus_amp`` =  | 〈Ψ|σ+⟩ | ** 2
+        | ``sigma_minus_amp`` =  | 〈Ψ|σ-⟩ | ** 2
 
-        Args:
-            quantization_axis vec (array): array of shape (3,) or (n1, n2, ..., 3) containing cartesian coordinates of the quantization axis
-
-        Returns:
-            polar_norm (array): array of shape (3,) or (n1, n2, ..., 3) containing the polarization amplitude for π, σ+ and σ- components
+        See Also
+        --------
+        get_polarization_quant_amplitude()
+        get_polarization_quant_amplitude_dict()
+        get_polarization_quant_dict()
         """
+
         polar_amp = self.get_polarization_quant_amplitude(quantization_axis, nocheck)
         polar_norm = np.abs(polar_amp) ** 2
         return polar_norm
 
-    def get_polarization_quant_amplitude_dict(self, quantization_axis):
+    def get_polarization_quant_amplitude_dict(
+        self, quantization_axis: np.ndarray
+    ) -> dict:
         """Returns the projection of the polarization state |Ψ⟩ on |σ+⟩, |σ-⟩ and |π⟩, using
-        the magnetic field vector `quantization_axis` as a quantification axis. See documentation
+        the vector ``quantization_axis`` as a quantification axis. See documentation
         for a derivation of this projection.
+
+        Parameters
+        ----------
+        quantization_axis : array of shape (3,) or (n1, n2, ..., 3)
+            cartesian coordinates of the quantization axis vector in the lab frame
+
+        Returns
+        -------
+        res : dict
+            dict containing the polarization amplitude for π, σ+ and σ- components
+
+        Notes
+        ------
 
         The result is returned as a dictionnary `res`, such as :
 
-        res["sigma+"] =  〈Ψ|σ+⟩
-        res["sigma-"] =  〈Ψ|σ-⟩
-        res["pi"] =  〈Ψ|π⟩
+        | ``res["sigma+"]`` =  〈Ψ|σ+⟩
+        | ``res["sigma-"]`` =  〈Ψ|σ-⟩
+        | ``res["pi"]`` =  〈Ψ|π⟩
 
-        Args:
-            quantization_axis (array, size 3): cartesian coordinates of the magnetic field in the lab frame
-
-        Returns:
-            res (dict): dict containing the projections, see above
+        See Also
+        --------
+        get_polarization_quant_amplitude()
+        get_polarization_quant()
+        get_polarization_quant_dict()
         """
         # -- get result in array form
         polar_amp = self.get_polarization_quant_amplitude(quantization_axis)
@@ -483,20 +540,34 @@ class LaserBeam(EnvObject):
 
     def get_polarization_quant_dict(self, quantization_axis):
         """Returns the **squared norm** of projection of the polarization state |Ψ⟩ on |σ+⟩, |σ-⟩ and |π⟩, using
-        the magnetic field vector `quantization_axis` as a quantification axis. See documentation
+        the magnetic field vector ``quantization_axis`` as a quantification axis. See documentation
         for a derivation of this projection.
+
+        Parameters
+        ----------
+        quantization_axis : array of shape (3,) or (n1, n2, ..., 3)
+            cartesian coordinates of the quantization axis vector in the lab frame
+
+        Returns
+        -------
+        res : dict
+            dict containing the polarization norm for π, σ+ and σ- components
+
+        Notes
+        ------
 
         The result is returned as a dictionnary `res`, such as :
 
-        res["sigma+"] =  |〈Ψ|σ+⟩|**2
-        res["sigma-"] =  |〈Ψ|σ-⟩|**2
-        res["pi"] =  |〈Ψ|π⟩|**2
+        | ``res["sigma+"]`` =  | 〈Ψ|σ+⟩ | ** 2
+        | ``res["sigma-"]`` =  | 〈Ψ|σ-⟩ | ** 2
+        | ``res["pi"]`` =  | 〈Ψ|π⟩ | ** 2
 
-        Args:
-            quantization_axis (array, size 3): cartesian coordinates of the magnetic field in the lab frame
+        See Also
+        --------
+        get_polarization_quant_amplitude()
+        get_polarization_quant()
+        get_polarization_quant_amplitude_dict()
 
-        Returns:
-            res (dict): dict containing the projections, see above
         """
         projection_amplitude = self.get_polarization_quant_amplitude_dict(
             quantization_axis
@@ -511,14 +582,24 @@ class LaserBeam(EnvObject):
     def get_intensity(self, position: np.ndarray, nocheck=False) -> np.ndarray:
         """Returns laser intensity at a given position in the lab frame
 
-            position is an array_like object, with shape (3,) or (n1, n2, .., 3).
-            In all cases, the last dimension contains cordinates (x, y, z), in meter and in the lab frame
+        Parameters
+        ----------
+        position : array of shape (3,) or (n1, n2, ..., 3)
+            cartesian coordinates in the lab frame
+        nocheck : bool, optional
+            if set to True, function will not check that the shape of position
+            matches requirements, by default False
 
-        Args:
-            position (array_like, shape (3,) or (n,3)) : positions at which the intensity is computed
+        Returns
+        -------
+        intensity : float or array of shape (n1, n2, ..., 1)
+            laser intensity at position
 
-        Returns:
-            intensity (float or array): laser intensity at positions, with dimension matching the 'position' input.
+        Notes
+        -------
+        position is an array_like object, with shape (3,) or (n1, n2, .., 3).
+        In all cases, the last dimension contains cordinates (x, y, z), in meter and in the lab frame
+
         """
         # Check position
         position = check_position_array(position, nocheck)
@@ -531,16 +612,29 @@ class LaserBeam(EnvObject):
 
     @abstractmethod
     def set_power_from_I(self, target_I: float):
-        """sets the power to get a target peak intensity"""
+        """Sets the power to reach a target intensity
+
+        Parameters
+        ----------
+        target_I : float
+            target intensity (W/m^2)
+        """
 
     @abstractmethod
     def set_waist_from_I(self, target_I: float):
-        """sets the waist to get a target peak intensity"""
+        """Sets the waist radius to reach a target intensity
+
+        Parameters
+        ----------
+        target_I : float
+            target intensity (W/m^2)
+        """
 
     # -- CLASS PROPERTIES GETTERS & SETTERS
     # - wavelength
     @property
     def wavelength(self) -> float:
+        """float: laser vacuum wavelength (m)"""
         return self._wavelength
 
     @wavelength.setter
@@ -555,6 +649,7 @@ class LaserBeam(EnvObject):
     # - waist
     @property
     def waist(self) -> float:
+        """float: laser 1/e^2 radius (m)"""
         return self._waist
 
     @waist.setter
@@ -565,6 +660,7 @@ class LaserBeam(EnvObject):
     # - power
     @property
     def power(self) -> float:
+        """float: laser power (W)"""
         return self._power
 
     @power.setter
@@ -575,6 +671,7 @@ class LaserBeam(EnvObject):
     # - waist position
     @property
     def waist_position(self) -> np.ndarray:
+        """array of shape (,3): cartesian coordinates of the laser focus / waist position in the lab frame (m)"""
         return self._waist_position
 
     @waist_position.setter
@@ -587,6 +684,7 @@ class LaserBeam(EnvObject):
     # - direction_type
     @property
     def direction_type(self) -> str:
+        """str: type of direction setting. Can be "vector" or "thetaphi" """
         return self._direction_type
 
     @direction_type.setter
@@ -598,6 +696,7 @@ class LaserBeam(EnvObject):
     # - direction
     @property
     def direction(self) -> np.ndarray:
+        """array: either a vector or a (theta, phi) tuple describing the laser direction"""
         return self._direction
 
     @direction.setter
@@ -651,6 +750,7 @@ class LaserBeam(EnvObject):
     # - polarization
     @property
     def polarization(self) -> Polarization:
+        """Polarization: laser polarization object"""
         return self._polarization
 
     @polarization.setter
@@ -662,15 +762,18 @@ class LaserBeam(EnvObject):
 
     # - others
     @property
-    def unit_vector(self):
+    def unit_vector(self) -> np.ndarray:
+        """array of shape (,3): unit vector describing laser propagation"""
         return self._unit_vector
 
     @property
-    def k(self):
+    def k(self) -> float:
+        """float: laser wavenumber k = 2π / λ (m^-1)"""
         return 2 * np.pi / self.wavelength
 
     @property
-    def kvec(self):
+    def kvec(self) -> np.ndarray:
+        """array: vector version of the laser wavenumber k = 2π / λ (m^-1)"""
         return self.k * self.unit_vector
 
     # -- hidden methods
@@ -697,38 +800,54 @@ class LaserBeam(EnvObject):
         self,
         limits: np.ndarray,
         Npoints: np.ndarray,
-        cut=0,
+        cut: float = 0,
         ax=None,
-        plane="XY",
+        plane: str = "XY",
         cmap=None,
-        show=False,
-        space_scale=1.0,
+        show: bool = False,
+        space_scale: float = 1.0,
     ):
-        """Plots a 2D cut of the laser intensity.
+        """Plots a 2D cut of the laser intensity, using Matplotlib pcolormesh()
 
+        Parameters
+        ----------
+        limits : array, shape (4,)
+            an array of size 4, providing (xmin, xmax, ymin, ymax).
+        Npoints : int or array of shape (2,)
+            number of points for each dimension,
+            either a int or an array of two ints (Nx, Ny).
+        cut : float, optional
+            coordinate of the third axis for the cut. Defaults to 0.
+        ax : Matplotlib Axes, optional
+            the matplotlib axis on which to plot.
+            If None is given a new figure is created.
+            Defaults to None.
+        plane : str, optional
+            the plane for the cut. Accepted values are "XY", "YZ" and "ZX". Defaults to "XY".
+        cmap : Matplotlib cmap, optional
+            passed to matplotlib pcolormesh() function
+        show : bool, optional
+            whether to show the figure after calling the method. Defaults to False.
+        space_scale : float, optional
+            space coordinates will be multiplied by this when plotting. Defaults to 1.
+
+        Returns
+        -------
+        ax : Matplotlib Axes
+            the axis on which the plot was performed.
+
+        Notes
+        ------
         The limits are given via an array of size 4 'limits', providing providing (xmin, xmax, ymin, ymax)
         Number of points are given with 'Npoints', either as an integer (same value for x and y) or an array of size 2
         the coordinate of the cut axis is given by 'cut'
 
-        Examples:
-            > beam.plot2D(limits=(-5, 5, -4, 4), Npoints=200)
-            > beam.plot2D(limits=(-5, 5, -4, 4), Npoints=200, cut=-5, plane="YZ")
-            > beam.plot2D(limits=(-5, 5, -4, 4), Npoints=(200, 100))
+        Examples
+        ---------
+        >>> beam.plot2D(limits=(-5, 5, -4, 4), Npoints=200)
+        >>> beam.plot2D(limits=(-5, 5, -4, 4), Npoints=200, cut=-5)
+        >>> beam.plot2D(limits=(-5, 5, -4, 4), Npoints=(200, 100))
 
-
-        Args:
-            limits (array): An array of size 4, providing (xmin, xmax, ymin, ymax).
-            Npoints (int or array): Number of points for each dimension. Either a int or an array of two ints (Nx, Ny).
-            cut (float, optional): coordinate of the third axis for the cut. Defaults to 0.
-            ax (matploblit ax, optional): The axis on which to plot. Defaults to None.
-            plane (string, optional): The plane for the cut. Accepted values are "XY", "YZ" and "ZX". Defaults to "XY".
-            cmap (colormap, optional): colormap used in pcolormesh. Defaults to None.
-            show (bool, optional): whether to show the figure after calling the method. Defaults to False.
-            space_scale (float, optional): space coordinates will be multiplied by this when plotting. Defaults to 1.
-
-
-        Returns:
-            ax (matplotlib axis): the axis
         """
         # - process arguments using the Plottable builtin method
         ax, position, X, Y = self._process_2D_plot_args(
@@ -753,29 +872,44 @@ class LaserBeam(EnvObject):
 
         return ax
 
-    def plot3D(self, ax=None, color=None, name=None, vscale=None, show=False):
+    def plot3D(
+        self,
+        ax=None,
+        color: str = None,
+        name: str = None,
+        vscale: float = None,
+        show: bool = False,
+    ):
         """plots a 3D reprensentation of the laser beam, including:
                - a line : laser axis
                - an arrow along the propagation direction
                - a point : laser focus position
                - a dotted arrow : laser polarization vector
 
-            When providing an axis via the `ax` parameter, make sure to use our custom implementation of
-            matplotlib `Axes3D`, as this function uses custom arrow drawing methods. The class can be imported
-            via `from atomsmltr.utils.plotter import Axes3D`
+        Parameters
+        ----------
+        ax : custom Axes3D, optional
+            the axis in which to plot. If None is given (default value) a new ax is generated
+        color : str, optional
+            a matplotlib compatible color. Defaults to None.
+        name : str, optional
+            the name of the laser, passed as a label when plotting. If none is given, use the laser tag
+        vscale : float, optional
+            A scaling factor. Use it to tweak the arrow size if needed. Defaults to None.
+        show : bool, optional
+            Whether the show the figure after calling the method. Defaults to False.
 
+        Returns
+        -------
+        ax : custom Axes3D
+            the figure axis in which the laser is plotted.
 
-        Args:
-            ax (custom Axes3D, optional): The axis in which to plot. If None is given (default value) a new ax is generated
-            color (string, optional): A matplotlib compatible color. Defaults to None.
-            name (string, optional): The name of the laser, passed as a label when plotting. If none is given, use the laser tag
-            vscale (float, optional): A scaling factor. Use it to tweak the arrow size if needed. Defaults to None.
-            show (bool, optional): Whether the show the figure after calling the method. Defaults to False.
-
-        Returns:
-            ax: the figure axis in which the laser is plotted.
+        Note
+        ----
+            When providing an axis via the ``ax`` parameter, make sure to use our custom implementation of
+            matplotlib ``Axes3D``, as this function uses custom arrow drawing methods. The class can be imported
+            via ``from atomsmltr.utils.plotter import Axes3D``
         """
-
         # - init ax (if needed)
         ax = self._init_ax(ax, ax3D=True)
 
@@ -934,27 +1068,18 @@ class GaussianLaserBeam(LaserBeam):
         return intensity
 
     def set_power_from_I(self, target_I: float) -> None:
-        """Sets the laser power to get a desired peak intensity.
-
-        Args:
-            target_I (float): target peak intensity, in W/m^2
-        """
         # NB, for a Gaussian beam : I0 = 2 * P / np.pi / w0**2
         power = target_I * self.waist**2 * np.pi / 2
         self.power = power
 
     def set_waist_from_I(self, target_I: float) -> None:
-        """Sets the laser waist to get a desired peak intensity.
-
-        Args:
-            target_I (float): target peak intensity, in W/m^2
-        """
         # NB, for a Gaussian beam : I0 = 2 * P / np.pi / w0**2
         waist = np.sqrt(2 * self.power / np.pi * target_I)
         self.waist = waist
 
     @property
     def rayleigh_length(self) -> float:
+        """float: the laser Rayleigh length"""
         return np.pi * self.waist**2 / self.wavelength
 
     def gen_infostring_obj(self, show_polar=True):
@@ -981,7 +1106,7 @@ class PlaneWaveLaserBeam(LaserBeam):
     # -- REQUIRED METHOD FOR LASER BEAM CLASSES
     # pylint : disable=method_hidden
     @staticmethod
-    def _intensity_func(self, position):
+    def _intensity_func(self, position: np.ndarray) -> np.ndarray:
         """Returns laser intensity at point position
 
         position should be an array of shape (3,) or (n1,n2,..,3)
@@ -1002,21 +1127,11 @@ class PlaneWaveLaserBeam(LaserBeam):
         return intensity
 
     def set_power_from_I(self, target_I: float) -> None:
-        """Sets the laser power to get a desired peak intensity.
-
-        Args:
-            target_I (float): target peak intensity, in W/m^2
-        """
         # NB, for a Gaussian beam : I0 = 2 * P / np.pi / w0**2
         power = target_I * self.waist**2 * np.pi / 2
         self.power = power
 
     def set_waist_from_I(self, target_I: float) -> None:
-        """Sets the laser waist to get a desired peak intensity.
-
-        Args:
-            target_I (float): target peak intensity, in W/m^2
-        """
         # NB, for a Gaussian beam : I0 = 2 * P / np.pi / w0**2
         waist = np.sqrt(2 * self.power / np.pi * target_I)
         self.waist = waist

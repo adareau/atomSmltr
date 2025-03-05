@@ -233,7 +233,7 @@ class AtomicTransition(ABC):
 
     @property
     def k(self):
-        """float: transition wavenumber k = 1 / λ (m^-1)"""
+        """float: transition wavenumber k = 2π / λ (m^-1)"""
         return 2 * np.pi / self.wavelength
 
     # -- METHODS
