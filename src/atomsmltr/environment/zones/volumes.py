@@ -1,5 +1,24 @@
-# -*- coding: utf-8 -*-
-"""Implements three-dimensional zones
+"""
+volumes - 1D zones
+=======================
+
+Here we implement 3D zones, namely ``Box``
+
+.. code-block:: python
+
+    from atomsmltr.environment.zones import Box
+
+    pos_box = Box(
+        xmin=-10,
+        xmax=10,
+        ymin=0,
+        ymax=5,
+        zmin=-8,
+        zmax=100,
+        target="position",
+        action="tag",
+        tag="position box",
+    )
 """
 
 # % IMPORTS
@@ -13,7 +32,50 @@ from ...utils.infostring import InfoString
 
 
 class Box(Zone):
-    """docstring for UpperLimit."""
+    """A 3D box with cartesian coordinates
+
+    Parameters
+    ----------
+    xmin : float
+        minimum value for x
+    xmax : float
+        maximum value for x
+    ymin : float
+        minimum value for y
+    ymax : float
+        maximum value for y
+    zmin : float
+        minimum value for z
+    zmax : float
+        maximum value for z
+    target : str, optional
+        the target for the zone, can be "position" or "speed", by default "position"
+    action : str, optional
+        the action associated to the zone.
+        Currently only "stop" is implemented, by default "stop"
+    tag : str, optional
+        the zone tag
+
+    Example
+    -------
+
+    .. code-block:: python
+
+        from atomsmltr.environment.zones import Box
+
+        pos_box = Box(
+            xmin=-10,
+            xmax=10,
+            ymin=0,
+            ymax=5,
+            zmin=-8,
+            zmax=100,
+            target="position",
+            action="tag",
+            tag="position box",
+        )
+
+    """
 
     def __init__(
         self,
@@ -23,20 +85,12 @@ class Box(Zone):
         ymax: float,
         zmin: float,
         zmax: float,
-        *args,
-        **kwargs,
+        target: str = "position",
+        action: str = "stop",
+        tag: str = None,
     ):
-        """A 3D Box zone, along cartesian axes
 
-        Args:
-            xmin (float): minimum value for x
-            xmax (float): maximum value for x
-            ymin (float): minimum value for y
-            ymax (float): maximum value for y
-            zmin (float): minimum value for z
-            zmax (float): maximum value for z
-        """
-        super(Box, self).__init__(*args, **kwargs)
+        super(Box, self).__init__(target=target, action=action, tag=tag)
         self.xmin = xmin
         self.xmax = xmax
         self.ymin = ymin
@@ -52,6 +106,7 @@ class Box(Zone):
 
     @property
     def xmin(self):
+        """float: the minimum value for x"""
         return self.__xmin
 
     @xmin.setter
@@ -60,6 +115,7 @@ class Box(Zone):
 
     @property
     def xmax(self):
+        """float: the maximum value for x"""
         return self.__xmax
 
     @xmax.setter
@@ -68,6 +124,7 @@ class Box(Zone):
 
     @property
     def ymin(self):
+        """float: the minimum value for y"""
         return self.__ymin
 
     @ymin.setter
@@ -76,6 +133,7 @@ class Box(Zone):
 
     @property
     def ymax(self):
+        """float: the maximum value for y"""
         return self.__ymax
 
     @ymax.setter
@@ -84,6 +142,7 @@ class Box(Zone):
 
     @property
     def zmin(self):
+        """float: the minimum value for z"""
         return self.__zmin
 
     @zmin.setter
@@ -92,6 +151,7 @@ class Box(Zone):
 
     @property
     def zmax(self):
+        """float: the maximum value for z"""
         return self.__zmax
 
     @zmax.setter

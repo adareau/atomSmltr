@@ -71,6 +71,8 @@ Zones of a same kind can also be appended
 See also
 --------
 atomsmltr.environment.zones.generic
+atomsmltr.environment.zones.limits
+atomsmltr.environment.zones.volumes
 
 """
 

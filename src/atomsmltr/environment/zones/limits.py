@@ -1,5 +1,15 @@
-# -*- coding: utf-8 -*-
-"""Implements one-dimensional zones
+"""
+limits - 1D zones
+=======================
+
+Here we implement 1D zones, namely ``UpperLimit``, ``LowerLimit`` and ``Limits``
+
+.. code-block:: python
+
+    from atomsmltr.environment.zones import Limits
+
+    xlim = Limits(min=-1, max=1, axis=0, target="position", action="stop", tag="xlim")
+    vxlim = Limits(min=0, max=500, axis=0, target="speed", action="stop", tag="vxlim")
 """
 
 # % IMPORTS
@@ -13,7 +23,7 @@ from ...utils.infostring import InfoString
 
 
 class SingleLimit(Zone):
-    """docstring for UpperLimit."""
+    """A generic class for SingleLimits"""
 
     def __init__(self, value: float, axis: int = 0, *args, **kwargs):
         super(SingleLimit, self).__init__(*args, **kwargs)
@@ -23,7 +33,8 @@ class SingleLimit(Zone):
     # -- GETTERS & SETTERS
 
     @property
-    def value(self):
+    def value(self) -> float:
+        """float: the limit value"""
         return self.__value
 
     @value.setter
@@ -31,7 +42,8 @@ class SingleLimit(Zone):
         self.__value = float(value)
 
     @property
-    def axis(self):
+    def axis(self) -> int:
+        """int: the limit target axis"""
         return self.__axis
 
     @axis.setter
@@ -73,16 +85,39 @@ class SingleLimit(Zone):
 
 
 class UpperLimit(SingleLimit):
-    """Zone defined by its upper limit, set by parameter 'value'"""
+    """Defines a zone by its (1D) upper limit
 
-    def __init__(self, value: float, axis: int = 0, *args, **kwargs):
-        """Defines a zone by its (1D) upper limit
+    Parameters
+    ----------
+    value : float
+        the upper limit
+    axis : int, optional
+        axis to consider (0:x, 1:y, 2:z), by default 0
+    target : str, optional
+        the target for the zone, can be "position" or "speed", by default "position"
+    action : str, optional
+        the action associated to the zone.
+        Currently only "stop" is implemented, by default "stop"
+    tag : str, optional
+        the zone tag
 
-        Args:
-            value (float): the upper limit
-            axis (int, optional): axis to consider (0:x, 1:y, 2:z)
-        """
-        super(UpperLimit, self).__init__(value, axis, *args, **kwargs)
+    Example
+    -------
+    >>> up_x = UpperLimit(value=5, axis=0, tag="upx")
+
+    """
+
+    def __init__(
+        self,
+        value: float,
+        axis: int = 0,
+        target: str = "position",
+        action: str = "stop",
+        tag: str = None,
+    ):
+        super(UpperLimit, self).__init__(
+            value=value, axis=axis, target=target, action=action, tag=tag
+        )
 
     def _in_zone(self, vector):
         u = {}
@@ -96,16 +131,39 @@ class UpperLimit(SingleLimit):
 
 
 class LowerLimit(SingleLimit):
-    """Zone defined by its lower limit, set by parameter 'value'"""
+    """Defines a zone by its (1D) upper limit
 
-    def __init__(self, value: float, axis: int = 0, *args, **kwargs):
-        """Defines a zone by its (1D) lower limit
+    Parameters
+    ----------
+    value : float
+        the lower limit
+    axis : int, optional
+        axis to consider (0:x, 1:y, 2:z), by default 0
+    target : str, optional
+        the target for the zone, can be "position" or "speed", by default "position"
+    action : str, optional
+        the action associated to the zone.
+        Currently only "stop" is implemented, by default "stop"
+    tag : str, optional
+        the zone tag
 
-        Args:
-            value (float): the lower limit
-            axis (int, optional): axis to consider (0:x, 1:y, 2:z)
-        """
-        super(LowerLimit, self).__init__(value, axis, *args, **kwargs)
+    Example
+    -------
+    >>> low_x = LowerLimit(value=-5, axis=0, tag="lowx")
+
+    """
+
+    def __init__(
+        self,
+        value: float,
+        axis: int = 0,
+        target: str = "position",
+        action: str = "stop",
+        tag: str = None,
+    ):
+        super(LowerLimit, self).__init__(
+            value=value, axis=axis, target=target, action=action, tag=tag
+        )
 
     def _in_zone(self, vector):
         u = {}
@@ -119,18 +177,39 @@ class LowerLimit(SingleLimit):
 
 
 class Limits(Zone):
-    """docstring for UpperLimit."""
+    """Defines a 1D segment, with min / max value
 
-    def __init__(self, min: float, max: float, axis: int = 0, *args, **kwargs):
-        """Defines a 1D segment, with min / max value
+    Parameters
+    ----------
+    min : float
+        minimum value
+    max : float
+        maximum value
+    axis : int, optional
+        axis to consider (0:x, 1:y, 2:z), by default 0
+    target : str, optional
+        the target for the zone, can be "position" or "speed", by default "position"
+    action : str, optional
+        the action associated to the zone.
+        Currently only "stop" is implemented, by default "stop"
+    tag : str, optional
+        the zone tag
 
-        Args:
-            min (float): minimum value
-            max (float): maximum value
-            axis (int, optional): axis to consider (0:x, 1:y, 2:z)
-            *args and **kwargs sent to Zone()
-        """
-        super(Limits, self).__init__(*args, **kwargs)
+    Example
+    --------
+    >>> xlim = Limits(min=-1, max=1, axis=0, target="position", action="stop", tag="xlim")
+    """
+
+    def __init__(
+        self,
+        min: float,
+        max: float,
+        axis: int = 0,
+        target: str = "position",
+        action: str = "stop",
+        tag: str = None,
+    ):
+        super(Limits, self).__init__(target=target, action=action, tag=tag)
         self.axis = axis
         self.min = min
         self.max = max
@@ -141,7 +220,8 @@ class Limits(Zone):
         return "1D limits"
 
     @property
-    def min(self):
+    def min(self) -> float:
+        """float: the lower limit"""
         return self.__min
 
     @min.setter
@@ -149,7 +229,8 @@ class Limits(Zone):
         self.__min = float(min)
 
     @property
-    def max(self):
+    def max(self) -> float:
+        """float: the upper limit"""
         return self.__max
 
     @max.setter
@@ -157,7 +238,8 @@ class Limits(Zone):
         self.__max = float(max)
 
     @property
-    def axis(self):
+    def axis(self) -> int:
+        """int: the target axis"""
         return self.__axis
 
     @axis.setter
