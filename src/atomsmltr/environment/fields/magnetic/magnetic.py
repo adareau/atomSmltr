@@ -1,5 +1,14 @@
-# -*- coding: utf-8 -*-
-"""Defines the magnetic field class
+"""
+magnetic fields
+=======================
+
+This module implements Magnetic field classes, which are mostly bare implementations of
+generic fields defined in ``atomsmltr.environment.fields``.
+
+See also
+---------
+atomsmltr.environment.fields.generic
+atomsmltr.environment.fields.interpolated
 """
 
 # % IMPORTS
@@ -27,10 +36,8 @@ from ..interpolated import InterpolatedField1D1D
 
 
 class MagneticField(Field):
-    """Our magnetic field class"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    """A generic magnetic field class. Used to set some properties common to all magnetic
+    fields objects, and to have a way to identify magnetic field objects."""
 
     @property
     def type(self):
@@ -43,14 +50,12 @@ class MagneticField(Field):
 
 # -- PERFECT FIELDS CLASSES
 class MagneticOffset(MagneticField, OffsetField):
+    """A perfect magnetic field offset
 
-    def __init__(self, offset: float, tag: str = None):
-        """Generates a constant offset magnetic field
-
-        Args:
-            offset (npt.ArrayLike): offset of the field (array of size 3)
-        """
-        super(MagneticOffset, self).__init__(offset, tag)
+    See also
+    ---------
+    atomsmltr.environment.fields.generic.OffsetField
+    """
 
     @property
     def type(self):
@@ -58,40 +63,12 @@ class MagneticOffset(MagneticField, OffsetField):
 
 
 class MagneticGradient(MagneticField, GradientField):
-    """Our magnetic field class"""
+    """A perfect magnetic field gradient
 
-    def __init__(
-        self,
-        origin: npt.ArrayLike,
-        slope: float,
-        gradient_direction: npt.ArrayLike,
-        field_direction: npt.ArrayLike,
-        offset: float = 0.0,
-        tag: str = None,
-    ):
-        """Magnetic field perfect gradient
-
-        See below for arguments.
-
-        Note that 'gradient_direction' and 'field_direction' are meant to be
-        unit vectors, but the class will take care of normalizing any non normalized entry
-
-
-        Args:
-            origin (npt.ArrayLike): origin for the gradient (array of size 3)
-            slope (float): the slope of the gradient (scalar)
-            gradient_direction (npt.ArrayLike): the direction of the gradient (array of size 3)
-            field_direction (npt.ArrayLike): the field direction (array of size 3)
-            offset (float, optional): the field offset, at origin (scalar). Defaults to 0.0.
-        """
-        super(MagneticGradient, self).__init__(
-            origin=origin,
-            slope=slope,
-            gradient_direction=gradient_direction,
-            field_direction=field_direction,
-            offset=offset,
-            tag=tag,
-        )
+    See also
+    ---------
+    atomsmltr.environment.fields.generic.GradientField
+    """
 
     @property
     def type(self):
@@ -99,23 +76,12 @@ class MagneticGradient(MagneticField, GradientField):
 
 
 class MagneticQuadrupoleX(MagneticField, QuadrupoleFieldX):
-    """docstring for MagneticQuadrupoleX."""
+    """A perfect magnetic field quadrupole, with strong axis along X
 
-    def __init__(
-        self,
-        origin: npt.ArrayLike,
-        slope: float,
-        tag: str = None,
-    ):
-        """Perfect Quadrupole field, with strong axis along x
-
-        Generates a magnetic field of the form B = slope * (-2x, y, z)
-
-        Args:
-            origin (npt.ArrayLike): origin for the quadrupole (array of size 3)
-            slope (float): the slope of the gradient (scalar)
-        """
-        super(MagneticQuadrupoleX, self).__init__(origin=origin, slope=slope, tag=tag)
+    See also
+    ---------
+    atomsmltr.environment.fields.generic.QuadrupoleFieldX
+    """
 
     @property
     def type(self):
@@ -123,23 +89,12 @@ class MagneticQuadrupoleX(MagneticField, QuadrupoleFieldX):
 
 
 class MagneticQuadrupoleY(MagneticField, QuadrupoleFieldY):
-    """docstring for MagneticQuadrupoleY."""
+    """A perfect magnetic field quadrupole, with strong axis along Y
 
-    def __init__(
-        self,
-        origin: npt.ArrayLike,
-        slope: float,
-        tag: str = None,
-    ):
-        """Perfect Quadrupole field, with strong axis along y
-
-        Generates a magnetic field of the form B = slope * (x, -2y, z)
-
-        Args:
-            origin (npt.ArrayLike): origin for the quadrupole (array of size 3)
-            slope (float): the slope of the gradient (scalar)
-        """
-        super(MagneticQuadrupoleY, self).__init__(origin=origin, slope=slope, tag=tag)
+    See also
+    ---------
+    atomsmltr.environment.fields.generic.QuadrupoleFieldY
+    """
 
     @property
     def type(self):
@@ -147,23 +102,12 @@ class MagneticQuadrupoleY(MagneticField, QuadrupoleFieldY):
 
 
 class MagneticQuadrupoleZ(MagneticField, QuadrupoleFieldZ):
-    """docstring for MagneticQuadrupoleZ."""
+    """A perfect magnetic field quadrupole, with strong axis along Z
 
-    def __init__(
-        self,
-        origin: npt.ArrayLike,
-        slope: float,
-        tag: str = None,
-    ):
-        """Perfect Quadrupole field, with strong axis along z
-
-        Generates a magnetic field of the form B = slope * (x, y, -2z)
-
-        Args:
-            origin (npt.ArrayLike): origin for the quadrupole (array of size 3)
-            slope (float): the slope of the gradient (scalar)
-        """
-        super(MagneticQuadrupoleZ, self).__init__(origin=origin, slope=slope, tag=tag)
+    See also
+    ---------
+    atomsmltr.environment.fields.generic.QuadrupoleFieldZ
+    """
 
     @property
     def type(self):
@@ -172,7 +116,12 @@ class MagneticQuadrupoleZ(MagneticField, QuadrupoleFieldZ):
 
 # -- INTERPOLATED
 class InterpMag1D1D(MagneticField, InterpolatedField1D1D):
-    """Our magnetic field class"""
+    """An interpolated field 1D / 1D
+
+    See also
+    ---------
+    atomsmltr.environment.fields.interpolated.InterpolatedField1D1D
+    """
 
     @property
     def type(self):
