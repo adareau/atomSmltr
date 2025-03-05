@@ -1,6 +1,14 @@
-# -*- coding: utf-8 -*-
-"""Defines the magnetic field class
 """
+magpylib wrapper
+=======================
+
+Defines a class allowing to wrap a magpylib object into a ``MagneticField`` object
+compatible with ``atomsmltr``
+
+see: https://magpylib.readthedocs.io
+
+"""
+
 # % IMPORTS
 import numpy as np
 import numpy.typing as npt
@@ -15,14 +23,17 @@ import magpylib as magpy
 
 
 class MagpylibWrapper(MagneticField):
-    """Our magnetic field class"""
+    """A wrapper for magpylib objects
+
+    Parameters
+    ----------
+    magpy_object : magpy_object
+        the object to wrap
+    tag : str, optional
+        the field tag, by default None
+    """
 
     def __init__(self, magpy_object, tag: str = None):
-        """Generates a constant offset magnetic field
-
-        Args:
-            offset (npt.ArrayLike): offset of the field (array of size 3)
-        """
         super(MagpylibWrapper, self).__init__(tag)
         self.magpy_object = magpy_object
 
