@@ -11,10 +11,6 @@ atomsmltr.environment.fields.generic
 atomsmltr.environment.fields.interpolated
 """
 
-# % IMPORTS
-import numpy.typing as npt
-
-
 # % LOCAL IMPORTS
 from ..generic import (
     Field,

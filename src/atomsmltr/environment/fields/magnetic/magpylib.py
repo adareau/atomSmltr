@@ -11,9 +11,6 @@ see: https://magpylib.readthedocs.io
 
 # % IMPORTS
 import numpy as np
-import numpy.typing as npt
-import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
 
 
 # % LOCAL IMPORTS
