@@ -1,5 +1,37 @@
-# -*- coding: utf-8 -*-
-"""Defines special classes and functions relative to laser polarization
+"""Polarization
+==================
+
+Here we implement the ``Polarization`` class that we use to define the polarization of lasers
+
+Remarks
+--------
+
+We define the polarization in the **frame of the laser**, with laser propagation along z.
+
+We denote **x** as the **'horizontal'** axis and **y** as the **'vertical'** axis.
+
+For circular polarizations, we take the **observer convention**.
+
+To have a combined formalism for all polarization, in the end we define a **polarization vector** ``p_vec``,
+following the Poincarré formalism. **ATTENTION:** there might be different ways of defining this vector,
+refer to the package documentation for a thorough definition.
+
+In the case of 'linear' polarization, an additionnal argument ``angle`` has to be provided, that gives
+the angle of the linear polarization with respect to the x axis. Hence ``angle = 0`` corresponds to a
+linear polarization along x, and ``angle = pi/2`` to a linear polarization along y
+
+In the case of 'vector' polarization, polarization vector has to be given with the ``vec`` argument. ``vec``
+are the cartesian coordinates of the vector in the (x,y,z) basis. For instance :
+
+| ``> vec = (1, 0, 0)``  : linear polarization along x
+| ``> vec = (0, 1, 0)``  : linear polarization along y
+| ``> vec = (0, 0, 1)``  : circular right polarization
+| ``> vec = (0, 0, -1)`` : circular left polarization
+
+**ATTENTION** : for ease of use, the vector does not have to be normalized, but the resulting one will
+be.
+
+
 """
 
 # % IMPORTS
@@ -14,42 +46,9 @@ from ...utils.infostring import InfoString
 
 
 class Polarization(ABC):
-    """Handles laser polarization"""
+    """An object to handle laser polarization."""
 
     def __init__(self):
-        """An object to handle laser polarization.
-
-        We define the polarization in the frame of the laser, with laser propagation along z.
-        We denote x as the 'horizontal' axis and y as the 'vertical'axis.
-        For circular polarizations, we take the observer convention.
-
-        To have a combined formalism for all polarization, in the end we define a polarization vector `p_vec`,
-        following the Poincarré formalism. ATTENTION: there might be different ways of defining this vector,
-        refer to the package documentation for a thorough definition.
-
-        in the case of 'linear' polarization, an additionnal argument `angle` has to be provided, that gives
-        the angle of the linear polarization with respect to the x axis. Hence `angle = 0` corresponds to a
-        linear polarization along x, and `angle = pi/2` to a linear polarization along y
-
-        in the case of 'vector' polarization, polarization vector has to be given with the `vec` argument. `vec`
-        are the cartesian coordinates of the vector in the (x,y,z) basis. For instance :
-
-        > vec = (1, 0, 0)  : linear polarization along x
-        > vec = (0, 1, 0)  : linear polarization along y
-        > vec = (0, 0, 1)  : circular right polarization
-        > vec = (0, 0, -1) : circular left polarization
-
-        ATTENTION : for ease of use, the vector does not have to be normalized, but the resulting one will
-        be.
-
-        Args:
-            type (str): the type of polarization to de defined (see docstring)
-            angle (float, optional): when type is set to 'linear' (short 'lin'), defines the orientation of the
-                                     linear polarization in the (x, y). Defaults to None.
-            vec (array, optional): needed when type is set to 'vector' (short 'vec'). Allows for a direct
-                                   definition of the polarization vector (see docstring & documentation)
-                                   Defaults to None
-        """
         self._vector = None
         self._u = None
         self._v = None
@@ -62,35 +61,54 @@ class Polarization(ABC):
 
     # -- METHODS
 
-    def get_polarization_vector_angles(self):
-        """Gives the angles describing the current polarization vector.
+    def get_polarization_vector_angles(self) -> tuple:
+        """Returns the angles describing the current polarization vector.
 
         (see documentation for thorough description)
 
+        Returns
+        -------
+        u, v : floats
+            the u (polar) and v (azimuthal) angles
+
+        Notes
+        -----
         The polarization is decribed in the Poincarré/Bloch-like sphere as a vector.
         This function yields the angles u (polar) and v (azimuthal)
 
         Note that we do not use theta or phi as those angles are already used to
-        describe the orientation of the laser propagation vector in the `LaserBeam`class
+        describe the orientation of the laser propagation vector in the ``LaserBeam`` class
 
-        Returns:
-            u (float): the u angle (polar angle)
-            v (float): the v angle (azimuthal angle)
         """
         u = self._u
         v = self._v
         return u, v
 
     def refresh_polarization_vector_angles(self):
+        """Updates the polarization vector angles u & v to match the current value of the
+        polarization vector.
+        """
         x, y, z = self.vector
         u = np.arctan2(np.sqrt(x**2 + y**2), z)
         v = np.arctan2(y, x)
         self._u = u
         self._v = v
 
-    def get_polarization_vector_projection(self, target: str):
+    def get_polarization_vector_projection(self, target: str) -> complex:
         """Returns the scalar projection of the current polarization vector on a target polarization state
 
+        Parameters
+        ----------
+        target : str
+            the state on which to project (see docstring Notes)
+
+        Returns
+        -------
+        proj: complex
+            the projection
+
+        Notes
+        -----
         The polarization Psi is defined as :
 
             |Psi⟩ = exp(-i*v) cos(u/2) |R⟩ +  exp(i*v) sin(u/2) |L⟩
@@ -101,16 +119,13 @@ class Polarization(ABC):
             |y⟩ = |H⟩ = (i/sqrt(2)) (|L⟩ - |L⟩)
 
         Target should refer to the special polarization states defined in the class :
-            'vertical', 'horizontal', 'circular left', 'circular right'
+
+        >>> 'vertical', 'horizontal', 'circular left', 'circular right'
 
         and corresponding shorthands:
-            'V' or 'x', 'H' or 'y', 'R', 'L'
 
-        Args:
-            target (str): the state on which to project (see docstring)
+        >>> 'V' or 'x', 'H' or 'y', 'R', 'L'
 
-        Returns:
-            proj (float, complex): the projection
         """
         # get angle values
         u, v = self.get_polarization_vector_angles()
@@ -133,9 +148,21 @@ class Polarization(ABC):
 
         return proj
 
-    def get_polarization_vector_projection_norm(self, target: str):
+    def get_polarization_vector_projection_norm(self, target: str) -> float:
         """Returns the squared norm of scalar projection of the current polarization vector on a target polarization state
 
+        Parameters
+        ----------
+        target : str
+            the state on which to project (see docstring Notes)
+
+        Returns
+        -------
+        norm: float
+            the squared norm of the projection
+
+        Notes
+        -----
         The polarization Psi is defined as :
 
             |Psi⟩ = exp(-i*v) cos(u/2) |R⟩ +  exp(i*v) sin(u/2) |L⟩
@@ -146,16 +173,13 @@ class Polarization(ABC):
             |y⟩ = |H⟩ = (i/sqrt(2)) (|L⟩ - |L⟩)
 
         Target should refer to the special polarization states defined in the class :
-            'vertical', 'horizontal', 'circular left', 'circular right'
+
+        >>> 'vertical', 'horizontal', 'circular left', 'circular right'
 
         and corresponding shorthands:
-            'V' or 'x', 'H' or 'y', 'R', 'L'
 
-        Args:
-            target (str): the state on which to project (see docstring)
+        >>> 'V' or 'x', 'H' or 'y', 'R', 'L'
 
-        Returns:
-            norm (float, real): the squared norm of the projection
         """
         # get angle values
         u, v = self.get_polarization_vector_angles()
@@ -272,21 +296,25 @@ class CircularRight(Polarization):
 
 
 class Linear(Polarization):
-    """Arbitrary linear polarization"""
+    """Arbitrary linear polarization.
 
-    def __init__(self, angle):
-        """Arbitrary linear polarization. `angle` is the angle of the linear polarization with respect to the x axis.
-        Hence `angle = 0` corresponds to a linear polarization along x, and `angle = pi/2` to a linear polarization along y
+    Here, ``angle`` is the angle of the linear polarization with respect to the x axis.
+    Hence ``angle = 0`` corresponds to a linear polarization along x, and ``angle = pi/2`` to a linear polarization along y
 
-        Args:
-            angle (float): angle of the arbitrary linear polarization w.r.t the x axis
-        """
+    Parameters
+    ----------
+    angle : float
+        angle of the arbitrary linear polarization w.r.t the x axis (radians)
+    """
+
+    def __init__(self, angle: float):
         super(Linear, self).__init__()
         self.type = "Linear"
         self.angle = angle
 
     @property
     def angle(self) -> float:
+        """float: angle of the arbitrary linear polarization w.r.t the x axis (radians)"""
         return self._angle
 
     @angle.setter
@@ -304,28 +332,36 @@ class Linear(Polarization):
 
 
 class Vector(Polarization):
-    """Arbitrary vector polarization"""
+    """Allows to define an arbitrary polarization.
 
-    def __init__(self, vector):
-        """Allows to define an arbitrary polarization. The polarization vector has to be given with the `vector` argument.
-        `vector` are the cartesian coordinates of the vector in the (x,y,z) basis. For instance :
+    The polarization vector has to be given with the ``vector`` argument.
+    ``vector`` are the cartesian coordinates of the vector in the (x,y,z) basis.
 
-        > vector = (1, 0, 0)  : linear polarization along x
-        > vector = (0, 1, 0)  : linear polarization along y
-        > vector = (0, 0, 1)  : circular right polarization
-        > vector = (0, 0, -1) : circular left polarization
+    For instance :
 
-        ATTENTION : for ease of use, the vector does not have to be normalized, but the resulting one will be.
+    | ``> vec = (1, 0, 0)``  : linear polarization along x
+    | ``> vec = (0, 1, 0)``  : linear polarization along y
+    | ``> vec = (0, 0, 1)``  : circular right polarization
+    | ``> vec = (0, 0, -1)`` : circular left polarization
 
-        Args:
-            vector (array, size 3): vector polarization (see documentation for its exact definition)
-        """
+    **ATTENTION** : for ease of use, the vector does not have to be normalized, but the resulting one will
+    be.
+
+    Parameters
+    ----------
+    vector : array of shape (,3)
+        polarization vector cartesian coordinates in laser frame
+        (see documentation for its exact definition)
+    """
+
+    def __init__(self, vector: np.ndarray):
         super(Vector, self).__init__()
-        self.type = "Linear"
+        self.type = "Vector"
         self.vector = vector
 
     @property
     def vector(self):
+        """array of shape (3,) : polarization vector cartesian coordinates in laser frame"""
         vector = np.asanyarray(self._vector)
         return vector
 
