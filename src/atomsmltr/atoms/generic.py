@@ -30,6 +30,14 @@ from ..utils.infostring import InfoString
 class Atom(ABC):
     """A generic class to define atomic species.
 
+    Parameters
+    ----------
+    mass : float
+        the atomic mass in kg
+    name : str
+        a name to describe the atom
+
+
     Example
     -------
     >>> from atomsmltr.atoms import Atom
@@ -43,15 +51,6 @@ class Atom(ABC):
     """
 
     def __init__(self, mass: float, name: str):
-        """Creates a new atom with a given mass and name
-
-        Parameters
-        ----------
-        mass : float
-            the atomic mass in kg
-        name : str
-            a name to describe the atom
-        """
         self.__mass = mass
         self.__name = name
         self.__transitions = {}

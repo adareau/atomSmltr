@@ -172,49 +172,65 @@ def _scattering_rate(lbda: float, Gamma: float, I: float, detuning: float) -> fl
 
 
 class AtomicTransition(ABC):
-    """_summary_
+    """A generic (abstract) class to define electronic transitions in atoms
 
     Parameters
     ----------
-    tag : str
-        a tag identifying the transition
-    Gamma : float
-        the transition natural linewidth (in rad/s)
     wavelength : float
         the vacuum wavelength (in m)
+    Gamma : float
+        the transition natural linewidth (in rad/s)
+    tag : str
+        a tag identifying the transition
+
+    Notes
+    ------
+    This is an abstract class that cannot be used in simulations. For that purpose,
+    see actual implementations of transitions.
+
+    See also
+    --------
+    DummyTransition
+    J0J1Transition
     """
 
-    def __init__(self, tag: str, Gamma: float, wavelength: float):
+    def __init__(self, wavelength: float, Gamma: float, tag: str):
         self.__tag = tag
         self.__wavelength = wavelength
         self.__Gamma = Gamma
         super().__init__()
 
-    # -- LOCKED PROPERTIES
+    # -- READ-ONLY PROPERTIES
     # only with getters, no setters
 
     @property
     def tag(self):
+        """str: transition identifier"""
         return self.__tag
 
     @property
     def wavelength(self):
+        """float: transition vacuum wavelength (m)"""
         return self.__wavelength
 
     @property
     def Gamma(self):
+        """float: transition natural linewidth (rad/s)"""
         return self.__Gamma
 
     @property
     def Isat(self):
+        """float: transition saturation intensity (W/m^2)"""
         return _Isat(self.wavelength, self.Gamma)
 
     @property
     def Isat_mW_per_cm2(self):
+        """float: transition saturation intensity (mW/cm^2)"""
         return _Isat_mW_per_cm2(self.wavelength, self.Gamma)
 
     @property
     def k(self):
+        """float: transition wavenumber k = 1 / λ (m^-1)"""
         return 2 * np.pi / self.wavelength
 
     # -- METHODS
@@ -224,11 +240,13 @@ class AtomicTransition(ABC):
 
         Parameters
         ----------
-            intensity (float): laser intensity in W/m^2
+            intensity : float
+                laser intensity in W/m^2
 
         Returns
         -------
-            s (float): the saturation parameter
+            s : float
+                the saturation parameter
         """
         s = _sat_param(self.wavelength, self.Gamma, intensity)
         return s
@@ -236,25 +254,54 @@ class AtomicTransition(ABC):
     @abstractmethod
     def get_scattering_rate(
         self,
-        intensity: float,  # the intensity in W/cm^2
-        mag_field: float,  # the amplitude of the magnetic field
-        polarization: list,  # projection of laser polarization on (pi, sigma+, sigma-)
-        detuning: float,  # laser detuning
+        intensity: float,
+        mag_field: float,
+        polarization: np.ndarray,
+        detuning: float,
     ):
-        """To be defined for each implementation
-        NOTE: the Doppler effect will be handled at the Atom() object level
-              so it will be passed to this function in a "transparent" manner.
+        """Returns the scattering rate for a given laser / mag. field configuration
+
+        Parameters
+        ----------
+        intensity : float
+            laser intensity (W/m^)
+        mag_field : float
+            (scalar) magnetic field amplitude (T)
+        polarization : ndarray, shape (,3)
+            projection of the laser polarization on (pi, sigma+, sigma-)
+        detuning : float
+            laser detuning (rad/s)
+
+        Returns
+        -------
+        scattering rate : float
+            the transition scattering rate
         """
         pass
 
     @abstractmethod
     def get_resonant_speed(
         self,
-        mag_field: float,  # the amplitude of the magnetic field
-        polarization: str,  # "pi", "sigma+", "sigma-"
-        detuning: float,  # laser detuning
+        mag_field: float,
+        polarization: str,
+        detuning: float,
     ):
-        """To be defined for each implementation"""
+        """Returns the resonant speed for a given mag. field configuration
+
+        Parameters
+        ----------
+        mag_field : float
+            (scalar) magnetic field amplitude (T)
+        polarization : str
+            laser polarization : "pi", "sigma+" or "sigma-"
+        detuning : float
+            laser detuning (rad/s)
+
+        Returns
+        -------
+        speed : float
+            resonant speed (m/s)
+        """
         pass
 
     def _gen_infostring_obj(self):
@@ -267,19 +314,60 @@ class AtomicTransition(ABC):
         return info
 
     def gen_infostring_obj(self):
+        """generates an ``InfoString`` object.
+
+        Returns
+        -------
+        InfoString
+            an ``InfoString`` object
+
+        See also
+        --------
+        atomsmltr.utils.infostring.InfoString
+        """
         return self._gen_infostring_obj()
 
     def gen_info_string(self, **kwargs):
+        """generates an info string
+
+        Returns
+        -------
+        info_string: str
+            a string with information on the atom
+        """
         return self.gen_infostring_obj().generate(**kwargs)
 
     def print_info(self):
+        """prints the atom infostring"""
         print(self.gen_info_string())
 
 
 class DummyTransition(AtomicTransition):
     """Dummy class, only for testing purposes"""
 
-    def get_scattering_rate(self, intensity, mag_field, polarization, detuning):
+    def get_scattering_rate(
+        self, intensity: float, mag_field: float, polarization: str, detuning: float
+    ):
+        """Returns the scattering rate for the DummyTransition model
+
+        This is just a two-level atom with no dependence on mag. field or polarization
+
+        Parameters
+        ----------
+        intensity : float
+            laser intensity (W/m^)
+        mag_field : float
+            (scalar) magnetic field amplitude (T)
+        polarization : ndarray, shape (,3)
+            projection of the laser polarization on (pi, sigma+, sigma-)
+        detuning : float
+            laser detuning (rad/s)
+
+        Returns
+        -------
+        scattering rate : float
+            the transition scattering rate
+        """
         rate = _scattering_rate(self.__wavelength, self.__Gamma, intensity, detuning)
         return rate
 
@@ -289,6 +377,24 @@ class DummyTransition(AtomicTransition):
         polarization: str,  # "pi", "sigma+", "sigma-"
         detuning: float,  # laser detuning
     ):
+        """Returns the resonant speed for the DummyTransition model
+
+        This actually always return zero...
+
+        Parameters
+        ----------
+        mag_field : float
+            (scalar) magnetic field amplitude (T)
+        polarization : str
+            laser polarization : "pi", "sigma+" or "sigma-"
+        detuning : float
+            laser detuning (rad/s)
+
+        Returns
+        -------
+        speed : float
+            resonant speed (m/s)
+        """
         return 0
 
 
@@ -296,14 +402,27 @@ class DummyTransition(AtomicTransition):
 
 
 class J0J1Transition(AtomicTransition):
-    """A common class for simple J=0 -> J=1 transitions"""
+    """A class to handle J=0 -> J=1 transitions
 
-    def __init__(self, lande_factor: float, *args, **kwargs):
+    Parameters
+    ----------
+    wavelength : float
+        the vacuum wavelength (in m)
+    Gamma : float
+        the transition natural linewidth (in rad/s)
+    lande_factor : float
+        the lande g-factor for the transition
+    tag : str
+        a tag identifying the transition
+    """
+
+    def __init__(self, wavelength: float, Gamma: float, lande_factor: float, tag: str):
         self.__lande_factor = lande_factor
-        super().__init__(*args, **kwargs)
+        super().__init__(wavelength=wavelength, Gamma=Gamma, tag=tag)
 
     @property
     def lande_factor(self):
+        """float: the lande g-factor for the transition"""
         return self.__lande_factor
 
     def gen_infostring_obj(self):
