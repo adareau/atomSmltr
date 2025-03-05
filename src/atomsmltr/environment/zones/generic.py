@@ -1,5 +1,19 @@
-# -*- coding: utf-8 -*-
-"""Defines the generic Zones classes
+"""
+zones
+=======================
+
+Here we implement the generic ``Zone`` class, as well as a series of
+``ZoneCollection`` classes that are used to combine several zones
+
+Note
+----
+    the actual implementation of zones are in other modules
+
+See Also
+--------
+atomsmltr.environment.zones.limits
+atomsmltr.environment.zones.volumes
+
 """
 
 # % IMPORTS
@@ -19,9 +33,21 @@ IMPLEMENTED_TARGETS = ["position", "speed"]
 
 
 class Zone(EnvObject):
+    """A generic Zone object
 
-    def __init__(self, target="position", action="stop", *args, **kwargs):
-        super(Zone, self).__init__(*args, **kwargs)
+    Parameters
+    ----------
+    target : str, optional
+        the target for the zone, can be "position" or "speed", by default "position"
+    action : str, optional
+        the action associated to the zone.
+        Currently only "stop" is implemented, by default "stop"
+    tag : str, optional
+        the zone tag
+    """
+
+    def __init__(self, target: str = "position", action: str = "stop", tag: str = None):
+        super(Zone, self).__init__(tag)
         self.inverted = False
         self.target = target
         self.action = action
@@ -30,6 +56,7 @@ class Zone(EnvObject):
 
     @property
     def inverted(self):
+        """bool: if inverted, the zone logic is inverted"""
         return self.__inverted
 
     @inverted.setter
@@ -40,6 +67,7 @@ class Zone(EnvObject):
 
     @property
     def target(self):
+        """str: the target for the zone. Can be "position" or "speed" """
         return self.__target
 
     @target.setter
@@ -50,6 +78,7 @@ class Zone(EnvObject):
 
     @property
     def action(self):
+        """str: the action associated with the zone. Only "stop" implemented currently."""
         return self.__action
 
     @action.setter
@@ -65,25 +94,37 @@ class Zone(EnvObject):
         self.__inverted = not self.__inverted
 
     def inverted_copy(self):
+        """Returns an inverted copy of the object"""
         new_object = deepcopy(self)
         new_object.invert()
         return new_object
 
     # -- METHODS
-    def in_zone(self, vector, nocheck=False):
+    def in_zone(self, vector: np.ndarray, nocheck: bool = False) -> np.ndarray:
         """Evaluates whether 'vector' is in the zone
 
-        vector should be an array of shape (...,3), where last axis contains
+        Parameters
+        ----------
+        vector : array of shape (3,) or (n1, n2, ..., 3)
+            cartesian coordinates of the vectors in the lab frame
+        nocheck : bool, optional
+            if set to True, function will not check that the shape of position
+            matches requirements, by default False
+
+        Returns
+        -------
+        in_zone : array of shape (1,) or (n1, n2, ..., 1)
+            wheter the vector is 'in the zone'
+
+        Notes
+        -----
+
+        ``vector`` should be an array of shape (...,3), where last axis contains
         the coordinates to evaluate.
 
-        if the 'inverted' property is set to true, in_zone will return
+        if the ``inverted`` property is set to true, ``in_zone`` will return
         True outside the zone
 
-        Args:
-            vector (array, shape (...,3)): coordinates to evaluate
-
-        Returns:
-            res (array of booleans, shape (...,1)): whether coordinates are in the zone
         """
         vector = check_position_array(vector)
         res = self._in_zone(vector)
@@ -136,15 +177,25 @@ class ZoneCollection(Zone):
         return "Zone Collection"
 
     @property  # readonly
-    def zones(self):
+    def zones(self) -> list:
+        """list: a list of the zones included in the collection"""
         return self.__zones
 
-    def add_zone(self, zone):
+    def add_zone(self, zone: Zone):
+        """adds a zone to the current collection
+
+        Parameters
+        ----------
+        zone : Zone
+            the zone to add
+        """
+
         if not isinstance(zone, Zone):
             raise TypeError("'zone' should be a zone object")
         self.__zones.append(zone)
 
     def reset(self):
+        """Resets the zone list"""
         self.__zones = []
 
     # -- INFOSTRING
