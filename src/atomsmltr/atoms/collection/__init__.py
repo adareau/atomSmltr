@@ -5,9 +5,11 @@ Examples
 
 Import an ytterbium atom
 
->>> from atomsmltr.atoms import Ytterbium  # import `Ytterbium` class
->>> yb = Ytterbium()  # init an object
->>> yb.print_info()  # print atom informations
+.. code-block:: python
+
+    from atomsmltr.atoms import Ytterbium  # import `Ytterbium` class
+    yb = Ytterbium()  # init an object
+    yb.print_info()  # print atom informations
 
 """
 

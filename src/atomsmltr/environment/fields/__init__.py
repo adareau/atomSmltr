@@ -7,8 +7,10 @@ Examples
 
 Setup a magnetic field offset
 
->>> from atomsmltr.environment.fields import MagneticOffset
->>> offset_field = MagneticOffset(offset=(0,1,0), tag="offset")
+.. code-block:: python
+
+    from atomsmltr.environment.fields import MagneticOffset
+    offset_field = MagneticOffset(offset=(0,1,0), tag="offset")
 
 See also
 --------

@@ -7,12 +7,15 @@ in the ``Atom`` class.
 
 Example
 -------
->>> from atomsmltr.atoms import Atom
->>> from atomsmltr.atoms.transitions import DummyTransition
->>> from scipy import constants as csts
->>> atom = Atom(mass=4 * csts.m_u, name="Helium")
->>> transition = DummyTransition("transition", Gamma=1, wavelength=1)
->>> atom.add_transition(transition, tag="transition")
+
+.. code-block:: python
+
+    from atomsmltr.atoms import Atom
+    from atomsmltr.atoms.transitions import DummyTransition
+    from scipy import constants as csts
+    atom = Atom(mass=4 * csts.m_u, name="Helium")
+    transition = DummyTransition("transition", Gamma=1, wavelength=1)
+    atom.add_transition(transition, tag="transition")
 
 See Also
 --------

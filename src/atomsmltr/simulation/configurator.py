@@ -9,7 +9,7 @@ import numpy as np
 from copy import copy, deepcopy
 
 # % LOCAL IMPORTS
-from ..environment import BaseLaserBeam, MagneticField, Zone
+from ..environment import LaserBeam, MagneticField, Zone
 from ..environment.envbase import EnvObject
 from ..atoms import Atom
 from ..utils.infostring import InfoString
@@ -57,7 +57,7 @@ class Configuration(object):
 
     def add_atomlight_coupling(
         self,
-        laser: str | BaseLaserBeam,
+        laser: str | LaserBeam,
         transition: str,
         detuning: float,
         verbose=False,
@@ -65,7 +65,7 @@ class Configuration(object):
     ):
         # - checking inputs
         # check laser argument
-        if not isinstance(laser, (str, BaseLaserBeam)):
+        if not isinstance(laser, (str, LaserBeam)):
             raise TypeError("'laser' should be a tag (string) or a Laser object")
         if not isinstance(laser, str):
             laser = laser.tag
@@ -97,12 +97,12 @@ class Configuration(object):
 
     def rm_atomlight_coupling(
         self,
-        laser: str | BaseLaserBeam,
+        laser: str | LaserBeam,
         transition: str,
     ):
         # - checking inputs
         # check laser argument
-        if not isinstance(laser, (str, BaseLaserBeam)):
+        if not isinstance(laser, (str, LaserBeam)):
             raise TypeError("'laser' should be a tag (string) or a Laser object")
         if not isinstance(laser, str):
             laser = laser.tag
@@ -201,7 +201,7 @@ class Configuration(object):
         if isinstance(obj, MagneticField):
             collection = self.__magfields
             name = "magnetic fields"
-        elif isinstance(obj, BaseLaserBeam):
+        elif isinstance(obj, LaserBeam):
             collection = self.__lasers
             name = "lasers"
         elif isinstance(obj, Zone):
@@ -261,7 +261,7 @@ class Configuration(object):
         if isinstance(obj, MagneticField):
             collection = self.__magfields
             name = "magnetic fields"
-        elif isinstance(obj, BaseLaserBeam):
+        elif isinstance(obj, LaserBeam):
             collection = self.__lasers
             name = "lasers"
         else:

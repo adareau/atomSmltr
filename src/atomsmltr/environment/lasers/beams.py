@@ -4,14 +4,12 @@
 
 # % IMPORTS
 import numpy as np
-import numpy.typing as npt
 import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
 
 from abc import abstractmethod
 
 # % LOCAL IMPORTS
-from .polarization import Vertical, BasePolarization
+from .polarization import Vertical, Polarization
 from ..envbase import EnvObject
 from ...utils.misc import check_position_array
 from ...utils.infostring import InfoString
@@ -54,18 +52,18 @@ def _intensity_gauss(
 # % ABSTRACT CLASSES
 
 
-class BaseLaserBeam(EnvObject):
-    """docstring for BaseLaserBeam."""
+class LaserBeam(EnvObject):
+    """docstring for LaserBeam."""
 
     def __init__(
         self,
         wavelength: float = 399e-9,
         waist: float = 1e-3,
         power: float = 1e-3,
-        waist_position: npt.ArrayLike = (0, 0, 0),
-        direction: npt.ArrayLike = (0, 0, 1),
+        waist_position: np.ndarray = (0, 0, 0),
+        direction: np.ndarray = (0, 0, 1),
         direction_type: str = "vector",
-        polarization: BasePolarization = Vertical(),
+        polarization: Polarization = Vertical(),
         tag: str = None,
     ):
         self.wavelength = wavelength
@@ -77,7 +75,7 @@ class BaseLaserBeam(EnvObject):
         self.direction = direction
         self.polarization = polarization
 
-        super(BaseLaserBeam, self).__init__(tag=tag)
+        super(LaserBeam, self).__init__(tag=tag)
 
     # -- COMMON METHODS DEFINED HERE
     def _convert_coordinates_to_laser_frame(self, position, nocheck=False):
@@ -472,11 +470,11 @@ class BaseLaserBeam(EnvObject):
 
     # - waist position
     @property
-    def waist_position(self) -> npt.ArrayLike:
+    def waist_position(self) -> np.ndarray:
         return self._waist_position
 
     @waist_position.setter
-    def waist_position(self, value: npt.ArrayLike) -> None:
+    def waist_position(self, value: np.ndarray) -> None:
         value = np.asanyarray(value)
         if value.size != 3:
             raise ValueError("'waist_position' should be an array-like of size 3")
@@ -495,11 +493,11 @@ class BaseLaserBeam(EnvObject):
 
     # - direction
     @property
-    def direction(self) -> npt.ArrayLike:
+    def direction(self) -> np.ndarray:
         return self._direction
 
     @direction.setter
-    def direction(self, value: npt.ArrayLike) -> None:
+    def direction(self, value: np.ndarray) -> None:
         # convert to array
         value = np.asanyarray(value)
 
@@ -548,12 +546,12 @@ class BaseLaserBeam(EnvObject):
 
     # - polarization
     @property
-    def polarization(self) -> BasePolarization:
+    def polarization(self) -> Polarization:
         return self._polarization
 
     @polarization.setter
-    def polarization(self, value: BasePolarization) -> None:
-        if not isinstance(value, BasePolarization):
+    def polarization(self, value: Polarization) -> None:
+        if not isinstance(value, Polarization):
             msg = "`polarization` should be a Polarization object, from atomsmltr.environment.lasers.polarization"
             raise TypeError(msg)
         self._polarization = value
@@ -774,7 +772,7 @@ class BaseLaserBeam(EnvObject):
 # % IMPLEMENTED CLASSES
 
 
-class GaussianLaserBeam(BaseLaserBeam):
+class GaussianLaserBeam(LaserBeam):
     """docstring for GaussianLaserBeam."""
 
     @property
@@ -795,7 +793,7 @@ class GaussianLaserBeam(BaseLaserBeam):
         last axis contains coordinates x, y, z
 
         NB: position is already checked and converted to an array in the
-            `BaseLaserBeam` class
+            `LaserBeam` class
         """
         # - get coordinates in laser frame
         # NB : x, y and phi are not needed here
@@ -841,7 +839,7 @@ class GaussianLaserBeam(BaseLaserBeam):
         return info
 
 
-class PlaneWaveLaserBeam(GaussianLaserBeam):
+class PlaneWaveLaserBeam(LaserBeam):
     """Implements a plane wave. For convenience, we still define the waist and power, and
     the intensity is constant and corresponds to the peak intensity of a Gaussian beam with
     same power and waist."""
@@ -864,7 +862,7 @@ class PlaneWaveLaserBeam(GaussianLaserBeam):
         last axis contains coordinates x, y, z
 
         NB: position is already checked and converted to an array in the
-            `BaseLaserBeam` class
+            `LaserBeam` class
         """
         # - get coordinates in laser frame
         # NB : x, y and phi are not needed here
@@ -899,6 +897,5 @@ class PlaneWaveLaserBeam(GaussianLaserBeam):
 
     def gen_infostring_obj(self, show_polar=True):
         info = super().gen_infostring_obj(show_polar)
-        info.rm_element("Rayleigh length", section="Parameters")
         info.rm_element("waist position (m)", section="Parameters")
         return info

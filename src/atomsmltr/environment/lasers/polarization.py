@@ -4,7 +4,6 @@
 
 # % IMPORTS
 import numpy as np
-import numpy.typing as npt
 from abc import ABC, abstractmethod
 
 # % LOCAL IMPORTS
@@ -14,7 +13,7 @@ from ...utils.infostring import InfoString
 # % ABSTRACT CLASS
 
 
-class BasePolarization(ABC):
+class Polarization(ABC):
     """Handles laser polarization"""
 
     def __init__(self):
@@ -232,7 +231,7 @@ class BasePolarization(ABC):
 # % ACTUAL IMPLEMENTATIONS
 
 
-class Vertical(BasePolarization):
+class Vertical(Polarization):
     """Vertical polarization (along x in the laser frame)"""
 
     def __init__(self):
@@ -242,7 +241,7 @@ class Vertical(BasePolarization):
         self.refresh_polarization_vector_angles()
 
 
-class Horizontal(BasePolarization):
+class Horizontal(Polarization):
     """Horizontal polarization (along y in the laser frame)"""
 
     def __init__(self):
@@ -252,7 +251,7 @@ class Horizontal(BasePolarization):
         self.refresh_polarization_vector_angles()
 
 
-class CircularLeft(BasePolarization):
+class CircularLeft(Polarization):
     """Circular Left polarization (observer point of vue)"""
 
     def __init__(self):
@@ -262,7 +261,7 @@ class CircularLeft(BasePolarization):
         self.refresh_polarization_vector_angles()
 
 
-class CircularRight(BasePolarization):
+class CircularRight(Polarization):
     """Circular Right polarization (observer point of vue)"""
 
     def __init__(self):
@@ -272,7 +271,7 @@ class CircularRight(BasePolarization):
         self.refresh_polarization_vector_angles()
 
 
-class Linear(BasePolarization):
+class Linear(Polarization):
     """Arbitrary linear polarization"""
 
     def __init__(self, angle):
@@ -304,7 +303,7 @@ class Linear(BasePolarization):
         self.refresh_polarization_vector_angles()
 
 
-class Vector(BasePolarization):
+class Vector(Polarization):
     """Arbitrary vector polarization"""
 
     def __init__(self, vector):
@@ -331,7 +330,7 @@ class Vector(BasePolarization):
         return vector
 
     @vector.setter
-    def vector(self, value: npt.ArrayLike) -> None:
+    def vector(self, value: np.ndarray) -> None:
         # convert to array
         value = np.asanyarray(value)
         if value.size != 3:
