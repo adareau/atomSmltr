@@ -97,6 +97,41 @@ def get_force_vec_scipy(
         The function is vectorized to be compatible with Scipy's ``solve_ivp``
         function. Hence, it does not satisfy the functionnal vectorization
         used in the rest of this module
+
+    Examples
+    ---------
+
+    .. code-block:: python
+
+        # ... init a config object with the `Configuration` class
+        from atomsmltr.simulation.simulator import get_force_vec_scipy
+        import numpy as np
+
+        # - init a position & speed vector grid
+        # vx spans from -10 to 30
+        # x, y, z, vy, vz set to 0
+        vx_list = np.linspace(-10, 30, 301)
+        pos_speed_vector = np.array([(0,0,0,vx,0,0,) for vx in vx_list]).T
+
+        # - compute the force
+        force = get_force_vec_scipy(pos_speed_vector, config)
+        FX, FY, FZ = force
+
+        # - print shapes for illustration
+        print(f"{FX.shape=}")
+        print(f"{pos_speed_vector.shape=}")
+        print(f"{force.shape=}")
+
+
+    This returns
+
+    .. code-block:: python
+
+        FX.shape=(301,)
+        pos_speed_vector.shape=(6, 301)
+        force.shape=(3, 301)
+
+
     """
     # TODO should we move that to the Configuration class ???
     # - get position and speed
@@ -122,7 +157,7 @@ def get_force_vec_scipy(
         radiation_pressure = csts.hbar * transition.k * scattering_rate
         force = force + radiation_pressure[..., np.newaxis] * laser.unit_vector
 
-    return force
+    return force.T
 
 
 def get_force_vec(pos_speed_vector: np.ndarray, config: Configuration) -> np.ndarray:
@@ -148,6 +183,56 @@ def get_force_vec(pos_speed_vector: np.ndarray, config: Configuration) -> np.nda
     In all cases, the last dimension contains cordinates (x, y, z, vx, vy, vz),
     in meter or meter/seconds and in the lab frame
 
+    Examples
+    --------
+
+    .. code-block:: python
+
+        # ... init a config object with the `Configuration` class
+        from atomsmltr.simulation.simulator import get_force_vec
+        import numpy as np
+
+        # - init a position & speed vector grid
+        # x spans from -0.1 to 0.1
+        # vx spans from -10 to 30
+        # y, z, vy, vz set to 0
+        grid = np.mgrid[
+            -0.1:0.1:100j,  # x
+                0:0:1j,  # y
+                0:0:1j,  # z
+            -10:30:101j,  # vx
+                0:0:1j,  # vy
+                0:0:1j,  # vz
+        ]
+        # squeeze unused dimensions
+        grid = np.squeeze(grid)
+        # get X and VX grids (for instance for plotting)
+        X, _, _, VX, _, _ = grid
+        # make (x, y, z, vx, vy, vz) the last dimension
+        # as requested by vectorization convention
+        pos_speed_vector = grid.T
+
+        # - compute the force
+        force = get_force_vec(pos_speed_vector, config)
+        FX, FY, FZ = force.T
+
+        # - print shapes for illustration
+        print(f"{grid.shape=}")
+        print(f"{X.shape=}")
+        print(f"{FX.shape=}")
+        print(f"{pos_speed_vector.shape=}")
+        print(f"{force.shape=}")
+
+
+    This returns
+
+    .. code-block:: python
+
+        grid.shape=(6, 100, 101)
+        X.shape=(100, 101)
+        FX.shape=(100, 101)
+        pos_speed_vector.shape=(101, 100, 6)
+        force.shape=(101, 100, 3)
     """
 
     # TODO should we move that to the Configuration class ???
@@ -305,7 +390,7 @@ class ScipyIVP_3D(Simulation):
         F = self._get_force_scipy(u)
         _, _, _, vx, vy, vz = u
         dx, dy, dz = vx, vy, vz
-        dvx, dvy, dvz = F.T / self.config.atom.mass
+        dvx, dvy, dvz = F / self.config.atom.mass
         res = np.array([dx, dy, dz, dvx, dvy, dvz])
         return res
 
