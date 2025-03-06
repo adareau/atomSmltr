@@ -1,5 +1,8 @@
-# -*- coding: utf-8 -*-
-"""some useful functions
+"""misc
+==================
+
+a collection of useful functions
+
 """
 
 # % IMPORTS
@@ -10,7 +13,29 @@ from random import choice
 
 
 def check_position_array(position, nocheck=False):
-    """Checks position vectors required for laser intensity, mag field, etc.. value compuation"""
+    """Checks that a position array matches our vectorization convention.
+
+    It raises an error if the shape is not good.
+
+    Parameters
+    ----------
+    position : array
+        the array to check
+    nocheck : bool, optional
+        if set to True, the function is bypasses
+
+    Returns
+    -------
+    position
+        the array
+
+    Notes
+    ------
+    positions array should have a shape (3,) or (n1, n2, .., 3).
+
+    In all cases, the last dimension contains cordinates (x, y, z),
+    in meter and in the lab frame
+    """
     if nocheck:
         return position
     # convert to array
@@ -22,12 +47,15 @@ def check_position_array(position, nocheck=False):
 
 
 def check_scalar_field_value_function(func):
-    """Checks that a function yielding values of a 3D field
-    field behaves correctly with numpy arrays. Typically used to
-    check intensities.
+    """Used in tests : checks that a function yielding values of a 3D **scalar** field
+    field behaves correctly with numpy arrays.
 
     for input of shape (..., 1) should return shape (..., 1)
 
+    Parameters
+    ----------
+    func : function
+        the function to check
     """
 
     # - 1 check that it works with a single position
@@ -51,10 +79,15 @@ def check_scalar_field_value_function(func):
 
 
 def check_vector_field_value_function(func):
-    """Checks that a function yielding values of a 3D field
+    """Used in tests : checks that a function yielding values of a 3D **vector** field
     field behaves correctly with numpy arrays.
 
-    for input of shape (.., 3), should return (..., 3)
+    for input of shape (..., 3) should return shape (..., 3)
+
+    Parameters
+    ----------
+    func : function
+        the function to check
     """
 
     # - 1 check that it works with a single position
@@ -77,6 +110,18 @@ def check_vector_field_value_function(func):
 
 
 def random_word(syl=3):
+    """Generates a random word
+
+    Parameters
+    ----------
+    syl : int, optional
+        number of syllabs, by default 3
+
+    Returns
+    -------
+    word: str
+        the random word
+    """
     voy = "aeiou"
     cons = "zrtpqsdfghklmwxvbn"
     res = ""
