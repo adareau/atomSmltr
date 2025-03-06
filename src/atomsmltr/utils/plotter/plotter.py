@@ -1,5 +1,7 @@
-# -*- coding: utf-8 -*-
-"""Defines the plotter classes
+"""Plottable objects
+======================
+
+
 """
 
 # % IMPORTS
@@ -17,7 +19,8 @@ from .tools import Axes3D
 
 
 class Plottable(ABC):
-    """A class to describe plottable objects"""
+    """This class defines several methods that should be common to
+    all objects that contain data to be plotted"""
 
     def __init__(self):
         super(Plottable, self).__init__()
