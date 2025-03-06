@@ -1,5 +1,56 @@
-# -*- coding: utf-8 -*-
-"""Defines the main simulator classe
+"""simulator
+==================
+
+Here we implement the ``Simulation`` class, that allows to run simulations
+on a configuration defined via the ``Configuration`` class.
+
+Examples
+--------------------
+
+Run a simulation with one initial condition vector
+
+.. code-block:: python
+
+        # ... init a config object with the `Configuration` class
+
+        # - import a simulation class
+        from atomsmltr.simulation import ScipyIVP_3D
+
+        # - init and setup
+        sim = ScipyIVP_3D(method="Radau")
+        sim.config = config
+
+        # - parameters
+        u0 = (0, 0, -0.15, 0, 0, 200)
+        t = np.linspace(0, 0.05, 1000)
+
+        # - integrate
+        res = sim.integrate(u0, t)
+
+Run a batch of simulations
+
+.. code-block:: python
+
+        # ... init a config object with the `Configuration` class
+
+        # - import a simulation class
+        from atomsmltr.simulation import ScipyIVP_3D
+
+        # - init and setup
+        sim = ScipyIVP_3D(method="Radau")
+        sim.config = config
+
+        # - parameters
+        # initial conditions
+        vz_list = np.linspace(10, 300, 40)
+        u0_list = [(0, 0, -0.15, 0, 0, v) for v in vz_list]
+        sim.u0_list = u0_list
+        # time
+        t = np.linspace(0, 0.05, 1000)
+
+        # - run a batch in parallel
+        res_list = sim.run(t, npools=5, verbose=True)
+
 """
 
 # % IMPORTS
@@ -17,21 +68,35 @@ from .configurator import Configuration
 # % USEFUL FUNCTIONS
 
 
-def get_force_vec(pos_speed_vector, config):
-    """Computes the force on an atom, by adding all radiations pressures
-    Note : we could refine the modul using a rate model, as in atomECS
+def get_force_vec_scipy(
+    pos_speed_vector: np.ndarray, config: Configuration
+) -> np.ndarray:
+    """Computes the force on an atom, by adding all radiations pressures,
+    in a Scipy compatible vectorization style
 
-    The function is vectorized to be compatible with Scipy's `solve_ivp`
+    Parameters
+    ----------
+    pos_speed_vector : array, shape (6,) or (6,k)
+        cartesian position and speed vector
+    config : Configuration
+        a configuration object
+
+    Returns
+    -------
+    force : array, shape (3,) or (3,k)
+        the force at the coordinates given by ``pos_speed_vector``
+
+    Notes
+    -----
 
     The position/speed vector 'pos_speed_vector' should be of shape (6,) or (6,k)
     with the first dimension containing (x, y, z, vx, vy, vz) in the lab frame
 
-    Args:
-        pos_speed_vector (array like): position and speed, shape (6,) or (6,k)
-        config (Configuration): a Configuration object for the simulation
-
-    Returns:
-        force (array like): the force, shape (3,) or (3,k)
+    Note
+    ----
+        The function is vectorized to be compatible with Scipy's ``solve_ivp``
+        function. Hence, it does not satisfy the functionnal vectorization
+        used in the rest of this module
     """
     # TODO should we move that to the Configuration class ???
     # - get position and speed
@@ -60,22 +125,31 @@ def get_force_vec(pos_speed_vector, config):
     return force
 
 
-def get_force_n6_convention(pos_speed_vector, config):
-    """Computes the force on an atom, by adding all radiations pressures
-    Note : we could refine the modul using a rate model, as in atomECS
+def get_force_vec(pos_speed_vector: np.ndarray, config: Configuration) -> np.ndarray:
+    """Computes the force on an atom, by adding all radiations pressures,
+    in a vectorization style that matches the package's standards
 
-    The function is vectorized to be compatible with Scipy's `solve_ivp`
+    Parameters
+    ----------
+    pos_speed_vector : array, shape (6,) or (n1, n2, .., 6)
+        array of cartesian coordinates (position and speed) in the lab frame
+    config : Configuration
+        a configuration object
 
-    The position/speed vector 'pos_speed_vector' should be of shape (..,6)
-    with the first dimension containing (x, y, z, vx, vy, vz) in the lab frame
+    Returns
+    -------
+    array, shape (3,) or (n1, n2, .., 3)
+        the force at the coordinates given by ``pos_speed_vector``
 
-    Args:
-        pos_speed_vector (array like): position and speed, shape (..,6)
-        config (Configuration): a Configuration object for the simulation
+    Notes
+    -----
+    ``pos_speed_vector`` is an array_like object, with shape (6,) or (n1, n2, .., 6).
 
-    Returns:
-        force (array like): the force, shape (...,3)
+    In all cases, the last dimension contains cordinates (x, y, z, vx, vy, vz),
+    in meter or meter/seconds and in the lab frame
+
     """
+
     # TODO should we move that to the Configuration class ???
     # - get position and speed
     x, y, z, vx, vy, vz = pos_speed_vector.T
@@ -107,11 +181,11 @@ def get_force_n6_convention(pos_speed_vector, config):
 # % DEFINE THE BASE CLASS
 
 
-class BaseSimulator(ABC):
+class Simulation(ABC):
     """docstring for Simulator."""
 
     def __init__(self, config=None):
-        super(BaseSimulator, self).__init__()
+        super(Simulation, self).__init__()
         if config is not None:
             self.config = config
         self.u0_list = []
@@ -210,7 +284,7 @@ def stop_speed_event(t, u, stop_speed):
     return res
 
 
-class ScipyIVP_3D(BaseSimulator):
+class ScipyIVP_3D(Simulation):
     """docstring for ScipyIVP_3D."""
 
     def __init__(self, config=None, method="Radau", **solve_ivp_args):
@@ -219,16 +293,16 @@ class ScipyIVP_3D(BaseSimulator):
         self.method = method
 
     # -- REQUESTED FUNCTIONS
+    def _get_force_scipy(self, u):
+        force = get_force_vec_scipy(u, self.config)
+        return force
+
     def get_force(self, u):
         force = get_force_vec(u, self.config)
         return force
 
-    def get_force_n6(self, u):
-        force = get_force_n6_convention(u, self.config)
-        return force
-
     def dudt(self, t, u):
-        F = self.get_force(u)
+        F = self._get_force_scipy(u)
         _, _, _, vx, vy, vz = u
         dx, dy, dz = vx, vy, vz
         dvx, dvy, dvz = F.T / self.config.atom.mass
