@@ -3,15 +3,51 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-atomSmltr documentation
+Atom Simulator
 =======================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+Welcome to the ``atomSmltr`` package documentation !
 
-Hum hum hu ?
+.. grid:: 1 2 3 3
+    :gutter: 2
+    :margin: 4 4 0 0
 
+
+    .. grid-item-card::
+      :img-top: _static/images/index_get_started.svg
+      :text-align: center
+      :link: getting-started
+      :link-type: ref
+      :link-alt: link to Getting Started
+
+      **Getting started**
+
+      ^^^^^^^
+      learn how to install and run ``atomsmltr``
+
+    .. grid-item-card::
+      :img-top: _static/images/index_documentation.svg
+      :text-align: center
+      :link: documentation-start
+      :link-type: ref
+      :link-alt: link to Getting Started
+
+      **Read documentation**
+
+      ^^^^^^^
+      learn what's behind ``atomsmltr``
+
+    .. grid-item-card::
+      :img-top: _static/images/index_examples.svg
+      :text-align: center
+      :link: examples-start
+      :link-type: ref
+      :link-alt: link to Getting Started
+
+      **Checkout examples**
+
+      ^^^^^^^
+      start experimenting with ``atomsmltr``
 
 .. toctree::
    :maxdepth: 2
@@ -19,4 +55,5 @@ Hum hum hu ?
    :caption: Contents:
 
    _pages/user_guide/guide_index
-   _pages/api_reference.rst
+   _pages/examples/examples_index
+   _pages/api_reference

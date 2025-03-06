@@ -13,6 +13,7 @@ Here we will provide all the information needed to use the `atomSmltr` package
    :maxdepth: 2
    :caption: Documentation
 
+   docs/docs_presentation.rst
    docs/docs_frames.rst
    docs/docs_polarization.rst
 
