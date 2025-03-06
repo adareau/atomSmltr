@@ -5,18 +5,23 @@ Examples
 Nice examples here
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Base components
+   :glob:
 
-   /_notebook_examples/components/jupyter.ipynb
+   /_notebook_examples/components/*
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Atomic Physics
+   :glob:
+
+   /_notebook_examples/atomic_physics/*
+
 
 
 
 Download them
 ~~~~~~~~~~~~~~
 
-* example 1: |jupyter.ipynb|
-* example 2: :download:`jupyter.ipynb </_notebook_examples/components/jupyter.ipynb>`
-
-.. |jupyter.ipynb| replace::
-   :download:`jupyter.ipynb </_notebook_examples/components/jupyter.ipynb>`
+Put link to repo
