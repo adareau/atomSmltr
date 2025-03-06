@@ -479,15 +479,53 @@ def stop_position_event(t: float, u: np.ndarray, stop_position: list):
 
 
 def stop_speed_event(t: float, u: np.ndarray, stop_speed: list):
+    """Implements 'stop' events for Scipy's solve_ivp, based on atom's speed
+
+    Parameters
+    ----------
+    t : float
+        time, not used here but required for the ``events`` functions in ``solve_ivp``
+    u : array, shape (6,k)
+        position/speed vector, according to ``solve_ivp`` vectorization convention
+    stop_speed : list
+        list of Zones objects targetting speed with actions set to stop
+
+    Returns
+    -------
+    res: bool
+        whether to stop the simulation
+
+    See also
+    --------
+    atomsmltr.environment.zones
+    atomsmltr.simulation.configurator.Configuration.get_stop_zones()
+    """
     speed = u[3:6, ...].T
     res = np.logical_and.reduce([zone.in_zone(speed) for zone in stop_speed])
     return res
 
 
 class ScipyIVP_3D(Simulation):
-    """docstring for ScipyIVP_3D."""
+    """A simulation class based on Scipy's ``solve_ivp`` solver
 
-    def __init__(self, config=None, method="Radau", **solve_ivp_args):
+    Parameters
+    ----------
+    config : Configuration, optional
+        the configuration to consider for the simulation
+    method : str, optional
+        method used for the ``solve_ivp`` solver, by default "Radau"
+    **solve_ivp_args
+        all other arguments are directly passed to ``solve_ivp``
+
+    References
+    ----------
+    https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html
+
+    """
+
+    def __init__(
+        self, config: Configuration = None, method: str = "Radau", **solve_ivp_args
+    ):
         super(ScipyIVP_3D, self).__init__(config)
         self.solve_ivp_args = solve_ivp_args
         self.method = method
