@@ -1,4 +1,4 @@
-"""The ``atomsmltr.environment.lasers`` subpackage provides definitions for lasers
+"""The ``atomsmltr.environment.lasers``\ subpackage provides definitions for lasers
 
 It defines two main classes :
 
