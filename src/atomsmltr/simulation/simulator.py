@@ -68,6 +68,50 @@ from .configurator import Configuration
 # % USEFUL FUNCTIONS
 
 
+def _get_force_vec(
+    position: np.ndarray, speed: np.ndarray, config: Configuration
+) -> np.ndarray:
+    """Computes the force on an atom, by adding all radiations pressures,
+    in a vectorization style that matches the package's standards
+
+    Parameters
+    ----------
+    position : array, shape (3,) or (n1, n2, .., 3)
+        array of cartesian positions in the lab frame
+    speed : array, shape (3,) or (n1, n2, .., 3)
+        array of cartesian speeds in the lab frame
+    config : Configuration
+        a configuration object
+
+    Returns
+    -------
+    force : array, (3,) or (n1, n2, .., 3)
+        the force felt by the atoms
+    """
+
+    # - get magnetic field value & norm
+    B = config.getB(position)
+    Bx, By, Bz = B.T
+    B_norm = np.sqrt(Bx**2 + By**2 + Bz**2).T
+    # - initialize force
+    force = np.zeros_like(position, dtype=float)
+    # - loop over atom-light couplings
+    atomlight_couples = config.get_atomlight_couples()
+    for elements in atomlight_couples:
+        transition, laser, detuning = elements
+        laser_intensity = laser.get_intensity(position)
+        polarization = laser.get_polarization_quant(B)
+        # Doppler
+        det_Doppler = -np.dot(speed, laser.kvec)
+        scattering_rate = transition.get_scattering_rate(
+            laser_intensity, B_norm, polarization, detuning + det_Doppler
+        )
+        radiation_pressure = csts.hbar * transition.k * scattering_rate
+        force = force + radiation_pressure[..., np.newaxis] * laser.unit_vector
+
+    return force
+
+
 def get_force_vec_scipy(
     pos_speed_vector: np.ndarray, config: Configuration
 ) -> np.ndarray:
@@ -137,27 +181,11 @@ def get_force_vec_scipy(
     # - get position and speed
     position = pos_speed_vector[0:3, ...].T
     speed = pos_speed_vector[3:6, ...].T
-    # - get magnetic field value & norm
-    B = config.getB(position)
-    Bx, By, Bz = B.T
-    B_norm = np.sqrt(Bx**2 + By**2 + Bz**2).T
-    # - initialize force
-    force = np.zeros_like(position, dtype=float)
-    # - loop over atom-light couplings
-    atomlight_couples = config.get_atomlight_couples()
-    for elements in atomlight_couples:
-        transition, laser, detuning = elements
-        laser_intensity = laser.get_intensity(position)
-        polarization = laser.get_polarization_quant(B)
-        # Doppler
-        det_Doppler = -np.dot(speed, laser.kvec)
-        scattering_rate = transition.get_scattering_rate(
-            laser_intensity, B_norm, polarization, detuning + det_Doppler
-        )
-        radiation_pressure = csts.hbar * transition.k * scattering_rate
-        force = force + radiation_pressure[..., np.newaxis] * laser.unit_vector
-
-    return force.T
+    # - compute force
+    force = _get_force_vec(position, speed, config)
+    # - transpose to satisfy vectorization rules
+    force = force.T
+    return force
 
 
 def get_force_vec(pos_speed_vector: np.ndarray, config: Configuration) -> np.ndarray:
@@ -240,26 +268,8 @@ def get_force_vec(pos_speed_vector: np.ndarray, config: Configuration) -> np.nda
     x, y, z, vx, vy, vz = pos_speed_vector.T
     position = np.array([x, y, z]).T
     speed = np.array([vx, vy, vz]).T
-    # - get magnetic field value & norm
-    B = config.getB(position)
-    Bx, By, Bz = B.T
-    B_norm = np.sqrt(Bx**2 + By**2 + Bz**2).T
-    # - initialize force
-    force = np.zeros_like(position, dtype=float)
-    # - loop over atom-light couplings
-    atomlight_couples = config.get_atomlight_couples()
-    for elements in atomlight_couples:
-        transition, laser, detuning = elements
-        laser_intensity = laser.get_intensity(position)
-        polarization = laser.get_polarization_quant(B)
-        # Doppler
-        det_Doppler = -np.dot(speed, laser.kvec)
-        scattering_rate = transition.get_scattering_rate(
-            laser_intensity, B_norm, polarization, detuning + det_Doppler
-        )
-        radiation_pressure = csts.hbar * transition.k * scattering_rate
-        force = force + radiation_pressure[..., np.newaxis] * laser.unit_vector
-
+    # - get force
+    force = _get_force_vec(position, speed, config)
     return force
 
 
