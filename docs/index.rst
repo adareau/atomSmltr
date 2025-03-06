@@ -55,5 +55,5 @@ Welcome to the ``atomSmltr`` package documentation !
    :caption: Contents:
 
    _pages/user_guide/guide_index
-   _pages/examples/examples_index
+   _pages/examples_index
    _pages/api_reference
