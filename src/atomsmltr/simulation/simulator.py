@@ -201,7 +201,7 @@ def get_force_vec(pos_speed_vector: np.ndarray, config: Configuration) -> np.nda
 
     Returns
     -------
-    array, shape (3,) or (n1, n2, .., 3)
+    force : array, shape (3,) or (n1, n2, .., 3)
         the force at the coordinates given by ``pos_speed_vector``
 
     Notes
@@ -277,9 +277,20 @@ def get_force_vec(pos_speed_vector: np.ndarray, config: Configuration) -> np.nda
 
 
 class Simulation(ABC):
-    """docstring for Simulator."""
+    """The generic Simulation object
 
-    def __init__(self, config=None):
+    Parameters
+    ----------
+    config : Configuration, optional
+        the configuration to consider, by default None
+
+    Note
+    -----
+        this is an abstract class, actual implementations are
+        defined elsewhere and inherit from this class
+    """
+
+    def __init__(self, config: Configuration = None):
         super(Simulation, self).__init__()
         if config is not None:
             self.config = config
@@ -288,6 +299,7 @@ class Simulation(ABC):
     # -- SETTERS AND GETTERS
     @property
     def config(self):
+        """Configuration: the configuration for this simulation"""
         return self.__config
 
     @config.setter
@@ -298,6 +310,7 @@ class Simulation(ABC):
 
     @property
     def u0_list(self):
+        """list: a list of initial conditions for batch running"""
         return self.__u0_list
 
     @u0_list.setter
@@ -307,20 +320,37 @@ class Simulation(ABC):
 
     # -- REQUESTED FUNCTIONS
     @abstractmethod
-    def get_force(self, u):
+    def get_force(self, u: np.ndarray) -> np.ndarray:
+        """returns the force felt at a position/speed vector u
+
+        Parameters
+        ----------
+        u : array, shape (6,) or (n1, n2, .., 6)
+            array of cartesian coordinates (position and speed) in the lab frame
+
+        Returns
+        -------
+        force : array, shape (3,) or (n1, n2, .., 3)
+            the force at the coordinates given by ``pos_speed_vector``
+        """
         pass
 
-    def integrate(self, u0, t):
-        """Integrates the system
+    def integrate(self, u0: np.ndarray, t: np.ndarray):
+        """Integrates the system with initial conditions ``u0``
 
-        Args:
-            u0 (array): initial conditions
-            t (array): timesteps for the integration
+        Parameters
+        ----------
+        u0 : array, shape (6,)
+            the initial conditions (x, y, z, vx, vy, vz)
+        t : array, shape (n,)
+            the timesteps to integrate
 
-        Returns:
-            res: result of the integration (might depend on the method used)
-
+        Returns
+        -------
+        res
+            the result of the simulation
         """
+
         return self._integrate(u0, t)
 
     @abstractmethod
@@ -330,14 +360,68 @@ class Simulation(ABC):
 
     @abstractmethod
     def dudt(self, t, u):
+        """should return the derivative of the position/speed vector u"""
         pass
 
     @abstractmethod
     def _u0_list_checker(self, value):
+        """checks that the list of initial conditions matches what is expected
+        for a given simulator implementation"""
         pass
 
     # -- RUN
-    def run(self, t, u0_list=None, npools=0, verbose=False):
+    def run(
+        self,
+        t: np.ndarray,
+        u0_list: list = None,
+        npools: int = 0,
+        verbose: bool = False,
+    ) -> list:
+        """Runs a batch of simulations from a list of initial conditions
+
+        Parameters
+        ----------
+        t : array, shape (n,)
+            time steps for the simulation
+        u0_list : list, optional
+            list of initial conditions, by default None
+        npools : int, optional
+            number of pools for parallel computing.
+            If set to zero, no paralalelisation, by default 0
+        verbose : bool, optional
+            if set to True, a progress bar is displayed, by default False
+
+        Returns
+        -------
+        res_list : list
+            a list of results
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+            # ... init a config object with the `Configuration` class
+
+            # - import a simulation class
+            from atomsmltr.simulation import ScipyIVP_3D
+
+            # - init and setup
+            sim = ScipyIVP_3D(method="Radau")
+            sim.config = config
+
+            # - parameters
+            # initial conditions
+            vz_list = np.linspace(10, 300, 40)
+            u0_list = [(0, 0, -0.15, 0, 0, v) for v in vz_list]
+            sim.u0_list = u0_list
+            # time
+            t = np.linspace(0, 0.05, 1000)
+
+            # - run a batch in parallel
+            res_list = sim.run(t, npools=5, verbose=True)
+
+        """
         if u0_list is not None:
             self.u0_list = u0_list
         if not isinstance(npools, int):
@@ -367,13 +451,34 @@ class Simulation(ABC):
 # % SIMULATOR BASED ON SCIPY'S SOLVE_IVP
 
 
-def stop_position_event(t, u, stop_position):
+def stop_position_event(t: float, u: np.ndarray, stop_position: list):
+    """Implements 'stop' events for Scipy's solve_ivp, based on atom's position
+
+    Parameters
+    ----------
+    t : float
+        time, not used here but required for the ``events`` functions in ``solve_ivp``
+    u : array, shape (6,k)
+        position/speed vector, according to ``solve_ivp`` vectorization convention
+    stop_position : list
+        list of Zones objects targetting position with actions set to stop
+
+    Returns
+    -------
+    res: bool
+        whether to stop the simulation
+
+    See also
+    --------
+    atomsmltr.environment.zones
+    atomsmltr.simulation.configurator.Configuration.get_stop_zones()
+    """
     position = u[0:3, ...].T
     res = np.logical_and.reduce([zone.in_zone(position) for zone in stop_position])
     return res
 
 
-def stop_speed_event(t, u, stop_speed):
+def stop_speed_event(t: float, u: np.ndarray, stop_speed: list):
     speed = u[3:6, ...].T
     res = np.logical_and.reduce([zone.in_zone(speed) for zone in stop_speed])
     return res
