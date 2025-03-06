@@ -42,6 +42,7 @@ __all__ = [
     "CircularLeft",
     "CircularRight",
     "Vector",
+    "Linear",
 ]
 
 from .beams import GaussianLaserBeam, PlaneWaveLaserBeam, LaserBeam
@@ -52,4 +53,5 @@ from .polarization import (
     CircularLeft,
     CircularRight,
     Vector,
+    Linear,
 )
