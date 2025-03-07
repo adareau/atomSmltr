@@ -307,11 +307,35 @@ def test_configuration_operators():
     assert "x_max" in conf.list_zones()
 
 
+def test_configuration_inzone():
+    from atomsmltr.simulation import Configuration
+    from atomsmltr.environment import Limits
+
+    # create limits
+    x_lim = Limits(-1, 1, axis=0, target="position", tag="xlim")
+    y_lim = Limits(-10, 10, axis=1, target="position", tag="ylim")
+    vx_lim = Limits(0, 100, axis=0, target="speed", tag="vxlim")
+
+    # init config
+    config = Configuration()
+    config += x_lim, y_lim, vx_lim
+
+    # test
+    assert config.in_zone((0, 0, 0, 1, 0, 0))
+    assert config.in_zone((0, 0, 90, 1, 0, 0))
+    assert config.in_zone((0, 0, 90, 1, 6, 8))
+    assert config.in_zone((0.5, 5, 90, 50, 6, 8))
+    assert not config.in_zone((2, 5, 90, 50, 6, 8))
+    assert not config.in_zone((0, 5, 2, -10, 6, 8))
+    assert not config.in_zone((0, 11, 0, 5, 6, 8))
+
+
 if __name__ == "__main__":
     # test_configuration_collection_management()
     # test_configuration_exceptions()
     # test_configuration_atom_light()
     # test_configuration_print_info()
     # test_configuration_operators()
-    test_configuration_methods()
+    # test_configuration_methods()
+    test_configuration_inzone()
     pass

@@ -24,7 +24,7 @@ import numpy as np
 from copy import copy, deepcopy
 
 # % LOCAL IMPORTS
-from ..environment import LaserBeam, MagneticField, Zone
+from ..environment import LaserBeam, MagneticField, Zone, SuperZone
 from ..environment.envbase import EnvObject
 from ..atoms import Atom
 from ..utils.infostring import InfoString
@@ -322,15 +322,67 @@ class Configuration(object):
             list of speed stop zones (target=speed)
         """
 
+        return self._get_zones(action="stop")
+
+    def _get_zones(self, action: str = "stop"):
+        """Returns two list of the zones whose ``action`` are set to a given value
+
+        Parameters
+        ----------
+        action : str, optional
+            action to target, by default "stop"
+
+        Returns
+        -------
+        stop_position: list
+            list of position zones (target=position)
+        stop_speed: list
+            list of speed zones (target=speed)
+        """
         stop_speed = []
         stop_position = []
         for zone in self.__zones.values():
-            if zone.action == "stop":
+            if zone.action == action:
                 if zone.target == "speed":
                     stop_speed.append(deepcopy(zone))
                 elif zone.target == "position":
                     stop_position.append(deepcopy(zone))
         return stop_position, stop_speed
+
+    def in_zone(self, pos_speed_vector: np.ndarray, action: str = "stop") -> np.ndarray:
+        """Evaluates whether 'pos_speed_vector' is in the zones corresponding to a given action
+
+        Parameters
+        ----------
+        vector : array of shape (6,) or (n1, n2, ..., 6)
+            cartesian coordinates of the vectors in the lab frame
+        action : str, optionnal
+            the action of the zones to consider by default "stop"
+
+        Returns
+        -------
+        in_zone : array of shape (1,) or (n1, n2, ..., 1)
+            whether the vector is 'in the zone'
+
+        Notes
+        -----
+
+        ``vector`` should be an array of shape (6,) or (n1, n2, .., 6), where last axis contains
+        the coordinates (position & speed) to evaluate.
+
+        In all cases, the last dimension contains cordinates (x, y, z, vx, vy, vz),
+        """
+
+        # -- init a SuperZone
+        collection = SuperZone(logic="AND")
+
+        # -- populate
+        for zone in self.__zones.values():
+            if zone.action == action:
+                collection += zone
+
+        # -- return results
+        return collection.in_zone(pos_speed_vector)
 
     # -- COLLECTION HANDLING METHODS
 

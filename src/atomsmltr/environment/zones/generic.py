@@ -23,13 +23,18 @@ from copy import copy, deepcopy
 
 # % LOCAL IMPORTS
 from ..envbase import EnvObject
-from ...utils.misc import check_position_array
+from ...utils.misc import check_position_array, check_position_speed_array
 from ...utils.infostring import InfoString
 
 # % ABSTRACT CLASSES
 
 IMPLEMENTED_ACTIONS = ["stop"]
 IMPLEMENTED_TARGETS = ["position", "speed"]
+
+
+# % -------------------------------
+# % SIMPLE ZONES
+# % -------------------------------
 
 
 class Zone(EnvObject):
@@ -126,7 +131,7 @@ class Zone(EnvObject):
         True outside the zone
 
         """
-        vector = check_position_array(vector)
+        vector = check_position_array(vector, nocheck)
         res = self._in_zone(vector)
         if self.inverted:
             res = np.logical_not(res)
@@ -164,6 +169,11 @@ class Zone(EnvObject):
             return new_collection
         else:
             raise TypeError("only 'Zones' objects can be combined")
+
+
+# % -------------------------------
+# % ZONES COLLECTIONS
+# % -------------------------------
 
 
 class ZoneCollection(Zone):
@@ -242,26 +252,33 @@ class ZoneCollection(Zone):
 
         """
         # then operator acts on self
+        # - recursive add if list
+        if isinstance(object, (list, tuple)):
+            for element in object:
+                self.__add_operator__(element, self)
+            return self
+        # - otherwise
         return self.__add_operator__(object, self)
 
     def __add_operator__(self, object, coll):
         """a function to factor the __add__ and __iadd__ operators"""
         # case 1 > same type of zone, then we add all the zones
-        if isinstance(object, self.__class__):
-            for z in object.zones:
-                new_zone = deepcopy(z)
-                if object.inverted:
-                    new_zone.invert()
-                coll.add_zone(new_zone)
-            return coll
-        # case 2 > it is a zone, not a collection
-        elif isinstance(object, Zone) and not isinstance(object, ZoneCollection):
-            coll.add_zone(deepcopy(object))
-            return coll
-        else:
-            raise TypeError(
-                "a ZoneCollection can only be added with a Zone or another ZoneCollection of same type"
-            )
+        if object:
+            if isinstance(object, self.__class__):
+                for z in object.zones:
+                    new_zone = deepcopy(z)
+                    if object.inverted:
+                        new_zone.invert()
+                    coll.add_zone(new_zone)
+                return coll
+            # case 2 > it is a zone, not a collection
+            elif isinstance(object, Zone) and not isinstance(object, ZoneCollection):
+                coll.add_zone(deepcopy(object))
+                return coll
+            else:
+                raise TypeError(
+                    "a ZoneCollection can only be added with a Zone or another ZoneCollection of same type"
+                )
 
 
 class ANDCollection(ZoneCollection):
@@ -298,3 +315,147 @@ class XORCollection(ZoneCollection):
     def _in_zone(self, vector):
         res_list = [zone.in_zone(vector) for zone in self.zones]
         return np.logical_xor.reduce(res_list)
+
+
+# % -------------------------------
+# % SUPER ZONE
+# % -------------------------------
+
+IMPLEMENTED_LOGIC = ["OR", "XOR", "AND"]
+
+
+class SuperZone(ZoneCollection):
+    """SuperZone is a zone collection for position/speed vectors
+
+    Parameters
+    ----------
+    zones : list, optional
+        list of zones to add at object creation, by default []
+    logic : str, optional
+        the logic of zone combination. Can be "OR", "AND", "XOR", by default "AND"
+    action : str, optional
+        the action to trigger, by default "stop"
+    tag : str, optional
+        the tag of the zone, by default None
+    """
+
+    def __init__(
+        self,
+        zones: list = [],
+        logic: str = "AND",
+        action: str = "stop",
+        tag: str = None,
+    ):
+
+        super(SuperZone, self).__init__(action=action, tag=tag)
+        self.logic = logic
+        self.__iadd__(zones)
+
+    # -- PROPERTIES
+
+    @property
+    def type(self):
+        return "Super Zone collection"
+
+    # - target is irrelevant
+    @property
+    def target(self):
+        """not used in this case"""
+        return None
+
+    @target.setter
+    def target(self, value):
+        pass
+
+    # - logic
+    @property
+    def logic(self):
+        """str: the logic for the SuperZone combination ("OR", "XOR", "AND")"""
+        return self.__logic
+
+    @logic.setter
+    def logic(self, value: str):
+        if value not in IMPLEMENTED_LOGIC:
+            raise ValueError(f"'logic' should be in {IMPLEMENTED_LOGIC}")
+        self.__logic = value
+        match value:
+            case "OR":
+                self.__logical_op = np.logical_or
+            case "AND":
+                self.__logical_op = np.logical_and
+            case "XOR":
+                self.__logical_op = np.logical_xor
+
+    # -- METHODS
+
+    def add_zones(self, zones: Zone | list):
+        self.__iadd__(zones)
+
+    def in_zone(self, vector: np.ndarray, nocheck: bool = False) -> np.ndarray:
+        """Evaluates whether 'vector' is in the zone
+
+        Parameters
+        ----------
+        vector : array of shape (6,) or (n1, n2, ..., 6)
+            cartesian coordinates of the vectors in the lab frame
+        nocheck : bool, optional
+            if set to True, function will not check that the shape of position
+            matches requirements, by default False
+
+        Returns
+        -------
+        in_zone : array of shape (1,) or (n1, n2, ..., 1)
+            whether the vector is 'in the zone'
+
+        Notes
+        -----
+
+        This is a ``SuperZone`` object, so it acts on **position-speed** vectors
+        of dimensions 6 !
+
+        ``vector`` should be an array of shape (6,) or (n1, n2, .., 6), where last axis contains
+        the coordinates (position & speed) to evaluate.
+
+        In all cases, the last dimension contains cordinates (x, y, z, vx, vy, vz),
+
+        if the ``inverted`` property is set to true, ``in_zone`` will return
+        True outside the zone
+
+        """
+        vector = check_position_speed_array(vector, nocheck)
+        res = self._in_zone(vector)
+        if self.inverted:
+            res = np.logical_not(res)
+        return res
+
+    def _in_zone(self, vector: np.ndarray) -> np.ndarray:
+        """The actual implementation of the ``in_zone`` method"""
+        # -- separate speeds & positions
+        x, y, z, vx, vy, vz = vector.T
+        position = np.array([x, y, z]).T
+        speed = np.array([vx, vy, vz]).T
+
+        # -- separate zones according to target
+        speed_zones = []
+        position_zones = []
+        for zone in self.zones:
+            if zone.target == "speed":
+                speed_zones.append(zone)
+            elif zone.target == "position":
+                position_zones.append(zone)
+
+        # -- evaluate
+        res_list = [zone.in_zone(position) for zone in position_zones]
+        res_list += [zone.in_zone(speed) for zone in speed_zones]
+
+        if res_list:
+            res = self.__logical_op.reduce(res_list)
+        else:
+            res = x.T == x.T
+        return res
+
+    def gen_infostring_obj(self):
+        info = super().gen_infostring_obj()
+        info.add_element("logic", self.logic)
+        info.rm_element("target")
+        return info
