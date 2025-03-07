@@ -448,7 +448,11 @@ class SuperZone(ZoneCollection):
         res_list = [zone.in_zone(position) for zone in position_zones]
         res_list += [zone.in_zone(speed) for zone in speed_zones]
 
-        return self.__logical_op.reduce(res_list)
+        if res_list:
+            res = self.__logical_op.reduce(res_list)
+        else:
+            res = x.T == x.T
+        return res
 
     def gen_infostring_obj(self):
         info = super().gen_infostring_obj()

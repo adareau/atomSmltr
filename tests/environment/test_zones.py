@@ -145,6 +145,53 @@ def test_super_zones():
     res = zone.in_zone(vec)
     assert res.shape == vec.shape[:-1]
 
+    # -- what if only positions
+    zone.reset()
+    zone += x_lim
+
+    assert zone.in_zone((0, 0, 0, 1, 0, 0))
+    assert zone.in_zone((0, 0, 90, 1, 0, 0))
+    assert zone.in_zone((0, 0, 90, 1, 6, 8))
+    assert zone.in_zone((0.5, 5, 90, 50, 6, 8))
+    assert not zone.in_zone((2, 5, 90, 50, 6, 8))
+    assert zone.in_zone((0, 5, 2, -10, 6, 8))
+    assert zone.in_zone((0, 11, 0, 5, 6, 8))
+
+    # check vectorization
+    res = zone.in_zone(vec)
+    assert res.shape == vec.shape[:-1]
+
+    # -- what if only speeds
+    zone.reset()
+    zone += vx_lim
+
+    assert zone.in_zone((0, 0, 0, 1, 0, 0))
+    assert zone.in_zone((0, 0, 90, 1, 0, 0))
+    assert zone.in_zone((0, 0, 90, 1, 6, 8))
+    assert zone.in_zone((0.5, 5, 90, 50, 6, 8))
+    assert zone.in_zone((2, 5, 90, 50, 6, 8))
+    assert not zone.in_zone((0, 5, 2, -10, 6, 8))
+    assert zone.in_zone((0, 11, 0, 5, 6, 8))
+
+    # check vectorization
+    res = zone.in_zone(vec)
+    assert res.shape == vec.shape[:-1]
+
+    # -- what if empty
+    zone.reset()
+
+    assert zone.in_zone((0, 0, 0, 1, 0, 0))
+    assert zone.in_zone((0, 0, 90, 1, 0, 0))
+    assert zone.in_zone((0, 0, 90, 1, 6, 8))
+    assert zone.in_zone((0.5, 5, 90, 50, 6, 8))
+    assert zone.in_zone((2, 5, 90, 50, 6, 8))
+    assert zone.in_zone((0, 5, 2, -10, 6, 8))
+    assert zone.in_zone((0, 11, 0, 5, 6, 8))
+
+    # check vectorization
+    res = zone.in_zone(vec)
+    assert res.shape == vec.shape[:-1]
+
 
 def test_limits_zones():
     from atomsmltr.environment.zones import LowerLimit, UpperLimit, Limits
