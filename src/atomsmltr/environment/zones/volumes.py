@@ -27,6 +27,7 @@ import numpy as np
 # % LOCAL IMPORTS
 from .generic import Zone
 from ...utils.infostring import InfoString
+from ...utils.misc import check_positive_float
 
 # % CLASSES
 
@@ -187,6 +188,126 @@ class Box(Zone):
         info.add_element(f"xmin, xmax", f"{self.xmin, self.xmax}")
         info.add_element(f"ymin, ymax", f"{self.ymin, self.ymax}")
         info.add_element(f"zmin, zmax", f"{self.zmin, self.zmax}")
+        info.add_element(f"inverted", f"{self.inverted}")
+        return info
+
+    # -- PLOT
+
+    def plot1D(self, ax=None):
+        pass
+
+    def plot2D(self, ax=None):
+        pass
+
+    def plot3D(self, ax=None):
+        pass
+
+
+class Cylinder(Zone):
+    """A cylinder zone
+
+    Parameters
+    ----------
+    origin : array, shape (3), optional
+        the 'center' of the cylinder, i.e. a point on its axis, by default (0, 0, 0)
+    direction : array, shape (3), optional
+        a vector along the axis of the cylinder, by default (1, 0, 0)
+    radius : float, optional
+        the cylinder radius, in m or m/s, by default 1.0
+    target : str, optional
+        the target for the zone, can be "position" or "speed", by default "position"
+    action : str, optional
+        the action associated to the zone.
+        Currently only "stop" is implemented, by default "stop"
+    tag : str, optional
+        the zone tag
+    """
+
+    def __init__(
+        self,
+        origin: np.ndarray = (0, 0, 0),
+        direction: np.ndarray = (1, 0, 0),
+        radius: float = 1.0,
+        target="position",
+        action="stop",
+        tag=None,
+    ):
+
+        super(Cylinder, self).__init__(target=target, action=action, tag=tag)
+        self.origin = origin
+        self.direction = direction
+        self.radius = radius
+
+    # -- PROPERTIES
+
+    @property
+    def type(self):
+        return "3D Cylinder"
+
+    # - origin
+    @property
+    def origin(self) -> np.ndarray:
+        """array, shape (3): cylinder 'center'"""
+        return self.__origin
+
+    @origin.setter
+    def origin(self, value: np.ndarray):
+        value = np.asanyarray(value)
+        if value.size != 3:
+            raise ValueError("'origin' should be an array of size 3")
+        self.__origin = value
+
+    # - direction
+    @property
+    def direction(self) -> np.ndarray:
+        """array, shape (3): cylinder axis direction"""
+        return self.__direction
+
+    @direction.setter
+    def direction(self, value: np.ndarray):
+        value = np.asanyarray(value)
+        if value.size != 3:
+            raise ValueError("'direction' should be an array of size 3")
+        if np.linalg.norm(value) == 0:
+            raise ValueError("'the norm of 'direction' cannot be zero")
+        self.__direction = value / np.linalg.norm(value)
+
+    # - radius
+    @property
+    def power(self) -> float:
+        """float: cylinder radius (m) or (m/s)"""
+        return self._power
+
+    @power.setter
+    def power(self, value: float) -> None:
+        check_positive_float("power", value)
+        self._power = float(value)
+
+    # -- METHODS
+
+    def _in_zone(self, vector):
+        # -- compute distance to axis
+        r = vector - self.origin
+        cross_product = np.cross(r, self.direction)
+        distance = np.linalg.norm(cross_product, axis=-1)
+        # -- cylinder
+        return distance < self.radius
+
+    # -- INFOSTRING
+
+    def gen_infostring_obj(self):
+        """Generates an info string object"""
+        title = self.type
+        title = title[:1].upper() + title[1:]  # capitalize first letter
+        info = InfoString(title=title)
+        info.add_section("Parameters")
+        info.add_element("type", "3D Cylinder")
+        info.add_element("tag", self.tag)
+        info.add_element("target", self.target)
+        info.add_element("action", self.action)
+        info.add_element(f"direction", f"{self.direction}")
+        info.add_element(f"origin", f"{self.origin}")
+        info.add_element(f"radius", f"{self.radius}")
         info.add_element(f"inverted", f"{self.inverted}")
         return info
 

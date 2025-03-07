@@ -243,7 +243,7 @@ def test_limits_zones():
 
 
 def test_3D_zones():
-    from atomsmltr.environment.zones import Box
+    from atomsmltr.environment.zones import Box, Cylinder
 
     # -- Box
     box = Box(-1, 1, 0, 0.5, -10, 10)
@@ -257,9 +257,32 @@ def test_3D_zones():
     assert not box.in_zone((0, 0.2, 96))
     assert not box.in_zone((100, 100, 100))
 
+    # -- Cylinder
+    cyl = Cylinder()
+    _generic_zones_test(cyl)
+
+    cyl.origin = (0, 0, 0)
+    cyl.direction = (1, 0, 0)
+    cyl.radius = 2
+
+    assert cyl.in_zone((0, 0, 0))
+    assert not cyl.in_zone((0, 8, -4))
+    assert not cyl.in_zone((1, 8, -4))
+    assert cyl.in_zone((3, 1, 1))
+    assert cyl.in_zone((-7, -1, -1))
+    assert not cyl.in_zone((500, -1, -2.1))
+
+    cyl.direction = (0, 0, 1)
+    assert cyl.in_zone((0, 0, 0))
+    assert not cyl.in_zone((0, 8, -4))
+    assert not cyl.in_zone((1, 8, -4))
+    assert cyl.in_zone((1, 1, 5))
+    assert cyl.in_zone((-1, -1, -1))
+    assert not cyl.in_zone((500, -1, -2.1))
+
 
 if __name__ == "__main__":
     # test_limits_zones()
     # test_zones_collections()
-    # test_3D_zones()
+    test_3D_zones()
     test_super_zones()

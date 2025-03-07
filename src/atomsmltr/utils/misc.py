@@ -12,6 +12,21 @@ from random import choice
 # % ARGUMENT PROCESSORS / CHECKERS
 
 
+def check_positive_float(param_name: str, value: float) -> None:
+    """internal function to check that a parameter is a positive float, raises a `ValueError` if not.
+
+    Args:
+        param_name (str): name of the checked parameter, to give context in the exception
+        value (float): value of the paramater to check
+    """
+    if isinstance(value, int):
+        value = float(value)
+    if not isinstance(value, float):
+        raise ValueError(f"'{param_name}' has to be a float")
+    if value < 0:
+        raise ValueError(f"'{param_name}' has to be a positive")
+
+
 def check_position_array(position, nocheck=False):
     """Checks that a position array matches our vectorization convention.
 
