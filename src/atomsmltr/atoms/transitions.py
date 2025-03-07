@@ -238,7 +238,7 @@ class AtomicTransition(ABC):
 
     # -- METHODS
 
-    def get_saturation_parameter(self, intensity: float) -> float:
+    def get_saturation_parameter(self, intensity: float, detuning: float) -> float:
         """Returns the saturation parameter (for a two-level system)
 
         Parameters
@@ -246,12 +246,15 @@ class AtomicTransition(ABC):
             intensity : float
                 laser intensity in W/m^2
 
+            detuning : float
+                laser detuning in rad/s
+
         Returns
         -------
             s : float
                 the saturation parameter
         """
-        s = _sat_param(self.wavelength, self.Gamma, intensity)
+        s = _sat_param(self.wavelength, self.Gamma, intensity, detuning)
         return s
 
     @abstractmethod

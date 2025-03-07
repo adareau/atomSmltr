@@ -1,4 +1,4 @@
-"""The ``atomsmltr.environment.lasers`` subpackage provides definitions for lasers
+"""The ``atomsmltr.environment.lasers``\ subpackage provides definitions for lasers
 
 It defines two main classes :
 
@@ -42,6 +42,7 @@ __all__ = [
     "CircularLeft",
     "CircularRight",
     "Vector",
+    "Linear",
 ]
 
 from .beams import GaussianLaserBeam, PlaneWaveLaserBeam, LaserBeam
@@ -52,4 +53,5 @@ from .polarization import (
     CircularLeft,
     CircularRight,
     Vector,
+    Linear,
 )

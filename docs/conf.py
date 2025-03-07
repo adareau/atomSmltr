@@ -60,7 +60,16 @@ extensions = [
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-source_suffix = [".rst", ".md"]
+source_suffix = {
+    ".rst": "restructuredtext",
+    ".md": "restructuredtext",
+    ".ipynb": "myst-nb",
+}
+
+suppress_warnings = [
+    "docutils",  # Suppress the anoying "Inline substitution_reference start-string without end-string"
+]
+
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
