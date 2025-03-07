@@ -13,6 +13,13 @@ Nice examples here
 
 .. toctree::
    :maxdepth: 1
+   :caption: Advanced usage
+   :glob:
+
+   /_notebook_examples/advanced_usage/*
+
+.. toctree::
+   :maxdepth: 1
    :caption: Atomic Physics
    :glob:
 
