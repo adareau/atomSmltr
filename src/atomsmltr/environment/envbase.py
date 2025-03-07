@@ -1,0 +1,112 @@
+"""
+environment objects
+=======================
+
+This module implements the generic ``EnvObject`` class. All objects aimed at defining
+the atom's environment will derive from this class.
+
+This will help ensure that those objects share common properties and methods, which will
+ease their use inside a ``Configuration`` class.
+"""
+
+# % IMPORTS
+from abc import abstractmethod
+from copy import copy
+
+# % LOCAL IMPORTS
+from ..utils.plotter import Plottable
+from ..utils.misc import random_word
+
+# % ABSTRACT CLASSES
+
+
+class EnvObject(Plottable):
+    """Defines a generic (abstract) class for environment objects.
+
+    Currently, this only makes sure that (1) they are ``Plottable`` objects
+    and (2) they have a ``tag`` property.
+
+    Parameters
+    ----------
+    tag : str, optional (default=None)
+        a tag identifying the object. If `None` is given, a random tag
+        will be generated
+
+    See Also
+    ----------
+    atomsmltr.utils.plotter.plotter.Plottable
+    """
+
+    def __init__(self, tag: str = None):
+        # init tag with random word if None
+        if tag is None:
+            tag = random_word()
+        self.tag = tag
+        super(EnvObject, self).__init__()
+
+    @property
+    def tag(self) -> str:
+        """str: the object tag"""
+        return self._tag
+
+    @tag.setter
+    def tag(self, value: str) -> None:
+        if not isinstance(value, str):
+            raise TypeError("'tag' should be a string")
+        self._tag = value
+
+    # -- COPY
+    def copy(self, new_tag: str = None):
+        """returns a copy of the object.
+
+        Parameters
+        ----------
+        new_tag : str, optional
+            a tag for the copy, if None is given a random tag is generated.
+
+        Returns
+        -------
+        object_copy : EnvObject
+            a copy of the object
+        """
+        object_copy = copy(self)
+        if new_tag is None:
+            new_tag = f"{self.tag}-{random_word()}"
+        object_copy.tag = new_tag
+        return object_copy
+
+    # -- INFO STRING / OBJECT MANAGEMENT
+    @abstractmethod
+    def gen_infostring_obj(self):
+        """generates an ``InfoString`` object.
+
+        Returns
+        -------
+        InfoString
+            an ``InfoString`` object
+
+        See also
+        --------
+        atomsmltr.utils.infostring.InfoString
+        """
+        pass
+
+    def gen_info_string(self, **kwargs):
+        """generates an info string
+
+        Returns
+        -------
+        info_string: str
+            a string with information on the atom
+        """
+        return self.gen_infostring_obj().generate(**kwargs)
+
+    def print_info(self):
+        """prints the atom infostring"""
+        print(self.gen_info_string())
+
+    @property
+    @abstractmethod
+    def type():
+        """str: a description of the object type"""
+        pass
