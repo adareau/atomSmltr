@@ -46,6 +46,40 @@ def check_position_array(position, nocheck=False):
     return position
 
 
+def check_position_speed_array(position, nocheck=False):
+    """Checks that a position array matches our vectorization convention.
+
+    It raises an error if the shape is not good.
+
+    Parameters
+    ----------
+    position : array
+        the array to check
+    nocheck : bool, optional
+        if set to True, the function is bypasses
+
+    Returns
+    -------
+    position
+        the array
+
+    Notes
+    ------
+    positions array should have a shape (6,) or (n1, n2, .., 6).
+
+    In all cases, the last dimension contains cordinates (x, y, z, vx, vy, vz),
+    in meter and in the lab frame
+    """
+    if nocheck:
+        return position
+    # convert to array
+    position = np.asanyarray(position)
+    # check that shape is fine : should be (6,) or (n,6)
+    if not position.shape or position.shape[-1] != 6:
+        raise ValueError("The position array should be of shape (6,) or (n, m, .., 6)")
+    return position
+
+
 def check_scalar_field_value_function(func):
     """Used in tests : checks that a function yielding values of a 3D **scalar** field
     field behaves correctly with numpy arrays.
