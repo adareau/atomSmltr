@@ -1,4 +1,0 @@
-Definitions: Frames
-====================
-
-lorem ipsum

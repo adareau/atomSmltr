@@ -12,11 +12,15 @@ Here we will provide all the information needed to use the `atomSmltr` package
 .. toctree::
    :maxdepth: 2
    :caption: Documentation
+   :glob:
 
-   docs/docs_presentation.rst
-   docs/docs_frames.rst
-   docs/docs_polarization.rst
+   ./docs/*
 
 .. toctree::
    :maxdepth: 2
    :caption: Examples
+   :glob:
+
+   /_notebook_examples/components/*
+   /_notebook_examples/advanced_usage/*
+   /_notebook_examples/atomic_physics/*
