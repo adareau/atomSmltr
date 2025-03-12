@@ -27,6 +27,7 @@ __all__ = [
     "MagneticQuadrupoleY",
     "MagneticQuadrupoleZ",
     "InterpMag1D1D",
+    "InterpMag3D3D",
 ]
 
 from .magnetic import (
@@ -36,4 +37,5 @@ from .magnetic import (
     MagneticQuadrupoleY,
     MagneticQuadrupoleZ,
     InterpMag1D1D,
+    InterpMag3D3D,
 )
