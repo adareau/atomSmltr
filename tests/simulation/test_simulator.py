@@ -26,10 +26,10 @@ def _init_config():
     data_x = data[:, 0] * 1e-2  # cm to m
     data_y = data[:, 1] * 1e-3  # mT to T
     mag_zeeman = InterpMag1D1D(
-        data_x=data_x,
-        data_y=data_y,
+        data_position=data_x,
+        data_field=data_y,
         field_direction=(1, 0, 0),
-        x_direction=(0, 0, 1),
+        position_direction=(0, 0, 1),
         scale=-9.0 / 11,
         tag="Zeeman",
     )

@@ -20,7 +20,7 @@ from ..generic import (
     QuadrupoleFieldZ,
     QuadrupoleFieldY,
 )
-from ..interpolated import InterpolatedField1D1D
+from ..interpolated import InterpolatedField1D1D, InterpolatedField3D3D
 
 # % CLASSES
 
@@ -122,3 +122,17 @@ class InterpMag1D1D(MagneticField, InterpolatedField1D1D):
     @property
     def type(self):
         return "interpolated mag. field (1D-1D)"
+
+
+# -- INTERPOLATED
+class InterpMag3D3D(MagneticField, InterpolatedField3D3D):
+    """An interpolated field 3D/3D
+
+    See also
+    ---------
+    atomsmltr.environment.fields.interpolated.InterpolatedField3D3D
+    """
+
+    @property
+    def type(self):
+        return "interpolated mag. field (3D-3D)"
