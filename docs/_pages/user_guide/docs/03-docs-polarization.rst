@@ -193,3 +193,95 @@ The respective orientation of the polarization :math:`\ket{p}` and magnetic fiel
         .. image:: /_static/images/docs_magfield_angle.svg
             :align: center
             :width: 200px
+
+**The problem is set as follow:**
+
+* in the *laser basis* (x,y,z), the polarization state can be written :math:`\ket{p} = e^{-iv} \cos(u/2) \ket{R} + e^{iv} \sin(u/2)\ket{L}`, which can be decomposed onto :math:`\ket{x}=\ket{V}` and :math:`\ket{y}=\ket{H}` using :math:`\ket{R}=(\ket{x}+i\ket{y})/\sqrt{2}` and :math:`\ket{L}=(\ket{x}-i\ket{y})/\sqrt{2}`.
+
+
+* in the *magnetic field* basis (x',y',z'), where z' is aligned with B, we can define the polarization states :math:`\ket{\pi} = \ket{z^\prime}` and :math:`\ket{\sigma\pm} = (\ket{x^\prime}\pm i\ket{y^\prime})/\sqrt{2}`
+
+
+Now using the formulae above it is possible to (1) decompose the polarization state :math:`\ket{p}` onto :math:`\ket{x}` and :math:`\ket{x}` and (2) compute its projection onto the :math:`\ket{pi}` and :math:`\ket{\sigma\pm}` states.
+
+
+Here is what we get:
+
+
+.. grid:: 1
+
+    .. grid-item-card::
+
+        .. math::
+            \begin{align}
+            \ket{p} & =  \left\{ e^{-iv} \cos(u/2) + e^{iv} \sin(u/2) \right\} / \sqrt{2}\,\ket{x} \\
+             & + i\left\{ e^{-iv} \cos(u/2) - e^{iv} \sin(u/2) \right\}  / \sqrt{2}\,\ket{y}
+            \end{align}
+
+
+
+    .. grid-item-card::
+
+        .. math::
+            \begin{align}
+            \ket{x} & = \left( \cos\beta\cos\alpha + i \sin\beta\right) / \sqrt{2} \,\ket{\sigma+}\\
+                    & + \left( \cos\beta\cos\alpha - i \sin\beta\right)/ \sqrt{2} \, \ket{\sigma-} \\
+                    & + \cos\beta\sin\alpha \ket{\pi}
+            \end{align}
+
+    .. grid-item-card::
+
+        .. math::
+            \begin{align}
+            \ket{y} & = \left( \sin\beta\cos\alpha - i \cos\beta\right) / \sqrt{2} \,\ket{\sigma+}\\
+                    & + \left( \sin\beta\cos\alpha + i \cos\beta\right)/ \sqrt{2} \, \ket{\sigma-} \\
+                    & + \sin\beta\sin\alpha \ket{\pi}
+            \end{align}
+
+
+With that, it is possible to compute :math:`\braket{p|\pi}`, :math:`\braket{p|\sigma+}` and :math:`\braket{p|\sigma-}`.
+
+
+Implementation in atomsmltr
+---------------------------
+
+Here is a short code example illustring how all of the above is implemented in ``atomsmtlr``:
+
+.. code-block:: python
+
+    from numpy import pi
+    from atomsmltr.environment import (
+        GaussianLaserBeam,
+        Vertical,
+        Horizontal,
+        Linear,
+        CircularLeft,
+        CircularRight,
+        Vector,
+    )
+
+    # - Setting up polarizations
+    beam = GaussianLaserBeam()
+    beam.polarization = Vertical()
+    beam.polarization = Horizontal()
+    beam.polarization = Linear(angle=pi / 4)
+    beam.polarization = CircularLeft()
+    beam.polarization = CircularRight()
+    beam.polarization = Vector((0, 0, -1))
+
+    # - Getting info
+    beam.polarization.print_info()
+    beam.get_polarization_vector_in_lab_frame()
+    beam.get_polarization_vector_in_laser_frame()
+
+
+    # - Compute projections
+    B = (0,1,0)
+    # 〈Ψ|π⟩, 〈Ψ|σ+⟩ and 〈Ψ|σ-⟩ in an array form
+    beam.get_polarization_quant_amplitude(B)
+    # same, output as a dict
+    beam.get_polarization_quant_amplitude_dict(B)
+    # |〈Ψ|π⟩|**2 , |〈Ψ|σ+⟩|**2 and |〈Ψ|σ-⟩|**2 in an array form
+    beam.get_polarization_quant(B)
+    # same, output as a dict
+    beam.get_polarization_quant_dict(B)
