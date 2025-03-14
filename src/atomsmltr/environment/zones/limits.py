@@ -99,7 +99,7 @@ class UpperLimit(SingleLimit):
         the target for the zone, can be "position" or "speed", by default "position"
     action : str, optional
         the action associated to the zone.
-        Currently only "stop" is implemented, by default "stop"
+        implemented actions = ["stop", "ignore"], default is "stop"
     tag : str, optional
         the zone tag
     in_tag : str, optional
@@ -157,7 +157,7 @@ class LowerLimit(SingleLimit):
         the target for the zone, can be "position" or "speed", by default "position"
     action : str, optional
         the action associated to the zone.
-        Currently only "stop" is implemented, by default "stop"
+        implemented actions = ["stop", "ignore"], default is "stop"
     tag : str, optional
         the zone tag
     in_tag : str, optional
@@ -217,7 +217,7 @@ class Limits(Zone):
         the target for the zone, can be "position" or "speed", by default "position"
     action : str, optional
         the action associated to the zone.
-        Currently only "stop" is implemented, by default "stop"
+        implemented actions = ["stop", "ignore"], default is "stop"
     tag : str, optional
         the zone tag
     in_tag : str, optional

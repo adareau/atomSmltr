@@ -28,7 +28,7 @@ from ...utils.infostring import InfoString
 
 # % ABSTRACT CLASSES
 
-IMPLEMENTED_ACTIONS = ["stop"]
+IMPLEMENTED_ACTIONS = ["stop", "ignore"]
 IMPLEMENTED_TARGETS = ["position", "speed"]
 
 
@@ -46,7 +46,7 @@ class Zone(EnvObject):
         the target for the zone, can be "position" or "speed", by default "position"
     action : str, optional
         the action associated to the zone.
-        Currently only "stop" is implemented, by default "stop"
+        implemented actions = ["stop", "ignore"], default is "stop"
     tag : str, optional
         the zone tag
     in_tag : str, optional
@@ -96,7 +96,7 @@ class Zone(EnvObject):
 
     @property
     def action(self):
-        """str: the action associated with the zone. Only "stop" implemented currently."""
+        """str: the action associated with the zone. implemented actions = ["stop", "ignore"]."""
         return self.__action
 
     @action.setter
@@ -371,7 +371,8 @@ class SuperZone(ZoneCollection):
     logic : str, optional
         the logic of zone combination. Can be "OR", "AND", "XOR", by default "AND"
     action : str, optional
-        the action to trigger, by default "stop"
+        the action to trigger
+        implemented actions = ["stop", "ignore"], default is "stop"
     tag : str, optional
         the tag of the zone, by default None
     in_tag : str, optional

@@ -350,8 +350,43 @@ class Simulation(ABC):
         res
             the result of the simulation
         """
+        ####################
+        #  PRE PROCESSING  #
+        ####################
+        # for later use
 
-        return self._integrate(u0, t)
+        #################
+        #  INTEGRATION  #
+        #################
+        #  integrate using the method specific `_integrate()` method
+        res = self._integrate(u0, t)
+
+        #####################
+        #  POST PROCESSING  #
+        #####################
+        # - apply zones tags
+        # get zones
+        position_zones, speed_zones = self.config.get_all_zones()
+        # get last position
+        y_last = res.y[:, -1]
+        position = y_last[:3]
+        speed = y_last[3:]
+        # add tags property
+        res.tags = set()  # we use a set to have unique values
+        # add position tags
+        for zone in position_zones:
+            if zone.in_zone(position):
+                res.tags.add(zone.in_tag)
+            else:
+                res.tags.add(zone.out_tag)
+        # add speed tags
+        for zone in speed_zones:
+            if zone.in_zone(speed):
+                res.tags.add(zone.in_tag)
+            else:
+                res.tags.add(zone.out_tag)
+
+        return res
 
     @abstractmethod
     def _integrate(self, u0, t):
