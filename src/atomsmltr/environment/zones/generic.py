@@ -28,7 +28,7 @@ from ...utils.infostring import InfoString
 
 # % ABSTRACT CLASSES
 
-IMPLEMENTED_ACTIONS = ["stop"]
+IMPLEMENTED_ACTIONS = ["stop", "ignore"]
 IMPLEMENTED_TARGETS = ["position", "speed"]
 
 
@@ -46,16 +46,29 @@ class Zone(EnvObject):
         the target for the zone, can be "position" or "speed", by default "position"
     action : str, optional
         the action associated to the zone.
-        Currently only "stop" is implemented, by default "stop"
+        implemented actions = ["stop", "ignore"], default is "stop"
     tag : str, optional
         the zone tag
+    in_tag : str, optional
+        tag for an object inside the zone, by default None
+    out_tag : str, optional
+        tag for an object inside the zone, by default None
     """
 
-    def __init__(self, target: str = "position", action: str = "stop", tag: str = None):
+    def __init__(
+        self,
+        target: str = "position",
+        action: str = "stop",
+        tag: str = None,
+        in_tag: str = None,
+        out_tag: str = None,
+    ):
         super(Zone, self).__init__(tag)
         self.inverted = False
         self.target = target
         self.action = action
+        self.in_tag = in_tag
+        self.out_tag = out_tag
 
     # -- GETTERS & SETTERS
 
@@ -83,7 +96,7 @@ class Zone(EnvObject):
 
     @property
     def action(self):
-        """str: the action associated with the zone. Only "stop" implemented currently."""
+        """str: the action associated with the zone. implemented actions = ["stop", "ignore"]."""
         return self.__action
 
     @action.setter
@@ -91,6 +104,28 @@ class Zone(EnvObject):
         if value not in IMPLEMENTED_ACTIONS:
             raise ValueError(f"implemented actions are : {IMPLEMENTED_ACTIONS}")
         self.__action = value
+
+    @property
+    def in_tag(self) -> str:
+        """str: tag for a object inside the zone"""
+        return self._in_tag
+
+    @in_tag.setter
+    def in_tag(self, value: str) -> None:
+        if not isinstance(value, str) and value is not None:
+            raise TypeError("'in_tag' should be a string or None")
+        self._in_tag = value
+
+    @property
+    def out_tag(self) -> str:
+        """str: tag for a object outside the zone"""
+        return self._out_tag
+
+    @out_tag.setter
+    def out_tag(self, value: str) -> None:
+        if not isinstance(value, str) and value is not None:
+            raise TypeError("'out_tag' should be a string or None")
+        self._out_tag = value
 
     # -- functions
 
@@ -218,6 +253,8 @@ class ZoneCollection(Zone):
         info.add_section("Parameters")
         info.add_element("type", self.type)
         info.add_element("tag", self.tag)
+        info.add_element("in_tag", self.in_tag)
+        info.add_element("out_tag", self.out_tag)
         info.add_element("target", self.target)
         info.add_element("action", self.action)
         info.add_element(f"zones", f"{[z.tag for z in self.zones]}")
@@ -334,9 +371,14 @@ class SuperZone(ZoneCollection):
     logic : str, optional
         the logic of zone combination. Can be "OR", "AND", "XOR", by default "AND"
     action : str, optional
-        the action to trigger, by default "stop"
+        the action to trigger
+        implemented actions = ["stop", "ignore"], default is "stop"
     tag : str, optional
         the tag of the zone, by default None
+    in_tag : str, optional
+        tag for an object inside the zone, by default None
+    out_tag : str, optional
+        tag for an object inside the zone, by default None
     """
 
     def __init__(
@@ -345,9 +387,13 @@ class SuperZone(ZoneCollection):
         logic: str = "AND",
         action: str = "stop",
         tag: str = None,
+        in_tag: str = None,
+        out_tag: str = None,
     ):
 
-        super(SuperZone, self).__init__(action=action, tag=tag)
+        super(SuperZone, self).__init__(
+            action=action, tag=tag, in_tag=in_tag, out_tag=out_tag
+        )
         self.logic = logic
         self.__iadd__(zones)
 

@@ -27,6 +27,10 @@ def _generic_zones_test(zone):
     new_tag = "super zone"
     zone.tag = new_tag
     assert zone.tag == new_tag
+    zone.in_tag = "IN"
+    zone.in_tag = None
+    zone.out_tag = None
+    zone.out_tag = "OUT"
     zone.print_info()
     # - invert
     zone.inverted = True
@@ -282,7 +286,7 @@ def test_3D_zones():
 
 
 if __name__ == "__main__":
-    # test_limits_zones()
-    # test_zones_collections()
+    test_limits_zones()
+    test_zones_collections()
     test_3D_zones()
     test_super_zones()

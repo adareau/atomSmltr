@@ -324,6 +324,19 @@ class Configuration(object):
 
         return self._get_zones(action="stop")
 
+    def get_all_zones(self):
+        """Returns zones sorted in according to their target
+
+        Returns
+        -------
+        stop_position: list
+            list of position stop zones (target=position)
+        stop_speed: list
+            list of speed stop zones (target=speed)
+        """
+
+        return self._get_zones(action="all")
+
     def _get_zones(self, action: str = "stop"):
         """Returns two list of the zones whose ``action`` are set to a given value
 
@@ -342,7 +355,7 @@ class Configuration(object):
         stop_speed = []
         stop_position = []
         for zone in self.__zones.values():
-            if zone.action == action:
+            if zone.action == action or action == "all":
                 if zone.target == "speed":
                     stop_speed.append(deepcopy(zone))
                 elif zone.target == "position":
