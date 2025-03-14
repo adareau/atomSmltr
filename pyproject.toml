@@ -23,6 +23,7 @@ pytest = "^8.3.4"
 ipykernel = "^6.29.5"
 tqdm = "^4.67.1"
 line-profiler = "^4.2.0"
+ipympl = "^0.9.7"
 
 
 [tool.poetry.group.wayland.dependencies]

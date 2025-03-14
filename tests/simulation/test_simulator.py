@@ -50,8 +50,19 @@ def _init_config():
     config.add_objects(laser461)
 
     # -- zones
-    z_max = UpperLimit(0.3, axis=2, target="position", action="stop")
-    vz_min = LowerLimit(0, axis=2, target="speed")
+    z_max = UpperLimit(
+        0.3,
+        axis=2,
+        target="position",
+        action="stop",
+        out_tag="position out",
+    )
+    vz_min = LowerLimit(
+        0,
+        axis=2,
+        target="speed",
+        out_tag="speed out",
+    )
     config.add_objects(z_max, vz_min)
 
     # -- ATOM-LIGHT
