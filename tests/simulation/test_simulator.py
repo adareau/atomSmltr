@@ -138,6 +138,25 @@ def test_ScipyIVP_3D_batch():
     return res_list
 
 
+def test_RK4_integrator():
+    from atomsmltr.simulation import RK4
+
+    # - init simulation object
+    sim = RK4()
+    config = _init_config()
+    sim.config = config
+
+    # - parameters
+    u0 = (0, 0, -0.15, 0, 0, 200)
+    t = np.linspace(0, 0.05, 1000)
+
+    # - integrate
+    res = sim.integrate(u0, t)
+
+    return res
+
+
 if __name__ == "__main__":
     res = test_ScipyIVP_3D_integrator()
-    res_coll = test_ScipyIVP_3D_batch()
+    # res_coll = test_ScipyIVP_3D_batch()
+    res = test_RK4_integrator()
