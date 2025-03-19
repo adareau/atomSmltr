@@ -10,7 +10,8 @@ atomsmltr.simulation.simulator
 __all__ = [
     "Configuration",
     "ScipyIVP_3D",
+    "RK4",
 ]
 
 from .configurator import Configuration
-from .simulator import ScipyIVP_3D
+from .simulator import ScipyIVP_3D, RK4

@@ -61,6 +61,7 @@ from abc import ABC, abstractmethod
 from multiprocessing import Pool
 from tqdm import tqdm
 from functools import partial
+from dataclasses import dataclass
 
 # % LOCAL IMPORTS
 from .configurator import Configuration
@@ -276,6 +277,18 @@ def get_force_vec(pos_speed_vector: np.ndarray, config: Configuration) -> np.nda
 # % DEFINE THE BASE CLASS
 
 
+@dataclass
+class SimRes:
+    """Class for simulation results"""
+
+    y: np.ndarray
+    t: np.ndarray
+    tags: set = None
+    t_events: list = None
+    y_events: list = None
+    success: bool = True
+
+
 class Simulation(ABC):
     """The generic Simulation object
 
@@ -486,7 +499,9 @@ class Simulation(ABC):
 # % SIMULATOR BASED ON SCIPY'S SOLVE_IVP
 
 
-def stop_position_event(t: float, u: np.ndarray, stop_position: list):
+def stop_position_event(
+    t: float, u: np.ndarray, stop_position: list, offset: float = 0.0
+):
     """Implements 'stop' events for Scipy's solve_ivp, based on atom's position
 
     Parameters
@@ -510,10 +525,11 @@ def stop_position_event(t: float, u: np.ndarray, stop_position: list):
     """
     position = u[0:3, ...].T
     res = np.logical_and.reduce([zone.in_zone(position) for zone in stop_position])
+    res = res + offset
     return res
 
 
-def stop_speed_event(t: float, u: np.ndarray, stop_speed: list):
+def stop_speed_event(t: float, u: np.ndarray, stop_speed: list, offset: float = 0.0):
     """Implements 'stop' events for Scipy's solve_ivp, based on atom's speed
 
     Parameters
@@ -537,6 +553,7 @@ def stop_speed_event(t: float, u: np.ndarray, stop_speed: list):
     """
     speed = u[3:6, ...].T
     res = np.logical_and.reduce([zone.in_zone(speed) for zone in stop_speed])
+    res = res + offset
     return res
 
 
@@ -589,11 +606,13 @@ class ScipyIVP_3D(Simulation):
         events = []
         stop_position, stop_speed = self.config.get_stop_zones()
         if stop_position:
-            stop_pos = partial(stop_position_event, stop_position=stop_position)
+            stop_pos = partial(
+                stop_position_event, stop_position=stop_position, offset=-0.5
+            )
             stop_pos.terminal = True
             events.append(stop_pos)
         if stop_speed:
-            stop_sp = partial(stop_speed_event, stop_speed=stop_speed)
+            stop_sp = partial(stop_speed_event, stop_speed=stop_speed, offset=-0.5)
             stop_sp.terminal = True
             events.append(stop_sp)
         # - time
@@ -619,6 +638,98 @@ class ScipyIVP_3D(Simulation):
 
     def _stop_event_position(self, t, u):
         pass
+
+    def _u0_list_checker(self, value):
+        if not hasattr(value, "__iter__"):
+            raise ValueError("'u0_list' should be an iterable object")
+        if value:
+            for u0 in value:
+                if np.asanyarray(u0).shape != (6,):
+                    raise ValueError("'u0_list' should be a list of arrays of size 6")
+        return value
+
+
+class RK4(Simulation):
+    """A homemade simulator based on fourth order Runge-Kutta method
+
+    Parameters
+    ----------
+    config : Configuration, optional
+        the configuration to consider for the simulation
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
+
+    """
+
+    def __init__(
+        self,
+        config: Configuration = None,
+    ):
+        super(RK4, self).__init__(config)
+
+    def get_force(self, u):
+        force = get_force_vec(u, self.config)
+        return force
+
+    def dudt(self, t, u):
+        F = self.get_force(u)
+        _, _, _, vx, vy, vz = u
+        dx, dy, dz = vx, vy, vz
+        dvx, dvy, dvz = F / self.config.atom.mass
+        res = np.array([dx, dy, dz, dvx, dvy, dvz])
+        return res
+
+    def _integrate(self, u0, t):
+        # - u0 to array
+        u = np.asanyarray(u0)
+        # - get stop events
+        events = []
+        stop_position, stop_speed = self.config.get_stop_zones()
+        if stop_position:
+            stop_pos = partial(stop_position_event, stop_position=stop_position)
+            stop_pos.terminal = True
+            events.append(stop_pos)
+        if stop_speed:
+            stop_sp = partial(stop_speed_event, stop_speed=stop_speed)
+            stop_sp.terminal = True
+            events.append(stop_sp)
+        # - time
+        # TODO : add checks on time
+        t = np.asanyarray(t)
+        t = np.sort(t)
+        dt = np.diff(t)
+        # - initialize
+        y = np.empty((6, len(t)))
+        y[:, 0] = u
+        stop = False
+        # - integrate
+        i = 1
+        for i, (tt, h) in enumerate(zip(t[1:], dt)):
+            # perform step
+            k1 = self.dudt(tt, u)
+            k2 = self.dudt(tt + 0.5 * h, u + 0.5 * k1 * h)
+            k3 = self.dudt(tt + 0.5 * h, u + 0.5 * k2 * h)
+            k4 = self.dudt(tt + h, u + k3 * h)
+            u = u + (h / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
+            y[:, i] = u
+
+            # check out
+            if events:
+                for ev in events:
+                    if not ev(tt, u):
+                        stop = True
+            if stop:
+                break
+
+        if stop:
+            y = y[:, : i + 1]
+            t = t[: i + 1]
+
+        res = SimRes(t=t, y=y)
+
+        return res
 
     def _u0_list_checker(self, value):
         if not hasattr(value, "__iter__"):
