@@ -136,7 +136,7 @@ class UpperLimit(SingleLimit):
     def _in_zone(self, vector):
         u = {}
         u[0], u[1], u[2] = vector.T
-        in_zone = u[self.axis] < self.value
+        in_zone = u[self.axis] <= self.value
         return in_zone.T
 
     @property
@@ -194,7 +194,7 @@ class LowerLimit(SingleLimit):
     def _in_zone(self, vector):
         u = {}
         u[0], u[1], u[2] = vector.T
-        in_zone = u[self.axis] > self.value
+        in_zone = u[self.axis] >= self.value
         return in_zone.T
 
     @property
@@ -288,7 +288,7 @@ class Limits(Zone):
     def _in_zone(self, vector):
         u = {}
         u[0], u[1], u[2] = vector.T
-        in_zone = (u[self.axis] > self.min) & (u[self.axis] < self.max)
+        in_zone = (u[self.axis] >= self.min) & (u[self.axis] <= self.max)
         return in_zone.T
 
     # -- INFOSTRING
