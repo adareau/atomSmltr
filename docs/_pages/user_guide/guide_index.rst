@@ -4,13 +4,14 @@ User Guide
 Here we will provide all the information needed to use the `atomSmltr` package
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Getting started
+   :glob:
 
-   start/01_installation.rst
+   ./start/*
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Documentation
    :glob:
 

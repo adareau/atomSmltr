@@ -31,4 +31,4 @@ Nice examples here
 Download them
 ~~~~~~~~~~~~~~
 
-Put link to repo
+All those examples can be downloaded from our `Github repository <https://github.com/adareau/atomSmltr/tree/main/docs/_notebook_examples>`_.
