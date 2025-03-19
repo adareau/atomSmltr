@@ -173,12 +173,12 @@ class Box(Zone):
     def _in_zone(self, vector):
         x, y, z = vector.T
         in_zone = (
-            (x > self.xmin)
-            & (x < self.xmax)
-            & (y > self.ymin)
-            & (y < self.ymax)
-            & (z > self.zmin)
-            & (z < self.zmax)
+            (x >= self.xmin)
+            & (x <= self.xmax)
+            & (y >= self.ymin)
+            & (y <= self.ymax)
+            & (z >= self.zmin)
+            & (z <= self.zmax)
         )
         return in_zone.T
 
@@ -310,7 +310,7 @@ class Cylinder(Zone):
         cross_product = np.cross(r, self.direction)
         distance = np.linalg.norm(cross_product, axis=-1)
         # -- cylinder
-        return distance < self.radius
+        return distance <= self.radius
 
     # -- INFOSTRING
 
