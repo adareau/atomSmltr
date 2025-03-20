@@ -713,7 +713,7 @@ class RK4(Simulation):
             k3 = self.dudt(tt + 0.5 * h, u + 0.5 * k2 * h)
             k4 = self.dudt(tt + h, u + k3 * h)
             u = u + (h / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
-            y[:, i] = u
+            y[:, i + 1] = u
 
             # check out
             if events:

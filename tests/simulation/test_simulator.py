@@ -157,6 +157,6 @@ def test_RK4_integrator():
 
 
 if __name__ == "__main__":
-    res = test_ScipyIVP_3D_integrator()
+    # res = test_ScipyIVP_3D_integrator()
     # res_coll = test_ScipyIVP_3D_batch()
     res = test_RK4_integrator()
