@@ -153,6 +153,11 @@ def test_RK4_integrator():
     # - integrate
     res = sim.integrate(u0, t)
 
+    # - check vectorization
+    grid = np.mgrid[0:0:1j, 0:0:1j, -0.15:-0.05:10j, 0:0:1j, 0:0:1j, 10:100:10]
+    u0 = np.squeeze(grid.T)
+    res = sim.integrate(u0, t)
+
     return res
 
 
@@ -211,6 +216,22 @@ def test_zone_tags():
                         tag = axis + tags[v]
                         assert tag in res.tags
                         assert "v" + tag in res.tags
+
+    # - test with vectors
+    grid = np.mgrid[0:0:1j, 0:0:1j, 0:0:1j, -2:2:3j, -2:2:3j, -2:2:3j]
+    u0 = np.squeeze(grid.T)
+    for SimModel in [RK4]:
+        sim = SimModel(config)
+        res = sim.integrate(u0, t)
+        assert res.tags.shape == u0.shape[:-1]
+        tags_flat = res.tags.reshape((-1))
+        u0_flat = u0.reshape((-1, 6))
+        for u, tg in zip(u0_flat, tags_flat):
+            _, _, _, vx, vy, vz = u
+            for v, axis in zip([vx, vy, vz], ["x", "y", "z"]):
+                tag = axis + tags[v]
+                assert tag in tg
+                assert "v" + tag in tg
 
 
 if __name__ == "__main__":
