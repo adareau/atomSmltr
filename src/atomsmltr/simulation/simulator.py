@@ -381,23 +381,26 @@ class Simulation(ABC):
         # get zones
         position_zones, speed_zones = self.config.get_all_zones()
         # get last position
-        y_last = res.y[:, -1]
-        position = y_last[:3]
-        speed = y_last[3:]
-        # add tags property
+        y_last = res.y[..., -1]
+        position = y_last[..., :3]
+        speed = y_last[..., 3:]
         res.tags = set()  # we use a set to have unique values
         # add position tags
         for zone in position_zones:
-            if zone.in_zone(position):
-                res.tags.add(zone.in_tag)
-            else:
-                res.tags.add(zone.out_tag)
+            new_tags = np.where(
+                zone.in_zone(position),
+                {zone.in_tag},
+                {zone.out_tag},
+            )
+            res.tags |= new_tags
         # add speed tags
         for zone in speed_zones:
-            if zone.in_zone(speed):
-                res.tags.add(zone.in_tag)
-            else:
-                res.tags.add(zone.out_tag)
+            new_tags = np.where(
+                zone.in_zone(speed),
+                {zone.in_tag},
+                {zone.out_tag},
+            )
+            res.tags |= new_tags
 
         return res
 
@@ -499,7 +502,7 @@ class Simulation(ABC):
 # % SIMULATOR BASED ON SCIPY'S SOLVE_IVP
 
 
-def stop_position_event(
+def stop_position_event_scipy(
     t: float, u: np.ndarray, stop_position: list, offset: float = 0.0
 ):
     """Implements 'stop' events for Scipy's solve_ivp, based on atom's position
@@ -529,7 +532,9 @@ def stop_position_event(
     return res
 
 
-def stop_speed_event(t: float, u: np.ndarray, stop_speed: list, offset: float = 0.0):
+def stop_speed_event_scipy(
+    t: float, u: np.ndarray, stop_speed: list, offset: float = 0.0
+):
     """Implements 'stop' events for Scipy's solve_ivp, based on atom's speed
 
     Parameters
@@ -607,12 +612,14 @@ class ScipyIVP_3D(Simulation):
         stop_position, stop_speed = self.config.get_stop_zones()
         if stop_position:
             stop_pos = partial(
-                stop_position_event, stop_position=stop_position, offset=-0.5
+                stop_position_event_scipy, stop_position=stop_position, offset=-0.5
             )
             stop_pos.terminal = True
             events.append(stop_pos)
         if stop_speed:
-            stop_sp = partial(stop_speed_event, stop_speed=stop_speed, offset=-0.5)
+            stop_sp = partial(
+                stop_speed_event_scipy, stop_speed=stop_speed, offset=-0.5
+            )
             stop_sp.terminal = True
             events.append(stop_sp)
         # - time
@@ -649,6 +656,63 @@ class ScipyIVP_3D(Simulation):
         return value
 
 
+# % HOME-MADE SIMULATORS
+
+
+def stop_position_event(u: np.ndarray, stop_position: list):
+    """Implements 'stop' events for home-made simulators, based on atom's position
+
+    Parameters
+    ----------
+    u : array, shape (n,m,...,6)
+        position/speed vector, according to our vectorization convention
+    stop_position : list
+        list of Zones objects targetting position with actions set to stop
+
+    Returns
+    -------
+    res: bool
+        whether to stop the simulation
+
+    See also
+    --------
+    atomsmltr.environment.zones
+    atomsmltr.simulation.configurator.Configuration.get_stop_zones()
+    """
+    x, y, z, _, _, _ = u.T
+    position = np.array([x, y, z]).T
+    res = np.logical_and.reduce([zone.in_zone(position) for zone in stop_position])
+    res = res
+    return res
+
+
+def stop_speed_event(u: np.ndarray, stop_speed: list):
+    """Implements 'stop' events for home-made simulators, based on atom's speed
+
+    Parameters
+    ----------
+    u : array, shape (n,m,...,6)
+        position/speed vector, according to our vectorization convention
+    stop_speed : list
+        list of Zones objects targetting speed with actions set to stop
+
+    Returns
+    -------
+    res: bool
+        whether to stop the simulation
+
+    See also
+    --------
+    atomsmltr.environment.zones
+    atomsmltr.simulation.configurator.Configuration.get_stop_zones()
+    """
+    _, _, _, vx, vy, vz = u.T
+    speed = np.array([vx, vy, vz]).T
+    res = np.logical_and.reduce([zone.in_zone(speed) for zone in stop_speed])
+    res = res
+    return res
+
+
 class RK4(Simulation):
     """A homemade simulator based on fourth order Runge-Kutta method
 
@@ -675,10 +739,10 @@ class RK4(Simulation):
 
     def dudt(self, t, u):
         F = self.get_force(u)
-        _, _, _, vx, vy, vz = u
+        _, _, _, vx, vy, vz = u.T
         dx, dy, dz = vx, vy, vz
-        dvx, dvy, dvz = F / self.config.atom.mass
-        res = np.array([dx, dy, dz, dvx, dvy, dvz])
+        dvx, dvy, dvz = F.T / self.config.atom.mass
+        res = np.array([dx, dy, dz, dvx, dvy, dvz]).T
         return res
 
     def _integrate(self, u0, t):
@@ -701,8 +765,8 @@ class RK4(Simulation):
         t = np.sort(t)
         dt = np.diff(t)
         # - initialize
-        y = np.empty((6, len(t)))
-        y[:, 0] = u
+        y = np.empty((*u.shape, len(t)))
+        y[..., 0] = u
         stop = False
         # - integrate
         i = 1
@@ -713,18 +777,17 @@ class RK4(Simulation):
             k3 = self.dudt(tt + 0.5 * h, u + 0.5 * k2 * h)
             k4 = self.dudt(tt + h, u + k3 * h)
             u = u + (h / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
-            y[:, i] = u
-
-            # check out
+            y[..., i + 1] = u
             if events:
                 for ev in events:
-                    if not ev(tt, u):
+                    test = ev(u)
+                    if not np.any(test):
                         stop = True
             if stop:
                 break
 
         if stop:
-            y = y[:, : i + 1]
+            y = y[..., : i + 1]
             t = t[: i + 1]
 
         res = SimRes(t=t, y=y)
