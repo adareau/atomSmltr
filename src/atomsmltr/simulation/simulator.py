@@ -381,23 +381,26 @@ class Simulation(ABC):
         # get zones
         position_zones, speed_zones = self.config.get_all_zones()
         # get last position
-        y_last = res.y[:, -1]
-        position = y_last[:3]
-        speed = y_last[3:]
-        # add tags property
+        y_last = res.y[..., -1]
+        position = y_last[..., :3]
+        speed = y_last[..., 3:]
         res.tags = set()  # we use a set to have unique values
         # add position tags
         for zone in position_zones:
-            if zone.in_zone(position):
-                res.tags.add(zone.in_tag)
-            else:
-                res.tags.add(zone.out_tag)
+            new_tags = np.where(
+                zone.in_zone(position),
+                {zone.in_tag},
+                {zone.out_tag},
+            )
+            res.tags |= new_tags
         # add speed tags
         for zone in speed_zones:
-            if zone.in_zone(speed):
-                res.tags.add(zone.in_tag)
-            else:
-                res.tags.add(zone.out_tag)
+            new_tags = np.where(
+                zone.in_zone(speed),
+                {zone.in_tag},
+                {zone.out_tag},
+            )
+            res.tags |= new_tags
 
         return res
 
@@ -675,10 +678,10 @@ class RK4(Simulation):
 
     def dudt(self, t, u):
         F = self.get_force(u)
-        _, _, _, vx, vy, vz = u
+        _, _, _, vx, vy, vz = u.T
         dx, dy, dz = vx, vy, vz
-        dvx, dvy, dvz = F / self.config.atom.mass
-        res = np.array([dx, dy, dz, dvx, dvy, dvz])
+        dvx, dvy, dvz = F.T / self.config.atom.mass
+        res = np.array([dx, dy, dz, dvx, dvy, dvz]).T
         return res
 
     def _integrate(self, u0, t):
@@ -701,8 +704,8 @@ class RK4(Simulation):
         t = np.sort(t)
         dt = np.diff(t)
         # - initialize
-        y = np.empty((6, len(t)))
-        y[:, 0] = u
+        y = np.empty((*u.shape, len(t)))
+        y[..., 0] = u
         stop = False
         # - integrate
         i = 1
@@ -713,18 +716,18 @@ class RK4(Simulation):
             k3 = self.dudt(tt + 0.5 * h, u + 0.5 * k2 * h)
             k4 = self.dudt(tt + h, u + k3 * h)
             u = u + (h / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
-            y[:, i + 1] = u
+            y[..., i + 1] = u
 
             # check out
             if events:
                 for ev in events:
-                    if not ev(tt, u):
+                    if not np.all(ev(tt, u)):
                         stop = True
             if stop:
                 break
 
         if stop:
-            y = y[:, : i + 1]
+            y = y[..., : i + 1]
             t = t[: i + 1]
 
         res = SimRes(t=t, y=y)

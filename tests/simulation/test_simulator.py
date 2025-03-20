@@ -166,35 +166,36 @@ def test_zone_tags():
 
     # - limits
     for axis, name in zip([0, 1, 2], ["x", "y", "z"]):
-        pos_min = LowerLimit(
-            -1,
-            axis=axis,
-            target="position",
-            action="ignore",
-            in_tag=None,
-            out_tag=f"{name}<",
-            tag=f"{name}_min",
-        )
-        pos_max = UpperLimit(
-            1,
-            axis=axis,
-            target="position",
-            action="ignore",
-            in_tag=None,
-            out_tag=f"{name}>",
-            tag=f"{name}_max",
-        )
-        pos_lims = Limits(
-            -1,
-            1,
-            axis=axis,
-            target="position",
-            action="ignore",
-            in_tag=f"{name}_in",
-            out_tag=None,
-            tag=f"{name}_lims",
-        )
-        config += pos_min, pos_max, pos_lims
+        for add, target in zip(["", "v"], ["position", "speed"]):
+            min = LowerLimit(
+                -1,
+                axis=axis,
+                target=target,
+                action="ignore",
+                in_tag=None,
+                out_tag=f"{add}{name}<",
+                tag=f"{add}{name}_min",
+            )
+            max = UpperLimit(
+                1,
+                axis=axis,
+                target=target,
+                action="ignore",
+                in_tag=None,
+                out_tag=f"{add}{name}>",
+                tag=f"{add}{name}_max",
+            )
+            lims = Limits(
+                -1,
+                1,
+                axis=axis,
+                target=target,
+                action="ignore",
+                in_tag=f"{add}{name}_in",
+                out_tag=None,
+                tag=f"{add}{name}_lims",
+            )
+            config += min, max, lims
 
     # - test with single shots
     t = np.linspace(0, 1, 100)
@@ -209,6 +210,7 @@ def test_zone_tags():
                     for v, axis in zip([vx, vy, vz], ["x", "y", "z"]):
                         tag = axis + tags[v]
                         assert tag in res.tags
+                        assert "v" + tag in res.tags
 
 
 if __name__ == "__main__":
