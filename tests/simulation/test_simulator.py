@@ -156,7 +156,63 @@ def test_RK4_integrator():
     return res
 
 
+def test_zone_tags():
+    from atomsmltr.simulation import RK4, ScipyIVP_3D, Configuration
+    from atomsmltr.environment import UpperLimit, LowerLimit, Limits
+    from atomsmltr.atoms import Ytterbium
+
+    # - init config
+    config = Configuration(atom=Ytterbium())
+
+    # - limits
+    for axis, name in zip([0, 1, 2], ["x", "y", "z"]):
+        pos_min = LowerLimit(
+            -1,
+            axis=axis,
+            target="position",
+            action="ignore",
+            in_tag=None,
+            out_tag=f"{name}<",
+            tag=f"{name}_min",
+        )
+        pos_max = UpperLimit(
+            1,
+            axis=axis,
+            target="position",
+            action="ignore",
+            in_tag=None,
+            out_tag=f"{name}>",
+            tag=f"{name}_max",
+        )
+        pos_lims = Limits(
+            -1,
+            1,
+            axis=axis,
+            target="position",
+            action="ignore",
+            in_tag=f"{name}_in",
+            out_tag=None,
+            tag=f"{name}_lims",
+        )
+        config += pos_min, pos_max, pos_lims
+
+    # - test with single shots
+    t = np.linspace(0, 1, 100)
+    tags = {-2: "<", 0: "_in", 2: ">"}
+    for SimModel in [RK4, ScipyIVP_3D]:
+        for vx in [-2, 0, 2]:
+            for vy in [-2, 0, 2]:
+                for vz in [-2, 0, 2]:
+                    u0 = (0, 0, 0, vx, vy, vz)
+                    sim = SimModel(config)
+                    res = sim.integrate(u0, t)
+                    for v, axis in zip([vx, vy, vz], ["x", "y", "z"]):
+                        tag = axis + tags[v]
+                        assert tag in res.tags
+
+
 if __name__ == "__main__":
     # res = test_ScipyIVP_3D_integrator()
     # res_coll = test_ScipyIVP_3D_batch()
-    res = test_RK4_integrator()
+    # res = test_RK4_integrator()
+    test_zone_tags()
