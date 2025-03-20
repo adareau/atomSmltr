@@ -153,10 +153,163 @@ def test_RK4_integrator():
     # - integrate
     res = sim.integrate(u0, t)
 
+    # - check vectorization
+    grid = np.mgrid[0:0:1j, 0:0:1j, -0.15:-0.05:10j, 0:0:1j, 0:0:1j, 10:100:10]
+    u0 = np.squeeze(grid.T)
+    res = sim.integrate(u0, t)
+
     return res
 
 
+def test_zone_tags():
+    from atomsmltr.simulation import RK4, ScipyIVP_3D, Configuration
+    from atomsmltr.environment import UpperLimit, LowerLimit, Limits
+    from atomsmltr.atoms import Ytterbium
+
+    # - init config
+    config = Configuration(atom=Ytterbium())
+
+    # 1) TEST WITHOUT STOPPING
+    # - limits
+    for axis, name in zip([0, 1, 2], ["x", "y", "z"]):
+        for add, target in zip(["", "v"], ["position", "speed"]):
+            min = LowerLimit(
+                -1,
+                axis=axis,
+                target=target,
+                action="ignore",
+                in_tag=None,
+                out_tag=f"{add}{name}<",
+                tag=f"{add}{name}_min",
+            )
+            max = UpperLimit(
+                1,
+                axis=axis,
+                target=target,
+                action="ignore",
+                in_tag=None,
+                out_tag=f"{add}{name}>",
+                tag=f"{add}{name}_max",
+            )
+            lims = Limits(
+                -1,
+                1,
+                axis=axis,
+                target=target,
+                action="ignore",
+                in_tag=f"{add}{name}_in",
+                out_tag=None,
+                tag=f"{add}{name}_lims",
+            )
+            config += min, max, lims
+
+    # - test with single shots
+    t = np.linspace(0, 1, 100)
+    tags = {-2: "<", 0: "_in", 2: ">"}
+    for SimModel in [RK4, ScipyIVP_3D]:
+        for vx in [-2, 0, 2]:
+            for vy in [-2, 0, 2]:
+                for vz in [-2, 0, 2]:
+                    u0 = (0, 0, 0, vx, vy, vz)
+                    sim = SimModel(config)
+                    res = sim.integrate(u0, t)
+                    for v, axis in zip([vx, vy, vz], ["x", "y", "z"]):
+                        tag = axis + tags[v]
+                        assert tag in res.tags
+                        assert "v" + tag in res.tags
+
+    # - test with vectors
+    grid = np.mgrid[0:0:1j, 0:0:1j, 0:0:1j, -2:2:3j, -2:2:3j, -2:2:3j]
+    u0 = np.squeeze(grid.T)
+    for SimModel in [RK4]:
+        sim = SimModel(config)
+        res = sim.integrate(u0, t)
+        assert res.tags.shape == u0.shape[:-1]
+        tags_flat = res.tags.reshape((-1))
+        u0_flat = u0.reshape((-1, 6))
+        for u, tg in zip(u0_flat, tags_flat):
+            _, _, _, vx, vy, vz = u
+            for v, axis in zip([vx, vy, vz], ["x", "y", "z"]):
+                tag = axis + tags[v]
+                assert tag in tg
+                assert "v" + tag in tg
+
+    # 1) TEST WITH STOPPING
+    # - limits
+    xlim = Limits(
+        -1,
+        1,
+        axis=0,
+        target="position",
+        action="stop",
+        tag="xlim",
+        in_tag="x_in",
+        out_tag="x_out",
+    )
+    ylim = Limits(
+        -1,
+        1,
+        axis=1,
+        target="position",
+        action="stop",
+        tag="ylim",
+        in_tag="y_in",
+        out_tag="y_out",
+    )
+    config.rm_all_zones()
+    config += xlim, ylim
+    # - test with vectors, with different stop times
+    grid = np.mgrid[0:0:1j, 0:0:1j, 0:0:1j, -2:2:2j, -3:3:5j, -1:1:4j]
+    u0_grid = np.squeeze(grid.T)
+    t = np.linspace(0, 1, 100)
+    for SimModel in [RK4]:
+        sim = SimModel(config)
+        res = sim.integrate(u0_grid, t)
+        assert res.tags.shape == u0_grid.shape[:-1]
+        # - reshape
+        # trajectories vector
+        y = res.y.T
+        y = y.reshape((len(res.t), 6, -1))
+        y = y.T
+        # last vector
+        y_last = res.y_last
+        y_last = y_last.T
+        y_last = y_last.reshape(6, -1)
+        y_last = y_last.T
+        # last tags
+        tags = res.tags
+        tags = tags.T
+        tags = tags.reshape(-1)
+        tags = tags.T
+        # scan over all trajectories
+        for u, uf, tg in zip(y, y_last, tags):
+            # check that last value corresponds to the one
+            # given by the simulation (res.y_last)
+            (i,) = np.where(np.isnan(u[0, :]))
+            if len(i):
+                i = np.min(i)
+                last = u[:, i - 1]
+            else:
+                last = u[:, -1]
+            assert np.allclose(last, uf)
+
+            # check that the tags are fine
+            u0 = u[:, 0]
+            _, _, _, vx, vy, _ = u0
+            if np.abs(vx) > np.abs(vy):
+                assert "x_out" in tg
+                assert "x_in" not in tg
+                assert "y_in" in tg
+                assert "y_out" not in tg
+            else:
+                assert "x_out" not in tg
+                assert "x_in" in tg
+                assert "y_in" not in tg
+                assert "y_out" in tg
+
+
 if __name__ == "__main__":
-    res = test_ScipyIVP_3D_integrator()
+    # res = test_ScipyIVP_3D_integrator()
     # res_coll = test_ScipyIVP_3D_batch()
-    res = test_RK4_integrator()
+    # res = test_RK4_integrator()
+    test_zone_tags()
