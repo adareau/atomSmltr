@@ -169,6 +169,7 @@ def test_zone_tags():
     # - init config
     config = Configuration(atom=Ytterbium())
 
+    # 1) TEST WITHOUT STOPPING
     # - limits
     for axis, name in zip([0, 1, 2], ["x", "y", "z"]):
         for add, target in zip(["", "v"], ["position", "speed"]):
@@ -232,6 +233,79 @@ def test_zone_tags():
                 tag = axis + tags[v]
                 assert tag in tg
                 assert "v" + tag in tg
+
+    # 1) TEST WITH STOPPING
+    # - limits
+    xlim = Limits(
+        -1,
+        1,
+        axis=0,
+        target="position",
+        action="stop",
+        tag="xlim",
+        in_tag="x_in",
+        out_tag="x_out",
+    )
+    ylim = Limits(
+        -1,
+        1,
+        axis=1,
+        target="position",
+        action="stop",
+        tag="ylim",
+        in_tag="y_in",
+        out_tag="y_out",
+    )
+    config.rm_all_zones()
+    config += xlim, ylim
+    # - test with vectors, with different stop times
+    grid = np.mgrid[0:0:1j, 0:0:1j, 0:0:1j, -2:2:2j, -3:3:5j, -1:1:4j]
+    u0_grid = np.squeeze(grid.T)
+    t = np.linspace(0, 1, 100)
+    for SimModel in [RK4]:
+        sim = SimModel(config)
+        res = sim.integrate(u0_grid, t)
+        assert res.tags.shape == u0_grid.shape[:-1]
+        # - reshape
+        # trajectories vector
+        y = res.y.T
+        y = y.reshape((len(res.t), 6, -1))
+        y = y.T
+        # last vector
+        y_last = res.y_last
+        y_last = y_last.T
+        y_last = y_last.reshape(6, -1)
+        y_last = y_last.T
+        # last tags
+        tags = res.tags
+        tags = tags.T
+        tags = tags.reshape(-1)
+        tags = tags.T
+        # scan over all trajectories
+        for u, uf, tg in zip(y, y_last, tags):
+            # check that last value corresponds to the one
+            # given by the simulation (res.y_last)
+            (i,) = np.where(np.isnan(u[0, :]))
+            if len(i):
+                i = np.min(i)
+                last = u[:, i - 1]
+            else:
+                last = u[:, -1]
+            assert np.allclose(last, uf)
+
+            # check that the tags are fine
+            u0 = u[:, 0]
+            _, _, _, vx, vy, _ = u0
+            if np.abs(vx) > np.abs(vy):
+                assert "x_out" in tg
+                assert "x_in" not in tg
+                assert "y_in" in tg
+                assert "y_out" not in tg
+            else:
+                assert "x_out" not in tg
+                assert "x_in" in tg
+                assert "y_in" not in tg
+                assert "y_out" in tg
 
 
 if __name__ == "__main__":

@@ -283,6 +283,7 @@ class SimRes:
 
     y: np.ndarray
     t: np.ndarray
+    y_last: np.ndarray = None
     tags: set = None
     t_events: list = None
     y_events: list = None
@@ -381,9 +382,38 @@ class Simulation(ABC):
         # get zones
         position_zones, speed_zones = self.config.get_all_zones()
         # get last position
-        y_last = res.y[..., -1]
-        position = y_last[..., :3]
-        speed = y_last[..., 3:]
+        # -------------------------------------------------------
+        # Note : we have to take into account the case where
+        #        u0 is a vector of shape (n, m, ..., 6)
+        #        and stop times might be different for all
+        #        dimensions. In this case, when one trajectory
+        #        is "stopped", it is filled with nan. Thus we
+        #        will take all values for u backwards in time,
+        #        and replace all nans until we have no nans
+        # -------------------------------------------------------
+        # 1) take last value
+        # since res.y has a shape (n, m, ..., 6, N) where
+        # N is the number of timesteps, we transpose to make
+        # it easier to iterate on timesteps
+        yT = res.y.T
+        # take the last time step
+        uT_last = yT[-1, ...]
+        # iterate backward in time
+        for uT in yT[::-1]:
+            # we replace the nan values in the current vector
+            # by the ones from the last timestep on which we iterate
+            # non nan values are kept
+            uT_last = np.where(np.isnan(uT_last), uT, uT_last)
+            # if we have no nan left, we stop
+            if not np.any(np.isnan(uT_last)):
+                break
+        # transpose it back
+        u_last = uT_last.T
+        # store it
+        res.y_last = u_last
+        # extract speed and position
+        position = u_last[..., :3]
+        speed = u_last[..., 3:]
         res.tags = set()  # we use a set to have unique values
         # add position tags
         for zone in position_zones:
@@ -753,11 +783,9 @@ class RK4(Simulation):
         stop_position, stop_speed = self.config.get_stop_zones()
         if stop_position:
             stop_pos = partial(stop_position_event, stop_position=stop_position)
-            stop_pos.terminal = True
             events.append(stop_pos)
         if stop_speed:
             stop_sp = partial(stop_speed_event, stop_speed=stop_speed)
-            stop_sp.terminal = True
             events.append(stop_sp)
         # - time
         # TODO : add checks on time
@@ -770,21 +798,26 @@ class RK4(Simulation):
         stop = False
         # - integrate
         i = 1
+        u_none = np.full((6,), np.nan)
         for i, (tt, h) in enumerate(zip(t[1:], dt)):
+            # check events
+            if events:
+                for ev in events:
+                    test = ev(u)
+                    u[np.logical_not(test), :] = u_none
+                    if not np.any(test):
+                        stop = True
+            if stop:
+                break
+
             # perform step
             k1 = self.dudt(tt, u)
             k2 = self.dudt(tt + 0.5 * h, u + 0.5 * k1 * h)
             k3 = self.dudt(tt + 0.5 * h, u + 0.5 * k2 * h)
             k4 = self.dudt(tt + h, u + k3 * h)
-            u = u + (h / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
-            y[..., i + 1] = u
-            if events:
-                for ev in events:
-                    test = ev(u)
-                    if not np.any(test):
-                        stop = True
-            if stop:
-                break
+            u_new = u + (h / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
+            u = u_new
+            y[..., i + 1] = u_new
 
         if stop:
             y = y[..., : i + 1]
