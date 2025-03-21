@@ -161,6 +161,32 @@ def test_RK4_integrator():
     return res
 
 
+def test_force_integration():
+    from atomsmltr.simulation import RK4, ScipyIVP_3D, Configuration
+    from atomsmltr.environment import ConstantForce
+    from atomsmltr.atoms import Strontium
+    import numpy as np
+
+    # - init config
+    config = Configuration(atom=Strontium())
+    # include gravity
+    g = 9.81
+    m = Strontium().mass
+    g_force = (0, 0, -m * g)  # along -z
+    gravity = ConstantForce(field_value=g_force, tag="gravity")
+    config += gravity
+
+    # - simulate
+    t = np.linspace(0, 1, 1000)
+    u0 = np.zeros((6,))
+
+    for Sim in [RK4, ScipyIVP_3D]:
+        res = Sim(config).integrate(u0, t)
+        z = res.y[2, :]
+        z_th = -0.5 * g * t**2
+        assert np.std(z - z_th) < 1e-8
+
+
 def test_zone_tags():
     from atomsmltr.simulation import RK4, ScipyIVP_3D, Configuration
     from atomsmltr.environment import UpperLimit, LowerLimit, Limits
@@ -312,4 +338,5 @@ if __name__ == "__main__":
     # res = test_ScipyIVP_3D_integrator()
     # res_coll = test_ScipyIVP_3D_batch()
     # res = test_RK4_integrator()
-    test_zone_tags()
+    # test_zone_tags()
+    test_force_integration()

@@ -15,7 +15,7 @@ atomsmltr.environment.fields.interpolated
 from ..generic import (
     Field,
     GradientField,
-    OffsetField,
+    ConstantField,
     QuadrupoleFieldX,
     QuadrupoleFieldZ,
     QuadrupoleFieldY,
@@ -28,7 +28,7 @@ from ..interpolated import InterpolatedField1D1D, InterpolatedField3D3D
 #   not really used currently, but will be useful if we need to
 #   implement features specific to mag. fields.
 # > will also allow to check that the field is indeed a magnetic field
-#   in the environment object
+#   in the configuration object
 
 
 class MagneticField(Field):
@@ -45,12 +45,12 @@ class MagneticField(Field):
 
 
 # -- PERFECT FIELDS CLASSES
-class MagneticOffset(MagneticField, OffsetField):
+class MagneticOffset(MagneticField, ConstantField):
     """A perfect magnetic field offset
 
     See also
     ---------
-    atomsmltr.environment.fields.generic.OffsetField
+    atomsmltr.environment.fields.generic.ConstantField
     """
 
     @property

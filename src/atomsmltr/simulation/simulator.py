@@ -110,6 +110,10 @@ def _get_force_vec(
         radiation_pressure = csts.hbar * transition.k * scattering_rate
         force = force + radiation_pressure[..., np.newaxis] * laser.unit_vector
 
+    # - loop over all forces
+    for f in config.get_all_forces():
+        force = force + f.value(position)
+
     return force
 
 
