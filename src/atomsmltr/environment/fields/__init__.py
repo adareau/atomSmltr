@@ -21,6 +21,7 @@ atomsmltr.environment.fields.magnetic
 """
 
 __all__ = [
+    # - Magnetic Fields
     "MagneticGradient",
     "MagneticOffset",
     "MagneticQuadrupoleX",
@@ -28,6 +29,10 @@ __all__ = [
     "MagneticQuadrupoleZ",
     "InterpMag1D1D",
     "InterpMag3D3D",
+    # - Forces
+    "Force",
+    "GradientForce",
+    "ConstantForce",
 ]
 
 from .magnetic import (
@@ -38,4 +43,10 @@ from .magnetic import (
     MagneticQuadrupoleZ,
     InterpMag1D1D,
     InterpMag3D3D,
+)
+
+from .force import (
+    Force,
+    GradientForce,
+    ConstantForce,
 )

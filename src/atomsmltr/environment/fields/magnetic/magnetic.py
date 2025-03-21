@@ -28,7 +28,7 @@ from ..interpolated import InterpolatedField1D1D, InterpolatedField3D3D
 #   not really used currently, but will be useful if we need to
 #   implement features specific to mag. fields.
 # > will also allow to check that the field is indeed a magnetic field
-#   in the environment object
+#   in the configuration object
 
 
 class MagneticField(Field):
