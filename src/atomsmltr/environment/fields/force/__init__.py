@@ -16,7 +16,7 @@ Setup a gravitational force
 
     m = Ytterbium().mass  # kg
     g = 9.81  # m/s^2
-    direction = np.array([0, 0, 1])  # along z
+    direction = np.array([0, 0, -1])  # along -z
     grav_force = m * g * direction
 
     gravity = ConstantForce(field_value=grav_force, tag="gravity")
