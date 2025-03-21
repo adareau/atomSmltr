@@ -400,6 +400,19 @@ class Configuration(object):
         # -- return results
         return collection.in_zone(pos_speed_vector)
 
+    # -- GETTING FORCES
+
+    def get_all_forces(self) -> list:
+        """Returns a list of all forces
+
+        Returns
+        -------
+        force_list (list)
+            a list of all forces in the configuration
+        """
+        force_list = self.__forces.values()
+        return force_list
+
     # -- COLLECTION HANDLING METHODS
 
     # ADDING
