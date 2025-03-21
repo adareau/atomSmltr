@@ -10,7 +10,16 @@ Setup a gravitational force
 
 .. code-block:: python
 
-    TODO
+    import numpy as np
+    from atomsmltr.environment import ConstantForce
+    from atomsmltr.atoms import Ytterbium
+
+    m = Ytterbium().mass  # kg
+    g = 9.81  # m/s^2
+    direction = np.array([0, 0, 1])  # along z
+    grav_force = m * g * direction
+
+    gravity = ConstantForce(field_value=grav_force, tag="gravity")
 
 See also
 --------
