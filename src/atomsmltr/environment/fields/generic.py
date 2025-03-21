@@ -309,30 +309,31 @@ class Field(EnvObject):
 # % TOOL CLASSES
 
 
-class OffsetField(Field):
-    """Generates a constant offset
+class ConstantField(Field):
+    """Generates a constant field
 
     Parameters
     ----------
-    offset : np.ndarray, shape (3,), optional
-        Offset field value, by default (0, 0, 0)
+    field_value : np.ndarray, shape (3,), optional
+        Constant field value, by default (0, 0, 0)
     tag : str, optional
         Field tag, by default None
     """
 
-    def __init__(self, offset: np.ndarray = (0, 0, 0), tag: str = None):
-        self.offset = offset
+    def __init__(self, field_value: np.ndarray = (0, 0, 0), tag: str = None):
+        self.field_value = field_value
         super(Field, self).__init__(tag)
 
     # -- getters and setters
 
     @property
-    def offset(self) -> np.ndarray:
-        return self.__offset
+    def field_value(self) -> np.ndarray:
+        return self.__field_value
 
-    @offset.setter
-    def offset(self, value: np.ndarray):
-        self.__offset = self._check_3D_vector(value, "offset")
+    @field_value.setter
+    def field_value(self, value: np.ndarray):
+        """field_value (array): constant field value"""
+        self.__field_value = self._check_3D_vector(value, "value")
 
     # -- requested methods for Field
     # pylint : disable=method_hidden
@@ -348,7 +349,7 @@ class OffsetField(Field):
         # 'position' already has the right size here
         # as it contains 3D vectors (position)
         # so we can generate an homogeneous field quite easily
-        value = position * 0.0 + self.__offset
+        value = position * 0.0 + self.__field_value
         return value
 
     def gen_infostring_obj(self):
@@ -357,10 +358,10 @@ class OffsetField(Field):
         title = title[:1].upper() + title[1:]  # capitalize first letter
         info = InfoString(title=title)
         info.add_section("Parameters")
-        info.add_element("type", "offset (constant field)")
+        info.add_element("type", "constant field")
         info.add_element("tag", self.tag)
-        info.add_element(f"value ({unit})", f"{self.offset}")
-        info.add_element(f"norm ({unit})", f"{np.linalg.norm(self.offset):.3g}")
+        info.add_element(f"field_value ({unit})", f"{self.field_value}")
+        info.add_element(f"norm ({unit})", f"{np.linalg.norm(self.field_value):.3g}")
         return info
 
 

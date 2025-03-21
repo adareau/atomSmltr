@@ -48,7 +48,7 @@ def test_magnetic_offset():
     # -- good usage
     # - check init and info print
     offset = (1, 0, 0)
-    mag_field = MagneticOffset(offset=offset, tag="offset")
+    mag_field = MagneticOffset(field_value=offset, tag="offset")
     mag_field.print_info()
     assert mag_field.tag == "offset"
     _generic_magfield_test(mag_field)
@@ -58,23 +58,23 @@ def test_magnetic_offset():
     assert np.allclose(mag_field.value((1, 4, 8)), offset)
     # -
     new_offset = (4.5, 2.8, np.sqrt(2))
-    mag_field.offset = new_offset
+    mag_field.field_value = new_offset
     mag_field.print_info()
     assert np.allclose(mag_field.value((1, 4, 8)), new_offset)
 
     # - checking copy
     # init mag_field
     mag_field.tag = "old mag_field"
-    mag_field.offset = (0, 0, 0)
+    mag_field.field_value = (0, 0, 0)
     # init copy
     mag_field_copy = mag_field.copy()
     # check copied properties
     assert mag_field_copy.tag != "old mag_field"
-    assert np.allclose(mag_field_copy.offset, (0, 0, 0))
+    assert np.allclose(mag_field_copy.field_value, (0, 0, 0))
     # update and check old not affected
-    mag_field_copy.offset = (1, 2, 3)
-    assert np.allclose(mag_field_copy.offset, (1, 2, 3))
-    assert np.allclose(mag_field.offset, (0, 0, 0))
+    mag_field_copy.field_value = (1, 2, 3)
+    assert np.allclose(mag_field_copy.field_value, (1, 2, 3))
+    assert np.allclose(mag_field.field_value, (0, 0, 0))
     mag_field_copy = mag_field.copy(new_tag="new mag_field")
     assert mag_field_copy.tag == "new mag_field"
 
@@ -241,9 +241,9 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     # test_magnetic_import()
-    # test_magnetic_offset()
+    test_magnetic_offset()
     # test_magnetic_gradient()
     # test_magpy_integration()
-    test_magnetic_quadrupole()
+    # test_magnetic_quadrupole()
 
     # plt.show()

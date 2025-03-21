@@ -43,34 +43,34 @@ def test_constant_force():
 
     # -- good usage
     # - check init and info print
-    offset = (1, 0, 0)
-    force = ConstantForce(offset=offset, tag="offset")
+    field_value = (1, 0, 0)
+    force = ConstantForce(field_value=field_value, tag="constant force")
     force.print_info()
-    assert force.tag == "offset"
+    assert force.tag == "constant force"
     _generic_force_test(force)
 
     # - check values
     # -
-    assert np.allclose(force.value((1, 4, 8)), offset)
+    assert np.allclose(force.value((1, 4, 8)), field_value)
     # -
-    new_offset = (4.5, 2.8, np.sqrt(2))
-    force.offset = new_offset
+    new_field_value = (4.5, 2.8, np.sqrt(2))
+    force.field_value = new_field_value
     force.print_info()
-    assert np.allclose(force.value((1, 4, 8)), new_offset)
+    assert np.allclose(force.value((1, 4, 8)), new_field_value)
 
     # - checking copy
     # init force
     force.tag = "old force"
-    force.offset = (0, 0, 0)
+    force.field_value = (0, 0, 0)
     # init copy
     force_copy = force.copy()
     # check copied properties
     assert force_copy.tag != "old force"
-    assert np.allclose(force_copy.offset, (0, 0, 0))
+    assert np.allclose(force_copy.field_value, (0, 0, 0))
     # update and check old not affected
-    force_copy.offset = (1, 2, 3)
-    assert np.allclose(force_copy.offset, (1, 2, 3))
-    assert np.allclose(force.offset, (0, 0, 0))
+    force_copy.field_value = (1, 2, 3)
+    assert np.allclose(force_copy.field_value, (1, 2, 3))
+    assert np.allclose(force.field_value, (0, 0, 0))
     force_copy = force.copy(new_tag="new force")
     assert force_copy.tag == "new force"
 

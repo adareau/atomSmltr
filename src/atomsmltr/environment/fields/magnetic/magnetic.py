@@ -15,7 +15,7 @@ atomsmltr.environment.fields.interpolated
 from ..generic import (
     Field,
     GradientField,
-    OffsetField,
+    ConstantField,
     QuadrupoleFieldX,
     QuadrupoleFieldZ,
     QuadrupoleFieldY,
@@ -45,12 +45,12 @@ class MagneticField(Field):
 
 
 # -- PERFECT FIELDS CLASSES
-class MagneticOffset(MagneticField, OffsetField):
+class MagneticOffset(MagneticField, ConstantField):
     """A perfect magnetic field offset
 
     See also
     ---------
-    atomsmltr.environment.fields.generic.OffsetField
+    atomsmltr.environment.fields.generic.ConstantField
     """
 
     @property

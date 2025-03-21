@@ -14,7 +14,7 @@ atomsmltr.environment.fields.generic
 from ..generic import (
     Field,
     GradientField,
-    OffsetField,
+    ConstantField,
 )
 
 # % CLASSES
@@ -40,12 +40,12 @@ class Force(Field):
 
 
 # -- PERFECT FIELDS CLASSES
-class ConstantForce(Force, OffsetField):
+class ConstantForce(Force, ConstantField):
     """A constant Force
 
     See also
     ---------
-    atomsmltr.environment.fields.generic.OffsetField
+    atomsmltr.environment.fields.generic.ConstantField
     """
 
     @property
