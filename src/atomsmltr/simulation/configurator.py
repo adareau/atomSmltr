@@ -12,6 +12,7 @@ A configuration consists of:
 * a atom (``Atom``)
 * a collection of laser beams (``LaserBeam``)
 * a collection of magnetic Fields (``MagneticField``)
+* a collection of forces (``Force``)
 * a collection of zones (``Zone``)
 
 The coupling between atoms and lasers is stored in a ``atomlight`` dictionnary, that
@@ -24,7 +25,7 @@ import numpy as np
 from copy import copy, deepcopy
 
 # % LOCAL IMPORTS
-from ..environment import LaserBeam, MagneticField, Zone, SuperZone
+from ..environment import LaserBeam, MagneticField, Zone, SuperZone, Force
 from ..environment.envbase import EnvObject
 from ..atoms import Atom
 from ..utils.infostring import InfoString
@@ -42,7 +43,7 @@ class Configuration(object):
     Parameters
     ----------
     object_list : EnvObject | list, optional
-        list of environment objects (lasers, magnetic fields, zones)
+        list of environment objects (lasers, magnetic fields, zones, forces)
         to include in the configuration, by default None
     atom : Atom, optional
         atom for the simulation, by default None
@@ -80,12 +81,14 @@ class Configuration(object):
         self.__lasers = {}
         self.__zones = {}
         self.__magfields = {}
+        self.__forces = {}
         self.__atomlight = {}
         self.__atom = None
 
         self.__implemented_collections = {
             "laser": self.__lasers,
             "magnetic field": self.__magfields,
+            "force": self.__forces,
             "zone": self.__zones,
         }
 
@@ -397,6 +400,19 @@ class Configuration(object):
         # -- return results
         return collection.in_zone(pos_speed_vector)
 
+    # -- GETTING FORCES
+
+    def get_all_forces(self) -> list:
+        """Returns a list of all forces
+
+        Returns
+        -------
+        force_list (list)
+            a list of all forces in the configuration
+        """
+        force_list = self.__forces.values()
+        return force_list
+
     # -- COLLECTION HANDLING METHODS
 
     # ADDING
@@ -456,6 +472,9 @@ class Configuration(object):
         elif isinstance(obj, LaserBeam):
             collection = self.__lasers
             name = "lasers"
+        elif isinstance(obj, Force):
+            collection = self.__forces
+            name = "forces"
         elif isinstance(obj, Zone):
             collection = self.__zones
             name = "zones"
@@ -518,6 +537,12 @@ class Configuration(object):
         if isinstance(obj, MagneticField):
             collection = self.__magfields
             name = "magnetic fields"
+        elif isinstance(obj, Force):
+            collection = self.__forces
+            name = "forces"
+        elif isinstance(obj, Zone):
+            collection = self.__zones
+            name = "zones"
         elif isinstance(obj, LaserBeam):
             collection = self.__lasers
             name = "lasers"
@@ -557,14 +582,18 @@ class Configuration(object):
         return list(self.__magfields)
 
     def list_zones(self):
-        """Returns the list of magnetic fields' tags in the current config"""
+        """Returns the list of zones' tags in the current config"""
         return list(self.__zones)
+
+    def list_forces(self):
+        """Returns the list of forces' tags in the current config"""
+        return list(self.__forces)
 
     # REMOVING
     def rm_object(self, collection: str, tag: str):
         """Remove object from 'collection' with 'tag'
 
-        Collection must be in ['laser', 'magnetic field', 'zone']
+        Collection must be in ['laser', 'magnetic field', 'zone', 'force']
 
         Parameters
         ----------
@@ -607,11 +636,22 @@ class Configuration(object):
         """
         return self.rm_object("zone", tag)
 
+    def rm_force(self, tag):
+        """Removes force by tag
+
+        Parameters
+        ----------
+        tag : str
+            force tag
+        """
+        return self.rm_object("force", tag)
+
     def rm_all_objects(self):
         """Remove all objects"""
         self.rm_all_lasers()
         self.rm_all_magnetic_fields()
         self.rm_all_zones()
+        self.rm_all_forces()
 
     def rm_all_lasers(self):
         """Remove all lasers"""
@@ -624,6 +664,10 @@ class Configuration(object):
     def rm_all_zones(self):
         """Remove all zones"""
         self.__zones.clear()
+
+    def rm_all_forces(self):
+        """Remove all forces"""
+        self.__forces.clear()
 
     # -- INFOS
 
@@ -699,11 +743,21 @@ class Configuration(object):
         """
         return self.print_object_info("zone", tag)
 
+    def print_force_info(self, tag: str):
+        """Print info of the force indentified by 'tag'
+
+        Parameters
+        ----------
+        tag : str
+            the tag of the force
+        """
+        return self.print_object_info("force", tag)
+
     # -- GET OBJECTS
     def get_object_copy(self, collection: str, tag: str) -> EnvObject:
         """Returns a copy of an object from 'collection' with 'tag'
 
-        Collection must be in ['laser', 'magnetic field', 'zone'    ]
+        Collection must be in ['laser', 'magnetic field', 'zone', 'force' ]
 
         Parameters
         ----------
@@ -744,6 +798,16 @@ class Configuration(object):
             the tag of the zone
         """
         return self.get_object_copy("zone", tag)
+
+    def get_force_copy(self, tag: str):
+        """Returns a copy of the force indentified by 'tag'
+
+        Parameters
+        ----------
+        tag : str
+            the tag of the force
+        """
+        return self.get_object_copy("force", tag)
 
     # -- COMMON METHODS
 

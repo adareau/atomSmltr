@@ -11,6 +11,7 @@ def _get_env_objects():
     from atomsmltr.environment.fields.magnetic import MagneticOffset
     from atomsmltr.environment.lasers.beams import GaussianLaserBeam
     from atomsmltr.environment.zones import UpperLimit, LowerLimit
+    from atomsmltr.environment.fields.force import ConstantForce
 
     mag_field_1 = MagneticOffset((0, 1, 1), tag="offset1")
     mag_field_2 = MagneticOffset((0, 0, 2), tag="offset2")
@@ -22,7 +23,8 @@ def _get_env_objects():
     )
     lim_up = UpperLimit(0.5, axis=0, target="position", action="stop", tag="x_max")
     lim_low = LowerLimit(0, axis=0, target="position", action="stop", tag="x_min")
-    return mag_field_1, mag_field_2, laser_1, laser_2, lim_up, lim_low
+    force = ConstantForce((0, 0, 1), tag="force")
+    return mag_field_1, mag_field_2, laser_1, laser_2, lim_up, lim_low, force
 
 
 def test_configuration_collection_management():
@@ -36,11 +38,11 @@ def test_configuration_collection_management():
     config.atom = Ytterbium()
 
     # -- set environment
-    mag1, mag2, las1, las2, lim1, lim2 = _get_env_objects()
+    mag1, mag2, las1, las2, lim1, lim2, force = _get_env_objects()
     config.add_objects(mag1, verbose=True)
     config.add_objects(las1, verbose=True)
     config.add_objects([mag2, las2], verbose=True)
-    config += lim1, lim2
+    config += lim1, lim2, force
 
     # -- getting a copy of all objects
     obj = config.objects
@@ -58,6 +60,11 @@ def test_configuration_collection_management():
         config.rm_object("zone", tag)
     assert len(config.list_zones()) == 0
 
+    assert len(config.list_forces()) == 1
+    for tag in config.list_forces():
+        config.rm_object("force", tag)
+    assert len(config.list_forces()) == 0
+
     config.add_objects(mag1)
     config.rm_magnetic_field("offset1")
     assert len(config.list_magnetic_fields()) == 0
@@ -66,39 +73,46 @@ def test_configuration_collection_management():
     config.rm_laser("laser1")
     assert len(config.list_lasers()) == 0
 
-    config.add_objects([mag1, mag2, las1, las2, lim1])
+    config.add_objects([mag1, mag2, las1, las2, lim1, force])
     config.rm_all_objects()
     assert len(config.list_magnetic_fields()) == 0
     assert len(config.list_lasers()) == 0
     assert len(config.list_zones()) == 0
+    assert len(config.list_forces()) == 0
 
-    config.add_objects([mag1, mag2, las1, las2, lim1, lim2])
+    config.add_objects([mag1, mag2, las1, las2, lim1, lim2, force])
     config.rm_all_magnetic_fields()
     assert len(config.list_magnetic_fields()) == 0
     assert len(config.list_lasers()) == 2
     assert len(config.list_zones()) == 2
+    assert len(config.list_forces()) == 1
     config.add_objects([mag1, mag2])
     config.rm_all_lasers()
     config.rm_all_zones()
     assert len(config.list_magnetic_fields()) == 2
     assert len(config.list_lasers()) == 0
     assert len(config.list_zones()) == 0
+    assert len(config.list_forces()) == 1
 
     # -- updating
     config.rm_all_objects()
     las1.direction = [1, 0, 0]
-    mag1.offset = [1, 1, 1]
-    config.add_objects([las1, mag1])
+    mag1.field_value = [1, 1, 1]
+    force.field_value = [0, 0, 0]
+    config.add_objects([las1, mag1, force])
     config.print_magnetic_field_info("offset1")
-    mag1.offset = [2, 1, 1]
-    config.update_objects(mag1, verbose=True)
+    mag1.field_value = [2, 1, 1]
+    force.field_value = [1, 1, 1]
+    config.update_objects([mag1, force], verbose=True)
     mag3 = config.get_magnetic_field_copy("offset1")
-    assert np.allclose(mag3.offset, mag1.offset)
+    force2 = config.get_force_copy("force")
+    assert np.allclose(mag3.field_value, mag1.field_value)
+    assert np.allclose(force2.field_value, force.field_value)
 
     # check that a copy is indeed given
-    mag3.offset = [0, 0, 1]
-    offset = config.get_magnetic_field_copy("offset1").offset
-    assert np.allclose(offset, mag1.offset)
+    mag3.field_value = [0, 0, 1]
+    offset = config.get_magnetic_field_copy("offset1").field_value
+    assert np.allclose(offset, mag1.field_value)
 
     # check copy is also given in entry
     config.rm_all_objects()
@@ -187,7 +201,7 @@ def test_configuration_exceptions():
         config.atom = "ytterbium"
 
     # - check environement
-    mag1, mag2, las1, las2, lim1, lim2 = _get_env_objects()
+    mag1, mag2, las1, las2, lim1, lim2, force = _get_env_objects()
     # adding wrong types
     with pytest.raises(TypeError) as excinfo:
         config.add_objects("laser")
@@ -254,7 +268,9 @@ def test_configuration_methods():
     from atomsmltr.atoms.collection import Ytterbium, Strontium
 
     # -- init
-    mag_field_1, mag_field_2, laser_1, laser_2, lim_up, lim_low = _get_env_objects()
+    mag_field_1, mag_field_2, laser_1, laser_2, lim_up, lim_low, force = (
+        _get_env_objects()
+    )
     lim_up.target = "position"
     lim_low.target = "speed"
 
@@ -275,7 +291,9 @@ def test_configuration_operators():
     from atomsmltr.atoms.collection import Ytterbium, Strontium
 
     # -- init
-    mag_field_1, mag_field_2, laser_1, laser_2, lim_up, lim_low = _get_env_objects()
+    mag_field_1, mag_field_2, laser_1, laser_2, lim_up, lim_low, force = (
+        _get_env_objects()
+    )
     conf = Configuration(atom=Ytterbium())
     conf.add_objects([mag_field_1, laser_1])
     # -- addition
@@ -336,6 +354,6 @@ if __name__ == "__main__":
     # test_configuration_atom_light()
     # test_configuration_print_info()
     # test_configuration_operators()
-    # test_configuration_methods()
-    test_configuration_inzone()
+    test_configuration_methods()
+    # test_configuration_inzone()
     pass
