@@ -32,8 +32,8 @@ def test_interpolated_1D_1D():
     # -- interpolate
     mag_field = InterpMag1D1D(data_x, data_y, field_direction=(1, 1, 0))
     mag_field.print_info()
-    _check_position_exceptions(mag_field.value)
-    check_vector_field_value_function(mag_field.value)
+    _check_position_exceptions(mag_field.get_value)
+    check_vector_field_value_function(mag_field.get_value)
 
     # -- check values
     # -
@@ -41,7 +41,7 @@ def test_interpolated_1D_1D():
     mag_field.position_direction = (1, 0, 0)
     mag_field.scale = 2.0
     position = np.array([(x, 0, 0) for x in data_x])
-    B = mag_field.value(position)
+    B = mag_field.get_value(position)
     B_proj = np.dot(B, mag_field.field_direction)
     assert np.allclose(data_y * mag_field.scale, B_proj)
     # -
@@ -49,7 +49,7 @@ def test_interpolated_1D_1D():
     mag_field.position_direction = (-1, 0, 0)
     mag_field.scale = -1.5
     position = np.array([(-x, 0, 0) for x in data_x])
-    B = mag_field.value(position)
+    B = mag_field.get_value(position)
     B_proj = np.dot(B, mag_field.field_direction)
     assert np.allclose(data_y * mag_field.scale, B_proj)
     # -
@@ -57,7 +57,7 @@ def test_interpolated_1D_1D():
     mag_field.position_direction = (0, 1, 0)
     mag_field.scale = -1.5
     position = np.array([(0, x, 0) for x in data_x])
-    B = mag_field.value(position)
+    B = mag_field.get_value(position)
     B_proj = np.dot(B, mag_field.field_direction)
     assert np.allclose(data_y * mag_field.scale, B_proj)
     # -
@@ -65,7 +65,7 @@ def test_interpolated_1D_1D():
     mag_field.position_direction = (0, 1, 1)
     mag_field.scale = -1.5
     position = np.array([(0, x / np.sqrt(2), x / np.sqrt(2)) for x in data_x])
-    B = mag_field.value(position)
+    B = mag_field.get_value(position)
     B_proj = np.dot(B, mag_field.field_direction)
     assert np.allclose(data_y * mag_field.scale, B_proj)
 
@@ -97,21 +97,21 @@ def test_interpolated_3D_3D():
     # -- init an interpolated field
     mag_field = InterpMag3D3D(data_position=(x, y, z), data_field=B_interp)
     mag_field.print_info()
-    _check_position_exceptions(mag_field.value)
-    check_vector_field_value_function(mag_field.value)
+    _check_position_exceptions(mag_field.get_value)
+    check_vector_field_value_function(mag_field.get_value)
 
     # -- check values at grid position
     p_flat = position.reshape((-1, 3))
     B_flat = B_interp.reshape((-1, 3))
     for p, B in zip(p_flat[::10], B_flat[::10]):
         assert np.allclose(B, B_th(p))
-        assert np.allclose(B, mag_field.value(p))
+        assert np.allclose(B, mag_field.get_value(p))
 
     # -- check interpolation ?
     for p in [(0.54, 0.004, np.pi / 2), (-0.45, 0.1896, 2.8956)]:
-        assert np.allclose(B_th(p), mag_field.value(p))
+        assert np.allclose(B_th(p), mag_field.get_value(p))
 
 
 if __name__ == "__main__":
-    # test_interpolated_1D_1D()
-    test_interpolated_3D_3D()
+    test_interpolated_1D_1D()
+    # test_interpolated_3D_3D()

@@ -38,7 +38,7 @@ class Field(EnvObject):
         """str: returns the unit of the field"""
         pass
 
-    def value(self, position: np.ndarray) -> np.ndarray:
+    def get_value(self, position: np.ndarray) -> np.ndarray:
         """returns the value of the field at a given position.
 
         Parameters
@@ -59,7 +59,7 @@ class Field(EnvObject):
 
         The field value is returned as an array with the same shape as `position`.
 
-        >>> field_value = field.value(position)
+        >>> field_value = field.get_value(position)
         >>> X, Y, Z = position.T
         >>> Fx, Fy, Fz = field_value.T
         """
@@ -72,7 +72,7 @@ class Field(EnvObject):
     def _field_value_func(self, position):
         """Actual method for field computation ; defined for each subclass"""
 
-    def norm(self, position: np.ndarray) -> np.ndarray:
+    def get_norm(self, position: np.ndarray) -> np.ndarray:
         """Returns the field norm at a given position in the lab frame
 
         Parameters
@@ -86,7 +86,7 @@ class Field(EnvObject):
         norm : np.ndarray, shape (,1) or (n1, n2, .., 1)
             returns the (scalar) field norm
         """
-        F = self.value(position)
+        F = self.get_value(position)
         Fx, Fy, Fz = F.T
         F_norm = np.sqrt(Fx**2 + Fy**2 + Fz**2).T
         return F_norm
@@ -158,7 +158,7 @@ class Field(EnvObject):
             cut=cut,
         )
         # - compute field
-        mag_field = self.value(position)
+        mag_field = self.get_value(position)
         Bx, By, Bz = mag_field.T
         Bx = Bx.T
         By = By.T
@@ -261,7 +261,7 @@ class Field(EnvObject):
         X, Y, Z = grid
         position = grid.T
         # - get magnetic field
-        B = self.value(position)
+        B = self.get_value(position)
         # - normalize ?
         if normalize:
             B = B / np.max(np.abs(B.ravel()))
