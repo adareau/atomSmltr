@@ -39,7 +39,6 @@ from abc import abstractmethod
 # % LOCAL IMPORTS
 from .polarization import Vertical, Polarization
 from ..envbase import EnvObject
-from ...utils.misc import check_position_array
 from ...utils.infostring import InfoString
 
 
@@ -183,7 +182,7 @@ class LaserBeam(EnvObject):
         """
 
         # convert to array if needed
-        position = check_position_array(position, nocheck)
+        position = self._check_position_array(position, nocheck)
         # get coordinates
         x, y, z = position.T
         # shift center
@@ -253,7 +252,7 @@ class LaserBeam(EnvObject):
         """
 
         # convert vec
-        vec = check_position_array(vec, nocheck)
+        vec = self._check_position_array(vec, nocheck)
         x, y, z = vec.T
         # rotate : phi around z axis, then theta along new y axis
         # see function docstring and documentation for rotation & frames definitions
@@ -297,7 +296,7 @@ class LaserBeam(EnvObject):
         """
 
         # convert vec
-        vec = check_position_array(vec, nocheck)
+        vec = self._check_position_array(vec, nocheck)
         x, y, z = vec.T
         # rotate : phi around z axis, then theta along new y axis
         # see function docstring and documentation for rotation & frames definitions
@@ -403,7 +402,7 @@ class LaserBeam(EnvObject):
 
         # -- process input
         # - check
-        quantization_axis = check_position_array(quantization_axis, nocheck)
+        quantization_axis = self._check_position_array(quantization_axis, nocheck)
 
         # -- compute angles of B field w.r.t k vector, in the laser frame
         # 1) coordinates of uB in laser frame
@@ -602,7 +601,7 @@ class LaserBeam(EnvObject):
 
         """
         # Check position
-        position = check_position_array(position, nocheck)
+        position = self._check_position_array(position, nocheck)
         # call hidden function that actually does the computation
         return self._intensity_func(self, position)
 
@@ -998,7 +997,7 @@ class LaserBeam(EnvObject):
         print(info_str.generate())
 
     def print_polar_proj(self, mag_field_vector):
-        mag_field_vector = check_position_array(mag_field_vector)
+        mag_field_vector = self._check_position_array(mag_field_vector)
         res = self.get_polarization_quant_dict(mag_field_vector)
         print("> Local polarization projection")
         print(f"   + B  = {mag_field_vector*1e4} (G)")
