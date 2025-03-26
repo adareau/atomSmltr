@@ -42,6 +42,6 @@ In ``atomsmltr`` objects high-level methods, positions are given **cartesian coo
 
         # - get magnetic field value
         # compute
-        B = mag_field.value(position)  # B.shape = (5, 10, 100, 3)
+        B = mag_field.get_value(position)  # B.shape = (5, 10, 100, 3)
         # get components
         Bx, By, Bz = B.T  # Bx.shape = (100, 10, 5)

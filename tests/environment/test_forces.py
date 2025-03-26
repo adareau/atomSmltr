@@ -27,9 +27,9 @@ def _generic_force_test(force):
     assert force.tag == new_tag
 
     # - check value function behaviour
-    _check_position_exceptions(force.value)
-    check_vector_field_value_function(force.value)
-    check_scalar_field_value_function(force.norm)
+    _check_position_exceptions(force.get_value)
+    check_vector_field_value_function(force.get_value)
+    check_scalar_field_value_function(force.get_norm)
 
 
 def test_constant_force():
@@ -51,12 +51,12 @@ def test_constant_force():
 
     # - check values
     # -
-    assert np.allclose(force.value((1, 4, 8)), field_value)
+    assert np.allclose(force.get_value((1, 4, 8)), field_value)
     # -
     new_field_value = (4.5, 2.8, np.sqrt(2))
     force.field_value = new_field_value
     force.print_info()
-    assert np.allclose(force.value((1, 4, 8)), new_field_value)
+    assert np.allclose(force.get_value((1, 4, 8)), new_field_value)
 
     # - checking copy
     # init force
@@ -102,7 +102,7 @@ def test_force_gradient():
 
     # compute
     position = np.mgrid[-10:10:15j, -5:5:20j, -1:1:6j].T
-    value = force.value(position)
+    value = force.get_value(position)
     # check >> we make a loop, not efficient but this way we know what to expect
     X, Y, Z = position.T
     Bx, By, Bz = value.T
@@ -123,7 +123,7 @@ def test_force_gradient():
     force.field_direction = (1, 0, 0)
     # compute
     position = np.mgrid[-10:10:15j, -5:5:20j, -1:1:6j].T
-    value = force.value(position)
+    value = force.get_value(position)
     # check >> we make a loop, not efficient but this way we know what to expect
     X, Y, Z = position.T
     Bx, By, Bz = value.T

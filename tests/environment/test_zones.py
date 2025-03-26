@@ -38,14 +38,14 @@ def _generic_zones_test(zone):
     zone.invert()
     assert not zone.inverted
     # - check value function behaviour
-    _check_position_exceptions(zone.in_zone)
-    check_scalar_field_value_function(zone.in_zone)
+    _check_position_exceptions(zone.get_value)
+    check_scalar_field_value_function(zone.get_value)
     # - check invert
     grid = np.mgrid[-100:100:11, -100:100:12, -100:100:13]
     position = grid.T
-    res = zone.in_zone(position)
+    res = zone.get_value(position)
     zone.invert()
-    res_inv = zone.in_zone(position)
+    res_inv = zone.get_value(position)
     assert np.all(np.logical_xor(res, res_inv))
     zone.inverted = False
 
@@ -110,8 +110,8 @@ def test_zones_collections():
         X, Y, _ = grid
         X = X.T
         Y = Y.T
-        c1 = coll_1.in_zone(position)
-        c2 = coll_2.in_zone(position)
+        c1 = coll_1.get_value(position)
+        c2 = coll_2.get_value(position)
         X = np.squeeze(X)
         Y = np.squeeze(Y)
         c1 = np.squeeze(c1)
@@ -135,65 +135,65 @@ def test_super_zones():
     zone += vx_lim
     zone.print_info()
 
-    assert zone.in_zone((0, 0, 0, 1, 0, 0))
-    assert zone.in_zone((0, 0, 90, 1, 0, 0))
-    assert zone.in_zone((0, 0, 90, 1, 6, 8))
-    assert zone.in_zone((0.5, 5, 90, 50, 6, 8))
-    assert not zone.in_zone((2, 5, 90, 50, 6, 8))
-    assert not zone.in_zone((0, 5, 2, -10, 6, 8))
-    assert not zone.in_zone((0, 11, 0, 5, 6, 8))
+    assert zone.get_value((0, 0, 0, 1, 0, 0))
+    assert zone.get_value((0, 0, 90, 1, 0, 0))
+    assert zone.get_value((0, 0, 90, 1, 6, 8))
+    assert zone.get_value((0.5, 5, 90, 50, 6, 8))
+    assert not zone.get_value((2, 5, 90, 50, 6, 8))
+    assert not zone.get_value((0, 5, 2, -10, 6, 8))
+    assert not zone.get_value((0, 11, 0, 5, 6, 8))
 
     # check vectorization
     grid = np.mgrid[-1:1:10j, 0:1:5j, 0:0:1j, 0:100:5j, 0:30:4j, 0:9:7j]
     vec = grid.T
-    res = zone.in_zone(vec)
+    res = zone.get_value(vec)
     assert res.shape == vec.shape[:-1]
 
     # -- what if only positions
     zone.reset()
     zone += x_lim
 
-    assert zone.in_zone((0, 0, 0, 1, 0, 0))
-    assert zone.in_zone((0, 0, 90, 1, 0, 0))
-    assert zone.in_zone((0, 0, 90, 1, 6, 8))
-    assert zone.in_zone((0.5, 5, 90, 50, 6, 8))
-    assert not zone.in_zone((2, 5, 90, 50, 6, 8))
-    assert zone.in_zone((0, 5, 2, -10, 6, 8))
-    assert zone.in_zone((0, 11, 0, 5, 6, 8))
+    assert zone.get_value((0, 0, 0, 1, 0, 0))
+    assert zone.get_value((0, 0, 90, 1, 0, 0))
+    assert zone.get_value((0, 0, 90, 1, 6, 8))
+    assert zone.get_value((0.5, 5, 90, 50, 6, 8))
+    assert not zone.get_value((2, 5, 90, 50, 6, 8))
+    assert zone.get_value((0, 5, 2, -10, 6, 8))
+    assert zone.get_value((0, 11, 0, 5, 6, 8))
 
     # check vectorization
-    res = zone.in_zone(vec)
+    res = zone.get_value(vec)
     assert res.shape == vec.shape[:-1]
 
     # -- what if only speeds
     zone.reset()
     zone += vx_lim
 
-    assert zone.in_zone((0, 0, 0, 1, 0, 0))
-    assert zone.in_zone((0, 0, 90, 1, 0, 0))
-    assert zone.in_zone((0, 0, 90, 1, 6, 8))
-    assert zone.in_zone((0.5, 5, 90, 50, 6, 8))
-    assert zone.in_zone((2, 5, 90, 50, 6, 8))
-    assert not zone.in_zone((0, 5, 2, -10, 6, 8))
-    assert zone.in_zone((0, 11, 0, 5, 6, 8))
+    assert zone.get_value((0, 0, 0, 1, 0, 0))
+    assert zone.get_value((0, 0, 90, 1, 0, 0))
+    assert zone.get_value((0, 0, 90, 1, 6, 8))
+    assert zone.get_value((0.5, 5, 90, 50, 6, 8))
+    assert zone.get_value((2, 5, 90, 50, 6, 8))
+    assert not zone.get_value((0, 5, 2, -10, 6, 8))
+    assert zone.get_value((0, 11, 0, 5, 6, 8))
 
     # check vectorization
-    res = zone.in_zone(vec)
+    res = zone.get_value(vec)
     assert res.shape == vec.shape[:-1]
 
     # -- what if empty
     zone.reset()
 
-    assert zone.in_zone((0, 0, 0, 1, 0, 0))
-    assert zone.in_zone((0, 0, 90, 1, 0, 0))
-    assert zone.in_zone((0, 0, 90, 1, 6, 8))
-    assert zone.in_zone((0.5, 5, 90, 50, 6, 8))
-    assert zone.in_zone((2, 5, 90, 50, 6, 8))
-    assert zone.in_zone((0, 5, 2, -10, 6, 8))
-    assert zone.in_zone((0, 11, 0, 5, 6, 8))
+    assert zone.get_value((0, 0, 0, 1, 0, 0))
+    assert zone.get_value((0, 0, 90, 1, 0, 0))
+    assert zone.get_value((0, 0, 90, 1, 6, 8))
+    assert zone.get_value((0.5, 5, 90, 50, 6, 8))
+    assert zone.get_value((2, 5, 90, 50, 6, 8))
+    assert zone.get_value((0, 5, 2, -10, 6, 8))
+    assert zone.get_value((0, 11, 0, 5, 6, 8))
 
     # check vectorization
-    res = zone.in_zone(vec)
+    res = zone.get_value(vec)
     assert res.shape == vec.shape[:-1]
 
 
@@ -209,10 +209,10 @@ def test_limits_zones():
     # few tests
     upper.value = 6.0
     assert upper.value == 6.0
-    assert upper.in_zone((0, 0, 7))
-    assert not upper.in_zone((7, 0, 5))
-    assert upper.in_zone((4, -5, 7))
-    assert not upper.in_zone((8, -8, 5))
+    assert upper.get_value((0, 0, 7))
+    assert not upper.get_value((7, 0, 5))
+    assert upper.get_value((4, -5, 7))
+    assert not upper.get_value((8, -8, 5))
 
     # -- lower limit
     # init
@@ -222,10 +222,10 @@ def test_limits_zones():
     # few tests
     lower.value = 6.0
     assert lower.value == 6.0
-    assert lower.in_zone((0, 0, 7))
-    assert not lower.in_zone((0, 0, 5))
-    assert lower.in_zone((4, -5, 7))
-    assert not lower.in_zone((8, -8, 5))
+    assert lower.get_value((0, 0, 7))
+    assert not lower.get_value((0, 0, 5))
+    assert lower.get_value((4, -5, 7))
+    assert not lower.get_value((8, -8, 5))
 
     # check copy
     invlow = lower.inverted_copy()
@@ -239,11 +239,11 @@ def test_limits_zones():
     # init
     limits = Limits(min=0, max=10, axis=0, tag="xlim")
     _generic_zones_test(limits)
-    assert limits.in_zone((0.1, 5, 4))
-    assert limits.in_zone((8, -9, 8))
-    assert limits.in_zone((0, -9, 8))
-    assert not limits.in_zone((89, 0, 0))
-    assert not limits.in_zone((-8, 0, 8))
+    assert limits.get_value((0.1, 5, 4))
+    assert limits.get_value((8, -9, 8))
+    assert limits.get_value((0, -9, 8))
+    assert not limits.get_value((89, 0, 0))
+    assert not limits.get_value((-8, 0, 8))
 
 
 def test_3D_zones():
@@ -252,14 +252,14 @@ def test_3D_zones():
     # -- Box
     box = Box(-1, 1, 0, 0.5, -10, 10)
     _generic_zones_test(box)
-    assert box.in_zone((0, 0.2, 0))
-    assert not box.in_zone((-5, 0.2, 0))
-    assert box.in_zone((1, 0.2, 0))
-    assert box.in_zone((0, 0, 0))
-    assert not box.in_zone((0, 0.8, 0))
-    assert not box.in_zone((0, 0.2, -96))
-    assert not box.in_zone((0, 0.2, 96))
-    assert not box.in_zone((100, 100, 100))
+    assert box.get_value((0, 0.2, 0))
+    assert not box.get_value((-5, 0.2, 0))
+    assert box.get_value((1, 0.2, 0))
+    assert box.get_value((0, 0, 0))
+    assert not box.get_value((0, 0.8, 0))
+    assert not box.get_value((0, 0.2, -96))
+    assert not box.get_value((0, 0.2, 96))
+    assert not box.get_value((100, 100, 100))
 
     # -- Cylinder
     cyl = Cylinder()
@@ -269,20 +269,20 @@ def test_3D_zones():
     cyl.direction = (1, 0, 0)
     cyl.radius = 2
 
-    assert cyl.in_zone((0, 0, 0))
-    assert not cyl.in_zone((0, 8, -4))
-    assert not cyl.in_zone((1, 8, -4))
-    assert cyl.in_zone((3, 1, 1))
-    assert cyl.in_zone((-7, -1, -1))
-    assert not cyl.in_zone((500, -1, -2.1))
+    assert cyl.get_value((0, 0, 0))
+    assert not cyl.get_value((0, 8, -4))
+    assert not cyl.get_value((1, 8, -4))
+    assert cyl.get_value((3, 1, 1))
+    assert cyl.get_value((-7, -1, -1))
+    assert not cyl.get_value((500, -1, -2.1))
 
     cyl.direction = (0, 0, 1)
-    assert cyl.in_zone((0, 0, 0))
-    assert not cyl.in_zone((0, 8, -4))
-    assert not cyl.in_zone((1, 8, -4))
-    assert cyl.in_zone((1, 1, 5))
-    assert cyl.in_zone((-1, -1, -1))
-    assert not cyl.in_zone((500, -1, -2.1))
+    assert cyl.get_value((0, 0, 0))
+    assert not cyl.get_value((0, 8, -4))
+    assert not cyl.get_value((1, 8, -4))
+    assert cyl.get_value((1, 1, 5))
+    assert cyl.get_value((-1, -1, -1))
+    assert not cyl.get_value((500, -1, -2.1))
 
 
 if __name__ == "__main__":

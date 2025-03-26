@@ -495,8 +495,8 @@ def _laserBeam_classes_generic_methods_test(LaserBeamClass):
     check_vector_field_value_function(beam._convert_vector_to_lab_frame)
 
     # -- intensity function
-    _check_position_exceptions(beam.get_intensity)
-    check_scalar_field_value_function(beam.get_intensity)
+    _check_position_exceptions(beam.get_value)
+    check_scalar_field_value_function(beam.get_value)
 
     # -- check intensity setter
     beam.waist = 30e-6
@@ -504,12 +504,12 @@ def _laserBeam_classes_generic_methods_test(LaserBeamClass):
     beam.waist_position = (0, 0, 0)
     # -
     beam.set_power_from_I(12.5)
-    assert np.allclose(beam.get_intensity((0, 0, 0)), 12.5)
+    assert np.allclose(beam.get_value((0, 0, 0)), 12.5)
     assert beam.waist == 30e-6
     # -
     beam.power = 1e-3
     beam.set_waist_from_I(1.0)
-    assert np.allclose(beam.get_intensity((0, 0, 0)), 1.0)
+    assert np.allclose(beam.get_value((0, 0, 0)), 1.0)
     assert beam.power == 1e-3
 
 
@@ -567,12 +567,12 @@ def test_PlaneWave_laser_beam_methods():
     position = np.mgrid[-100:100:10j, -100:100:10j, -100:100:10j].T
     # -
     beam.set_power_from_I(1)
-    intensity = beam.get_intensity(position)
+    intensity = beam.get_value(position)
     expected_intensity = np.ones_like(intensity)
     assert np.allclose(intensity, expected_intensity)
     # -
     beam.set_power_from_I(np.sqrt(2))
-    intensity = beam.get_intensity(position)
+    intensity = beam.get_value(position)
     expected_intensity = np.ones_like(intensity) * np.sqrt(2)
     assert np.allclose(intensity, expected_intensity)
 
