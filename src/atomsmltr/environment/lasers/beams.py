@@ -579,7 +579,7 @@ class LaserBeam(EnvObject):
 
     # -- REQUIRED ABSTRACT METHODS
 
-    def get_intensity(self, position: np.ndarray, nocheck=False) -> np.ndarray:
+    def get_value(self, position: np.ndarray, nocheck=False) -> np.ndarray:
         """Returns laser intensity at a given position in the lab frame
 
         Parameters
@@ -859,7 +859,7 @@ class LaserBeam(EnvObject):
         )
 
         # - compute intensity
-        intensity = self.get_intensity(position)
+        intensity = self.get_value(position)
 
         # - plot
         ax.pcolormesh(X * space_scale, Y * space_scale, intensity, cmap=cmap)

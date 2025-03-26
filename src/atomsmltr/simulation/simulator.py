@@ -100,7 +100,7 @@ def _get_force_vec(
     atomlight_couples = config.get_atomlight_couples()
     for elements in atomlight_couples:
         transition, laser, detuning = elements
-        laser_intensity = laser.get_intensity(position)
+        laser_intensity = laser.get_value(position)
         polarization = laser.get_polarization_quant(B)
         # Doppler
         det_Doppler = -np.dot(speed, laser.kvec)
