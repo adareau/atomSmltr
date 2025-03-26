@@ -21,7 +21,6 @@ from abc import abstractmethod
 # % LOCAL IMPORTS
 from ..envbase import EnvObject
 from ...utils.infostring import InfoString
-from ...utils.misc import check_position_array
 
 # % ABSTRACT CLASSES
 
@@ -64,7 +63,7 @@ class Field(EnvObject):
         >>> Fx, Fy, Fz = field_value.T
         """
         # Check position
-        position = check_position_array(position)
+        position = self._check_position_array(position)
         # call hidden function that actually does the computation
         return self._field_value_func(position)
 
