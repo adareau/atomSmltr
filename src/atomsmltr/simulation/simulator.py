@@ -112,7 +112,7 @@ def _get_force_vec(
 
     # - loop over all forces
     for f in config.get_all_forces():
-        force = force + f.value(position)
+        force = force + f.get_value(position)
 
     return force
 
