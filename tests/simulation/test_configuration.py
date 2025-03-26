@@ -339,13 +339,13 @@ def test_configuration_inzone():
     config += x_lim, y_lim, vx_lim
 
     # test
-    assert config.in_zone((0, 0, 0, 1, 0, 0))
-    assert config.in_zone((0, 0, 90, 1, 0, 0))
-    assert config.in_zone((0, 0, 90, 1, 6, 8))
-    assert config.in_zone((0.5, 5, 90, 50, 6, 8))
-    assert not config.in_zone((2, 5, 90, 50, 6, 8))
-    assert not config.in_zone((0, 5, 2, -10, 6, 8))
-    assert not config.in_zone((0, 11, 0, 5, 6, 8))
+    assert config.get_value((0, 0, 0, 1, 0, 0))
+    assert config.get_value((0, 0, 90, 1, 0, 0))
+    assert config.get_value((0, 0, 90, 1, 6, 8))
+    assert config.get_value((0.5, 5, 90, 50, 6, 8))
+    assert not config.get_value((2, 5, 90, 50, 6, 8))
+    assert not config.get_value((0, 5, 2, -10, 6, 8))
+    assert not config.get_value((0, 11, 0, 5, 6, 8))
 
 
 if __name__ == "__main__":

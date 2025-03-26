@@ -398,7 +398,7 @@ class Configuration(object):
                 collection += zone
 
         # -- return results
-        return collection.in_zone(pos_speed_vector)
+        return collection.get_value(pos_speed_vector)
 
     # -- GETTING FORCES
 
