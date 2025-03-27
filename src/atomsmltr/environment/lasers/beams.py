@@ -127,6 +127,11 @@ class LaserBeam(EnvObject):
 
         super(LaserBeam, self).__init__(tag=tag)
 
+    # -- REQUESTED PROPERTY FOR ENVOBJECTS
+    @property
+    def vector(self):
+        return False
+
     # -- COMMON METHODS DEFINED HERE
     def _convert_coordinates_to_laser_frame(
         self, position: np.ndarray, nocheck=False

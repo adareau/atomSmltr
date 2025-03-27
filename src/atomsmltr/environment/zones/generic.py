@@ -73,6 +73,10 @@ class Zone(EnvObject):
     # -- GETTERS & SETTERS
 
     @property
+    def vector(self):
+        return False
+
+    @property
     def inverted(self):
         """bool: if inverted, the zone logic is inverted"""
         return self.__inverted

@@ -32,6 +32,10 @@ class Field(EnvObject):
         super(Field, self).__init__(*args, **kwargs)
 
     @property
+    def vector(self):
+        return True
+
+    @property
     @abstractmethod
     def unit():
         """str: returns the unit of the field"""

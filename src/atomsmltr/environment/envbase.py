@@ -174,3 +174,9 @@ class EnvObject(Plottable):
     def type():
         """str: a description of the object type"""
         pass
+
+    @property
+    @abstractmethod
+    def vector():
+        """bool: True it the object value is vectorial, False if scalar"""
+        pass
