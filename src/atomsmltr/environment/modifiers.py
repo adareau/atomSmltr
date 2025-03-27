@@ -9,6 +9,11 @@ rotation on those objects.
 
 # % IMPORTS
 import numpy as np
+from functools import wraps
+
+# % LOCAL IMPORTS
+from .envbase import EnvObject
+from ..utils.misc import check_position_array
 
 # % USEFUL FUNCTIONS
 
@@ -127,3 +132,91 @@ def rotate_position_vector_alt(
     # - generate rotated position
     rotated_position = np.array([Xrot, Yrot, Zrot]).T
     return rotated_position
+
+
+# % WRAPPERS
+
+
+# -- ROTATION
+def _rotation_get_value_decorator(get_value, u: np.ndarray, theta: float, vector: bool):
+    """decorator for the get_value method for a rotation modifier
+
+    Parameters
+    ----------
+    get_value : function
+        the method to decorate
+    u : array, shape (3,)
+        the axis around which to perform the rotation
+        it does not need to be normalized, the function will take
+        care of it
+    theta : float
+        the angle for the rotation
+        care of it
+    vector : bool
+        whether the result of 'get_value' is a vector
+    """
+
+    @wraps(get_value)
+    def wrapped(position, nocheck=False, *args, **kwargs):
+        position = check_position_array(position, nocheck)
+        # note : we rotate the *coordinates* by -theta
+        # to have the *object* rotated by +theta
+        rotated_position = rotate_position_vector(position, u, -theta)
+        value = get_value(rotated_position, *args, **kwargs)
+        if vector:
+            value = rotate_position_vector(value, u, theta)
+        return value
+
+    return wrapped
+
+
+def _rotation_gen_infostring_obj_dectorator(
+    gen_infostring_obj, u: np.ndarray, theta: float
+):
+    """decorator for the gen_infostring_obj method for a roation modifier
+    see _rotation_get_value_decorator for the arguments definition
+    """
+
+    @wraps(gen_infostring_obj)
+    def wrapped(*args, **kwargs):
+        info = gen_infostring_obj(*args, **kwargs)
+        info.add_element("<modifier> : rotation")
+        info.add_element("<axis>", u)
+        info.add_element("<theta>", theta)
+        return info
+
+    return wrapped
+
+
+def rotate(obj: EnvObject, u: np.ndarray, theta: float):
+    """Modifier for environment objects, performing a rotation
+
+    Parameters
+    ----------
+    obj : EnvObject
+        the object to rotate
+    u : array, shape (3,)
+        the axis around which to perform the rotation
+        it does not need to be normalized, the function will take
+        care of it
+    theta : float
+        the angle for the rotation
+
+    Returns
+    -------
+    rotated_obj : EnvObject
+        the rotated object
+    """
+    # - check
+    if not isinstance(obj, EnvObject):
+        raise TypeError("`obj` should be a EnvObject")
+
+    # - decorate
+    obj.get_value = _rotation_get_value_decorator(
+        obj.get_value, u, theta, vector=obj.vector
+    )
+    obj.gen_infostring_obj = _rotation_gen_infostring_obj_dectorator(
+        obj.gen_infostring_obj, u, theta
+    )
+
+    return obj

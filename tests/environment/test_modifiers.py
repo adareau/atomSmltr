@@ -6,6 +6,24 @@ from atomsmltr.utils.misc import (
 )
 
 
+def _generic_modifier_tests(modifier, *args, **kwargs):
+    from atomsmltr.environment import MagneticGradient, GaussianLaserBeam, Limits
+
+    # - init objects for test
+    mag_field = MagneticGradient((0, 0, 0), 4, (1, 2, 3), (0, 1, -1))
+    laser_beam = GaussianLaserBeam()
+    zone = Limits(0, 1, 0)
+
+    # - modify
+    for obj in [mag_field, laser_beam, zone]:
+        modifier(obj, *args, **kwargs)
+        obj.print_info()
+        if obj.vector:
+            check_vector_field_value_function(obj.get_value)
+        else:
+            check_scalar_field_value_function(obj.get_value)
+
+
 def test_rotation_functions():
     from atomsmltr.environment.modifiers import (
         rotation_matrix,
@@ -97,5 +115,50 @@ def test_rotation_functions():
     assert np.allclose(irpos, pos)
 
 
+def test_rotation_modifier():
+    from atomsmltr.environment.modifiers import rotate
+    from atomsmltr.environment import MagneticGradient
+
+    # - generic tests
+    _generic_modifier_tests(rotate, u=(1, 2, 3), theta=0.5)
+
+    # - specific tests
+    # magnetic field gradient, gradient along x, field along y
+    settings = {
+        "origin": (0, 0, 0),
+        "slope": 1,
+        "gradient_direction": (1, 0, 0),
+        "field_direction": (0, 1, 0),
+    }
+    # 0) define a comparison field
+    mag_gradient_cmp = MagneticGradient(**settings)
+    # 1) rotation of pi/2 along z
+    # this should make gradient direction along y
+    # and field pointing along -x
+    # 1.a) prepare comparison gradient
+    mag_gradient_cmp.gradient_direction = (0, 1, 0)
+    mag_gradient_cmp.field_direction = (-1, 0, 0)
+    # 1.b) create gradient and rotate it
+    mag_gradient = MagneticGradient(**settings)
+    rotate(mag_gradient, (0, 0, 1), np.pi / 2)
+    # 1.c) compare
+    pos = np.mgrid[-10:10:10j, -10:10:10j, -10:10:10j].T
+    assert np.allclose(mag_gradient.get_value(pos), mag_gradient_cmp.get_value(pos))
+
+    # 2) rotation of pi/2 along x
+    # this should make gradient direction along x
+    # and field pointing along z
+    # 1.a) prepare comparison gradient
+    mag_gradient_cmp.gradient_direction = (1, 0, 0)
+    mag_gradient_cmp.field_direction = (0, 0, 1)
+    # 1.b) create gradient and rotate it
+    mag_gradient = MagneticGradient(**settings)
+    rotate(mag_gradient, (1, 0, 0), np.pi / 2)
+    # 1.c) compare
+    pos = np.mgrid[-10:10:10j, -10:10:10j, -10:10:10j].T
+    assert np.allclose(mag_gradient.get_value(pos), mag_gradient_cmp.get_value(pos))
+
+
 if __name__ == "__main__":
-    test_rotation_functions()
+    # test_rotation_functions()
+    test_rotation_modifier()
