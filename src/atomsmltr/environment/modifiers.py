@@ -5,6 +5,32 @@ modifiers for environment objects
 This module contains several modifiers (decorators) for environment
 objects, that can be used to perform spatial translations or
 rotation on those objects.
+
+Examples
+---------
+
+Rotate a laser beam
+
+.. code-block:: python
+
+    import numpy as np
+    from atomsmltr.environment import GaussianLaserBeam
+    from atomsmltr.environment.modifiers import rotate
+
+    laser = GaussianLaserBeam(direction=(1,0,0))
+    rotate(laser, (0,0,1), np.pi/4)
+
+
+Shift a magnetic field quadrupole
+
+.. code-block:: python
+
+    from atomsmltr.environment import MagneticQuadrupoleX
+    from atomsmltr.environment.modifiers import shift
+
+    mag_field = MagneticQuadrupoleX(origin=(0,0,0), slope=1)
+    shift(mag_field, (-1,0,1))
+
 """
 
 # % IMPORTS
