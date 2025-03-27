@@ -159,6 +159,32 @@ def test_rotation_modifier():
     assert np.allclose(mag_gradient.get_value(pos), mag_gradient_cmp.get_value(pos))
 
 
+def test_shift_modifier():
+    from atomsmltr.environment.modifiers import shift
+    from atomsmltr.environment import MagneticQuadrupoleX, GaussianLaserBeam
+
+    # - generic tests
+    _generic_modifier_tests(shift, dr=(5.0, -8.0, 3.0))
+
+    # - specific tests
+    # magfield
+    dr = (-5.0, 0.45, 8.4)
+    mag_field = MagneticQuadrupoleX((0, 0, 0), 1)
+    mag_field_cmp = MagneticQuadrupoleX(dr, 1)
+    shift(mag_field, dr)
+    pos = np.mgrid[-10:10:10j, -10:10:10j, -10:10:10j].T
+    assert np.allclose(mag_field.get_value(pos), mag_field_cmp.get_value(pos))
+
+    # gaussian beam
+    dr = (1e-3, -0.5e-3, 0)
+    laser = GaussianLaserBeam(direction=(1, 1, 0), waist_position=(0, 0, 0))
+    laser_cmp = GaussianLaserBeam(direction=(1, 1, 0), waist_position=dr)
+    shift(laser, dr)
+    pos = np.mgrid[-1e-3:1e-3:10j, -1e-3:1e-3:10j, 0:0:1j].T
+    assert np.allclose(laser.get_value(pos), laser_cmp.get_value(pos))
+
+
 if __name__ == "__main__":
     # test_rotation_functions()
-    test_rotation_modifier()
+    # test_rotation_modifier()
+    test_shift_modifier()

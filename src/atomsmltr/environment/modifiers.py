@@ -138,6 +138,8 @@ def rotate_position_vector_alt(
 
 
 # -- ROTATION
+
+
 def _rotation_get_value_decorator(get_value, u: np.ndarray, theta: float, vector: bool):
     """decorator for the get_value method for a rotation modifier
 
@@ -217,6 +219,80 @@ def rotate(obj: EnvObject, u: np.ndarray, theta: float):
     )
     obj.gen_infostring_obj = _rotation_gen_infostring_obj_dectorator(
         obj.gen_infostring_obj, u, theta
+    )
+
+    return obj
+
+
+# -- SHIFT
+
+
+def _shift_get_value_decorator(get_value, dr: np.ndarray):
+    """decorator for the get_value method for a shift modifier
+
+    Parameters
+    ----------
+    get_value : function
+        the method to decorate
+    dr : array, shape (3,)
+        the value of the shift (cartesian coordinates)
+    """
+
+    @wraps(get_value)
+    def wrapped(position, nocheck=False, *args, **kwargs):
+        position = check_position_array(position, nocheck)
+        # note : we shift the *coordinates* by -dr
+        # to have the *object* shifted by +dr
+        X, Y, Z = position.T
+        dx, dy, dz = dr
+        Xs = X - dx
+        Ys = Y - dy
+        Zs = Z - dz
+        shifted_position = np.array([Xs, Ys, Zs]).T
+        value = get_value(shifted_position, *args, **kwargs)
+        return value
+
+    return wrapped
+
+
+def _shift_gen_infostring_obj_dectorator(gen_infostring_obj, dr: np.ndarray):
+    """decorator for the gen_infostring_obj method for a shift modifier
+    see _rotation_get_value_decorator for the arguments definition
+    """
+
+    @wraps(gen_infostring_obj)
+    def wrapped(*args, **kwargs):
+        info = gen_infostring_obj(*args, **kwargs)
+        info.add_element("<modifier> : shift")
+        info.add_element("<shift>", dr)
+        return info
+
+    return wrapped
+
+
+def shift(obj: EnvObject, dr: np.ndarray):
+    """Modifier for environment objects, performing a spatial shift
+
+    Parameters
+    ----------
+    obj : EnvObject
+        the object to rotate
+    dr : array, shape (3,)
+        the value of the shift (cartesian coordinates)
+
+    Returns
+    -------
+    shifted_obj : EnvObject
+        the shifted object
+    """
+    # - check
+    if not isinstance(obj, EnvObject):
+        raise TypeError("`obj` should be a EnvObject")
+
+    # - decorate
+    obj.get_value = _shift_get_value_decorator(obj.get_value, dr)
+    obj.gen_infostring_obj = _shift_gen_infostring_obj_dectorator(
+        obj.gen_infostring_obj, dr
     )
 
     return obj
