@@ -150,7 +150,7 @@ class Field(EnvObject):
         points = start[None, :] + t[:, None] * (stop - start)[None, :]
 
         # Compute field
-        B = self.value(points)
+        B = self.get_value(points)
 
         # Choose component
         if component == "Bx":
