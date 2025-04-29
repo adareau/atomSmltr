@@ -159,7 +159,9 @@ class Field(EnvObject):
         elif component == "B":
             values = np.linalg.norm(B, axis=1)
         else:
-            raise ValueError(f"Unknown component '{component}'. Choose 'Bx', 'By', 'Bz', or 'B'.")
+            raise ValueError(
+                f"Unknown component '{component}'. Choose 'Bx', 'By', 'Bz', or 'B'."
+            )
 
         # Compute position along the line (scaled if needed)
         distances = np.linspace(0, np.linalg.norm(stop - start), Npoints) * space_scale
