@@ -2,6 +2,7 @@
 .vscode
 *.code-workspace
 sandbox/
+simulations/
 
 # ---- Python ignores
 # Byte-compiled / optimized / DLL files
