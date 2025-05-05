@@ -161,6 +161,29 @@ def test_RK4_integrator():
     return res
 
 
+def test_RK4_spontem_integrator():
+    from atomsmltr.simulation import RK4_spontem
+
+    # - init simulation object
+    sim = RK4_spontem()
+    config = _init_config()
+    sim.config = config
+
+    # - parameters
+    u0 = (0, 0, -0.15, 0, 0, 200)
+    t = np.linspace(0, 0.05, 100)
+
+    # - integrate
+    res = sim.integrate(u0, t)
+
+    # - check vectorization
+    grid = np.mgrid[0:0:1j, 0:0:1j, -0.15:-0.05:10j, 0:0:1j, 0:0:1j, 10:100:10]
+    u0 = np.squeeze(grid.T)
+    res = sim.integrate(u0, t)
+
+    return res
+
+
 def test_force_integration():
     from atomsmltr.simulation import RK4, ScipyIVP_3D, Configuration
     from atomsmltr.environment import ConstantForce
@@ -338,5 +361,6 @@ if __name__ == "__main__":
     # res = test_ScipyIVP_3D_integrator()
     # res_coll = test_ScipyIVP_3D_batch()
     # res = test_RK4_integrator()
+    res = test_RK4_spontem_integrator()
     # test_zone_tags()
-    test_force_integration()
+    # test_force_integration()

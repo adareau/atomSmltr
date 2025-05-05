@@ -21,7 +21,10 @@ from ..configurator import Configuration
 
 
 def _get_force_vec(
-    position: np.ndarray, speed: np.ndarray, config: Configuration
+    position: np.ndarray,
+    speed: np.ndarray,
+    config: Configuration,
+    return_list: bool = False,
 ) -> np.ndarray:
     """Computes the force on an atom, by adding all radiations pressures,
     in a vectorization style that matches the package's standards
@@ -34,11 +37,18 @@ def _get_force_vec(
         array of cartesian speeds in the lab frame
     config : Configuration
         a configuration object
+    return_list : bool (opt, default=False)
+        if set to True, also returns the scattering rates and laser wavenumbers
+        this is used to compute the stochastic part of the force (spont. em.)
 
     Returns
     -------
     force : array, (3,) or (n1, n2, .., 3)
         the force felt by the atoms
+
+    scattering_list : list
+        returned only if ``return_list`` is set to ``True``
+        list of lasers scattering rates and wavenumbers.
     """
 
     # - get magnetic field value & norm
@@ -47,6 +57,8 @@ def _get_force_vec(
     B_norm = np.sqrt(Bx**2 + By**2 + Bz**2).T
     # - initialize force
     force = np.zeros_like(position, dtype=float)
+    # - prepare scattering list
+    scattering_list = []
     # - loop over atom-light couplings
     atomlight_couples = config.get_atomlight_couples()
     for elements in atomlight_couples:
@@ -60,15 +72,30 @@ def _get_force_vec(
         )
         radiation_pressure = csts.hbar * transition.k * scattering_rate
         force = force + radiation_pressure[..., np.newaxis] * laser.unit_vector
+        if return_list:
+            scattering_list.append(
+                {
+                    "rate": scattering_rate,
+                    "k": transition.k,
+                    "unit_vector": laser.unit_vector,
+                }
+            )
 
     # - loop over all forces
     for f in config.get_all_forces():
         force = force + f.get_value(position)
 
-    return force
+    if return_list:
+        return force, scattering_list
+    else:
+        return force
 
 
-def get_force_vec(pos_speed_vector: np.ndarray, config: Configuration) -> np.ndarray:
+def get_force_vec(
+    pos_speed_vector: np.ndarray,
+    config: Configuration,
+    return_list: bool = False,
+) -> np.ndarray:
     """Computes the force on an atom, by adding all radiations pressures,
     in a vectorization style that matches the package's standards
 
@@ -78,11 +105,18 @@ def get_force_vec(pos_speed_vector: np.ndarray, config: Configuration) -> np.nda
         array of cartesian coordinates (position and speed) in the lab frame
     config : Configuration
         a configuration object
+    return_list : bool (opt, default=False)
+        if set to True, also returns the scattering rates and laser wavenumbers
+        this is used to compute the stochastic part of the force (spont. em.)
 
     Returns
     -------
     force : array, shape (3,) or (n1, n2, .., 3)
         the force at the coordinates given by ``pos_speed_vector``
+
+    scattering_list : list
+        returned only if ``return_list`` is set to ``True``
+        list of lasers scattering rates and wavenumbers.
 
     Notes
     -----
@@ -149,8 +183,13 @@ def get_force_vec(pos_speed_vector: np.ndarray, config: Configuration) -> np.nda
     position = np.array([x, y, z]).T
     speed = np.array([vx, vy, vz]).T
     # - get force
-    force = _get_force_vec(position, speed, config)
-    return force
+    res = _get_force_vec(position, speed, config, return_list)
+    if return_list:
+        force, scattering_list = res
+        return force, scattering_list
+    else:
+        force = res
+        return force
 
 
 # % DEFINE THE BASE CLASS
