@@ -354,6 +354,6 @@ if __name__ == "__main__":
     # test_configuration_atom_light()
     # test_configuration_print_info()
     # test_configuration_operators()
-    test_configuration_methods()
-    # test_configuration_inzone()
+    # test_configuration_methods()
+    test_configuration_inzone()
     pass

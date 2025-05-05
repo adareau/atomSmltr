@@ -21,7 +21,6 @@ from abc import abstractmethod
 # % LOCAL IMPORTS
 from ..envbase import EnvObject
 from ...utils.infostring import InfoString
-from ...utils.misc import check_position_array
 
 # % ABSTRACT CLASSES
 
@@ -33,12 +32,16 @@ class Field(EnvObject):
         super(Field, self).__init__(*args, **kwargs)
 
     @property
+    def vector(self):
+        return True
+
+    @property
     @abstractmethod
     def unit():
         """str: returns the unit of the field"""
         pass
 
-    def value(self, position: np.ndarray) -> np.ndarray:
+    def get_value(self, position: np.ndarray) -> np.ndarray:
         """returns the value of the field at a given position.
 
         Parameters
@@ -59,12 +62,12 @@ class Field(EnvObject):
 
         The field value is returned as an array with the same shape as `position`.
 
-        >>> field_value = field.value(position)
+        >>> field_value = field.get_value(position)
         >>> X, Y, Z = position.T
         >>> Fx, Fy, Fz = field_value.T
         """
         # Check position
-        position = check_position_array(position)
+        position = self._check_position_array(position)
         # call hidden function that actually does the computation
         return self._field_value_func(position)
 
@@ -72,7 +75,7 @@ class Field(EnvObject):
     def _field_value_func(self, position):
         """Actual method for field computation ; defined for each subclass"""
 
-    def norm(self, position: np.ndarray) -> np.ndarray:
+    def get_norm(self, position: np.ndarray) -> np.ndarray:
         """Returns the field norm at a given position in the lab frame
 
         Parameters
@@ -86,7 +89,7 @@ class Field(EnvObject):
         norm : np.ndarray, shape (,1) or (n1, n2, .., 1)
             returns the (scalar) field norm
         """
-        F = self.value(position)
+        F = self.get_value(position)
         Fx, Fy, Fz = F.T
         F_norm = np.sqrt(Fx**2 + Fy**2 + Fz**2).T
         return F_norm
@@ -147,7 +150,7 @@ class Field(EnvObject):
         points = start[None, :] + t[:, None] * (stop - start)[None, :]
 
         # Compute field
-        B = self.value(points)
+        B = self.get_value(points)
 
         # Choose component
         if component == "Bx":
@@ -244,7 +247,7 @@ class Field(EnvObject):
             cut=cut,
         )
         # - compute field
-        mag_field = self.value(position)
+        mag_field = self.get_value(position)
         Bx, By, Bz = mag_field.T
         Bx = Bx.T
         By = By.T
@@ -347,7 +350,7 @@ class Field(EnvObject):
         X, Y, Z = grid
         position = grid.T
         # - get magnetic field
-        B = self.value(position)
+        B = self.get_value(position)
         # - normalize ?
         if normalize:
             B = B / np.max(np.abs(B.ravel()))

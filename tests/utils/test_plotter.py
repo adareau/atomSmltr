@@ -2,12 +2,27 @@ import pytest
 import numpy as np
 import matplotlib.pyplot as plt
 
+CLOSE_FIGS = True
+
+
+# figure closer decorator
+def closefigs(func):
+    global CLOSE_FIGS
+
+    def wrap():
+        func()
+        if CLOSE_FIGS:
+            plt.close("all")
+
+    return wrap
+
 
 def test_plotter_import():
     from atomsmltr.utils.plotter import Axes3D
     from atomsmltr.utils import plotter
 
 
+@closefigs
 def test_laserbeam_plotter_3D():
     from atomsmltr.environment.lasers import GaussianLaserBeam
     from atomsmltr.utils.plotter import Axes3D
@@ -77,6 +92,7 @@ def test_laserbeam_plotter_3D():
     beam3.plot3D(ax, color="green")
 
 
+@closefigs
 def test_laserbeam_plotter_2D():
     from atomsmltr.environment.lasers import GaussianLaserBeam
 
@@ -143,6 +159,7 @@ def test_laserbeam_plotter_2D():
     beam.plot2D(limits, Npoints, ax=ax[2], cut=20e-3, plane="ZX", space_scale=1e6)
 
 
+@closefigs
 def test_mag_field_plotter():
     from atomsmltr.environment.fields.magnetic import MagneticGradient, MagneticOffset
 
@@ -174,6 +191,7 @@ def test_mag_field_plotter():
     )
 
 
+@closefigs
 def test_mag_field_plotter_for_magpylib():
     import magpylib as magpy
     from atomsmltr.environment.fields.magnetic.magpylib import MagpylibWrapper
@@ -199,8 +217,41 @@ def test_mag_field_plotter_for_magpylib():
     mag_field.plot2D(plane="ZX", limits=limits, Npoints=Npoints)
 
 
+@closefigs
+def test_mag_field_1D_plotter():
+    import magpylib as magpy
+    from atomsmltr.environment.fields.magnetic import MagneticGradient, MagneticOffset
+    from atomsmltr.environment.fields.magnetic.magpylib import MagpylibWrapper
+
+    # - prepare magnetic fields
+    mag_field_list = []
+
+    # magpylib
+    loop = magpy.current.Circle(current=1, diameter=1)
+    mag_field_list.append(MagpylibWrapper(loop))
+
+    # gradient and offset
+    mag_field_list.append(MagneticOffset([0, 0, 1]))
+    mag_field_list.append(
+        MagneticGradient(
+            origin=(0, 0, 0),
+            slope=-2,
+            gradient_direction=(1, 0, 0),
+            field_direction=(0, 1, 1),
+            offset=10,
+        )
+    )
+
+    # - plot
+    for mag_field in mag_field_list:
+        for component in ["Bz", "Bx", "By", "B"]:
+            mag_field.plot1D([0, 0, 0], [1, 1, 1], component=component)
+
+
 if __name__ == "__main__":
+    CLOSE_FIGS = False
     test_laserbeam_plotter_2D()
-    test_mag_field_plotter()
-    test_mag_field_plotter_for_magpylib()
+    # test_mag_field_plotter()
+    # test_mag_field_plotter_for_magpylib()
+    # test_mag_field_1D_plotter()
     plt.show()

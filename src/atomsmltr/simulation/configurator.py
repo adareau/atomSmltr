@@ -285,7 +285,7 @@ class Configuration(object):
         B = np.zeros_like(position, dtype=float)
         if self.__magfields:
             for magfield in self.__magfields.values():
-                B += magfield.value(position)
+                B += magfield.get_value(position)
         return B
 
     def getBnorm(self, position):
@@ -398,7 +398,7 @@ class Configuration(object):
                 collection += zone
 
         # -- return results
-        return collection.in_zone(pos_speed_vector)
+        return collection.get_value(pos_speed_vector)
 
     # -- GETTING FORCES
 

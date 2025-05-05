@@ -27,9 +27,9 @@ def _generic_magfield_test(mag_field):
     assert mag_field.tag == new_tag
 
     # - check value function behaviour
-    _check_position_exceptions(mag_field.value)
-    check_vector_field_value_function(mag_field.value)
-    check_scalar_field_value_function(mag_field.norm)
+    _check_position_exceptions(mag_field.get_value)
+    check_vector_field_value_function(mag_field.get_value)
+    check_scalar_field_value_function(mag_field.get_norm)
 
 
 def test_magnetic_import():
@@ -55,12 +55,12 @@ def test_magnetic_offset():
 
     # - check values
     # -
-    assert np.allclose(mag_field.value((1, 4, 8)), offset)
+    assert np.allclose(mag_field.get_value((1, 4, 8)), offset)
     # -
     new_offset = (4.5, 2.8, np.sqrt(2))
     mag_field.field_value = new_offset
     mag_field.print_info()
-    assert np.allclose(mag_field.value((1, 4, 8)), new_offset)
+    assert np.allclose(mag_field.get_value((1, 4, 8)), new_offset)
 
     # - checking copy
     # init mag_field
@@ -106,7 +106,7 @@ def test_magnetic_gradient():
 
     # compute
     position = np.mgrid[-10:10:15j, -5:5:20j, -1:1:6j].T
-    value = mag_field.value(position)
+    value = mag_field.get_value(position)
     # check >> we make a loop, not efficient but this way we know what to expect
     X, Y, Z = position.T
     Bx, By, Bz = value.T
@@ -127,7 +127,7 @@ def test_magnetic_gradient():
     mag_field.field_direction = (1, 0, 0)
     # compute
     position = np.mgrid[-10:10:15j, -5:5:20j, -1:1:6j].T
-    value = mag_field.value(position)
+    value = mag_field.get_value(position)
     # check >> we make a loop, not efficient but this way we know what to expect
     X, Y, Z = position.T
     Bx, By, Bz = value.T
@@ -168,7 +168,7 @@ def test_magpy_integration():
     assert mag_field.tag == "wrapped"
     _generic_magfield_test(mag_field)
 
-    mag_field.value([0, 0, 0])
+    mag_field.get_value([0, 0, 0])
 
 
 def test_magnetic_quadrupole():
@@ -192,7 +192,7 @@ def test_magnetic_quadrupole():
     for x in [-5, 8, -9, 7]:
         for y in [0, 1, 2, 3, -9]:
             for z in [-8, 8, 6, 10]:
-                B = mag_field.value((x, y, z))
+                B = mag_field.get_value((x, y, z))
                 B_exp = (-2 * slope * x, slope * y, slope * z)
                 assert np.allclose(B, B_exp)
 
@@ -205,14 +205,14 @@ def test_magnetic_quadrupole():
     mag_field.print_info()
     # basic tests
     _generic_magfield_test(mag_field)
-    _check_position_exceptions(mag_field.value)
-    check_vector_field_value_function(mag_field.value)
+    _check_position_exceptions(mag_field.get_value)
+    check_vector_field_value_function(mag_field.get_value)
     # value test
     slope = mag_field.slope
     for x in [-5, 8, -9, 7]:
         for y in [0, 1, 2, 3, -9]:
             for z in [-8, 8, 6, 10]:
-                B = mag_field.value((x, y, z))
+                B = mag_field.get_value((x, y, z))
                 B_exp = (slope * x, -2 * slope * y, slope * z)
                 assert np.allclose(B, B_exp)
 
@@ -225,14 +225,14 @@ def test_magnetic_quadrupole():
     mag_field.print_info()
     # basic tests
     _generic_magfield_test(mag_field)
-    _check_position_exceptions(mag_field.value)
-    check_vector_field_value_function(mag_field.value)
+    _check_position_exceptions(mag_field.get_value)
+    check_vector_field_value_function(mag_field.get_value)
     # value test
     slope = mag_field.slope
     for x in [-5, 8, -9, 7]:
         for y in [0, 1, 2, 3, -9]:
             for z in [-8, 8, 6, 10]:
-                B = mag_field.value((x, y, z))
+                B = mag_field.get_value((x, y, z))
                 B_exp = (slope * x, slope * y, -2 * slope * z)
                 assert np.allclose(B, B_exp)
 

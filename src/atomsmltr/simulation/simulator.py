@@ -100,7 +100,7 @@ def _get_force_vec(
     atomlight_couples = config.get_atomlight_couples()
     for elements in atomlight_couples:
         transition, laser, detuning = elements
-        laser_intensity = laser.get_intensity(position)
+        laser_intensity = laser.get_value(position)
         polarization = laser.get_polarization_quant(B)
         # Doppler
         det_Doppler = -np.dot(speed, laser.kvec)
@@ -112,7 +112,7 @@ def _get_force_vec(
 
     # - loop over all forces
     for f in config.get_all_forces():
-        force = force + f.value(position)
+        force = force + f.get_value(position)
 
     return force
 
@@ -422,7 +422,7 @@ class Simulation(ABC):
         # add position tags
         for zone in position_zones:
             new_tags = np.where(
-                zone.in_zone(position),
+                zone.get_value(position),
                 {zone.in_tag},
                 {zone.out_tag},
             )
@@ -430,7 +430,7 @@ class Simulation(ABC):
         # add speed tags
         for zone in speed_zones:
             new_tags = np.where(
-                zone.in_zone(speed),
+                zone.get_value(speed),
                 {zone.in_tag},
                 {zone.out_tag},
             )
@@ -561,7 +561,7 @@ def stop_position_event_scipy(
     atomsmltr.simulation.configurator.Configuration.get_stop_zones()
     """
     position = u[0:3, ...].T
-    res = np.logical_and.reduce([zone.in_zone(position) for zone in stop_position])
+    res = np.logical_and.reduce([zone.get_value(position) for zone in stop_position])
     res = res + offset
     return res
 
@@ -591,7 +591,7 @@ def stop_speed_event_scipy(
     atomsmltr.simulation.configurator.Configuration.get_stop_zones()
     """
     speed = u[3:6, ...].T
-    res = np.logical_and.reduce([zone.in_zone(speed) for zone in stop_speed])
+    res = np.logical_and.reduce([zone.get_value(speed) for zone in stop_speed])
     res = res + offset
     return res
 
@@ -715,7 +715,7 @@ def stop_position_event(u: np.ndarray, stop_position: list):
     """
     x, y, z, _, _, _ = u.T
     position = np.array([x, y, z]).T
-    res = np.logical_and.reduce([zone.in_zone(position) for zone in stop_position])
+    res = np.logical_and.reduce([zone.get_value(position) for zone in stop_position])
     res = res
     return res
 
@@ -742,7 +742,7 @@ def stop_speed_event(u: np.ndarray, stop_speed: list):
     """
     _, _, _, vx, vy, vz = u.T
     speed = np.array([vx, vy, vz]).T
-    res = np.logical_and.reduce([zone.in_zone(speed) for zone in stop_speed])
+    res = np.logical_and.reduce([zone.get_value(speed) for zone in stop_speed])
     res = res
     return res
 

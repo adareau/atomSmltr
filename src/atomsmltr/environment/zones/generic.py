@@ -23,7 +23,7 @@ from copy import copy, deepcopy
 
 # % LOCAL IMPORTS
 from ..envbase import EnvObject
-from ...utils.misc import check_position_array, check_position_speed_array
+from ...utils.misc import check_position_speed_array
 from ...utils.infostring import InfoString
 
 # % ABSTRACT CLASSES
@@ -71,6 +71,10 @@ class Zone(EnvObject):
         self.out_tag = out_tag
 
     # -- GETTERS & SETTERS
+
+    @property
+    def vector(self):
+        return False
 
     @property
     def inverted(self):
@@ -140,7 +144,7 @@ class Zone(EnvObject):
         return new_object
 
     # -- METHODS
-    def in_zone(self, vector: np.ndarray, nocheck: bool = False) -> np.ndarray:
+    def get_value(self, vector: np.ndarray, nocheck: bool = False) -> np.ndarray:
         """Evaluates whether 'vector' is in the zone
 
         Parameters
@@ -153,7 +157,7 @@ class Zone(EnvObject):
 
         Returns
         -------
-        in_zone : array of shape (1,) or (n1, n2, ..., 1)
+        value : array of shape (1,) or (n1, n2, ..., 1)
             wheter the vector is 'in the zone'
 
         Notes
@@ -162,11 +166,11 @@ class Zone(EnvObject):
         ``vector`` should be an array of shape (...,3), where last axis contains
         the coordinates to evaluate.
 
-        if the ``inverted`` property is set to true, ``in_zone`` will return
+        if the ``inverted`` property is set to true, ``get_value`` will return
         True outside the zone
 
         """
-        vector = check_position_array(vector, nocheck)
+        vector = self._check_position_array(vector, nocheck)
         res = self._in_zone(vector)
         if self.inverted:
             res = np.logical_not(res)
@@ -174,7 +178,7 @@ class Zone(EnvObject):
 
     @abstractmethod
     def _in_zone(self, vector):
-        """actual implementationf of 'in_zone'"""
+        """actual implementationf of 'get_value'"""
 
     # -- OPERATORS OVERLOADING
 
@@ -326,7 +330,7 @@ class ANDCollection(ZoneCollection):
         return "AND Zone Collection"
 
     def _in_zone(self, vector):
-        res_list = [zone.in_zone(vector) for zone in self.zones]
+        res_list = [zone.get_value(vector) for zone in self.zones]
         return np.logical_and.reduce(res_list)
 
 
@@ -338,7 +342,7 @@ class ORCollection(ZoneCollection):
         return "OR Zone Collection"
 
     def _in_zone(self, vector):
-        res_list = [zone.in_zone(vector) for zone in self.zones]
+        res_list = [zone.get_value(vector) for zone in self.zones]
         return np.logical_or.reduce(res_list)
 
 
@@ -350,7 +354,7 @@ class XORCollection(ZoneCollection):
         return "XOR Zone Collection"
 
     def _in_zone(self, vector):
-        res_list = [zone.in_zone(vector) for zone in self.zones]
+        res_list = [zone.get_value(vector) for zone in self.zones]
         return np.logical_xor.reduce(res_list)
 
 
@@ -437,7 +441,7 @@ class SuperZone(ZoneCollection):
     def add_zones(self, zones: Zone | list):
         self.__iadd__(zones)
 
-    def in_zone(self, vector: np.ndarray, nocheck: bool = False) -> np.ndarray:
+    def get_value(self, vector: np.ndarray, nocheck: bool = False) -> np.ndarray:
         """Evaluates whether 'vector' is in the zone
 
         Parameters
@@ -450,7 +454,7 @@ class SuperZone(ZoneCollection):
 
         Returns
         -------
-        in_zone : array of shape (1,) or (n1, n2, ..., 1)
+        value : array of shape (1,) or (n1, n2, ..., 1)
             whether the vector is 'in the zone'
 
         Notes
@@ -464,7 +468,7 @@ class SuperZone(ZoneCollection):
 
         In all cases, the last dimension contains cordinates (x, y, z, vx, vy, vz),
 
-        if the ``inverted`` property is set to true, ``in_zone`` will return
+        if the ``inverted`` property is set to true, ``get_value`` will return
         True outside the zone
 
         """
@@ -491,8 +495,8 @@ class SuperZone(ZoneCollection):
                 position_zones.append(zone)
 
         # -- evaluate
-        res_list = [zone.in_zone(position) for zone in position_zones]
-        res_list += [zone.in_zone(speed) for zone in speed_zones]
+        res_list = [zone.get_value(position) for zone in position_zones]
+        res_list += [zone.get_value(speed) for zone in speed_zones]
 
         if res_list:
             res = self.__logical_op.reduce(res_list)
