@@ -12,7 +12,7 @@ from functools import partial
 
 # % LOCAL IMPORTS
 from .simbase import Simulation, SimRes, get_force_vec
-from .deterministic import stop_position_event, stop_speed_event
+from .deterministic import CustomSimulationBase
 from ..configurator import Configuration
 
 
@@ -47,7 +47,7 @@ def random_unit_vector(shape=(1,)):
 # % HOME-MADE SIMULATORS
 
 
-class RK4_spontem(Simulation):
+class RK4_spontem(CustomSimulationBase):
     """A homemade simulator based on fourth order Runge-Kutta method, taking into
     account spontaneous emission.
 
@@ -68,20 +68,6 @@ class RK4_spontem(Simulation):
     ):
         super(RK4_spontem, self).__init__(config)
 
-    def get_force(self, u):
-        # NOTE : here we only keep the mean force, i.e. not the stochastic part
-        # this is because this function is also used to plot the force field map
-        force = get_force_vec(u, self.config)
-        return force
-
-    def dudt(self, t, u):
-        F = self.get_force(u)
-        _, _, _, vx, vy, vz = u.T
-        dx, dy, dz = vx, vy, vz
-        dvx, dvy, dvz = F.T / self.config.atom.mass
-        res = np.array([dx, dy, dz, dvx, dvy, dvz]).T
-        return res
-
     def dudt_fluct(self, t, u, dt):
         _, scatt_list = get_force_vec(u, self.config, return_list=True)
         F = np.zeros_like(u[..., :3])
@@ -101,71 +87,18 @@ class RK4_spontem(Simulation):
         res = np.array([dx, dy, dz, dvx, dvy, dvz]).T
         return res
 
-    def _integrate(self, u0, t):
-        # - u0 to array
-        u = np.asanyarray(u0)
-        # - get stop events
-        events = []
-        stop_position, stop_speed = self.config.get_stop_zones()
-        if stop_position:
-            stop_pos = partial(stop_position_event, stop_position=stop_position)
-            events.append(stop_pos)
-        if stop_speed:
-            stop_sp = partial(stop_speed_event, stop_speed=stop_speed)
-            events.append(stop_sp)
-        # - time
-        # TODO : add checks on time
-        t = np.asanyarray(t)
-        t = np.sort(t)
-        dt = np.diff(t)
-        # - initialize
-        y = np.empty((*u.shape, len(t)))
-        y[..., 0] = u
-        stop = False
-        # - integrate
-        i = 1
-        u_none = np.full((6,), np.nan)
-        for i, (tt, h) in enumerate(zip(t[1:], dt)):
-            # check events
-            if events:
-                for ev in events:
-                    test = ev(u)
-                    u[np.logical_not(test), :] = u_none
-                    if not np.any(test):
-                        stop = True
-            if stop:
-                break
+    def _iterate(self, t, u, dt):
+        """returns the evolution du of u between t and t+dt
+        Here we use the fourth order Runge-Kutta method
+        """
+        # perform step
+        # 1) deterministic part
+        k1 = self.dudt(t, u)
+        k2 = self.dudt(t + 0.5 * dt, u + 0.5 * k1 * dt)
+        k3 = self.dudt(t + 0.5 * dt, u + 0.5 * k2 * dt)
+        k4 = self.dudt(t + dt, u + k3 * dt)
+        du = (dt / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
 
-            # perform step
-            # 1) deterministic part
-            k1 = self.dudt(tt, u)
-            k2 = self.dudt(tt + 0.5 * h, u + 0.5 * k1 * h)
-            k3 = self.dudt(tt + 0.5 * h, u + 0.5 * k2 * h)
-            k4 = self.dudt(tt + h, u + k3 * h)
-            u_new = u + (h / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
-
-            # 2) stochastic part
-            # TODO here
-            du = self.dudt_fluct(tt, u, h)
-            u_new += du * h
-
-            # store and iterate
-            u = u_new
-            y[..., i + 1] = u_new
-
-        if stop:
-            y = y[..., : i + 1]
-            t = t[: i + 1]
-
-        res = SimRes(t=t, y=y)
-
-        return res
-
-    def _u0_list_checker(self, value):
-        if not hasattr(value, "__iter__"):
-            raise ValueError("'u0_list' should be an iterable object")
-        if value:
-            for u0 in value:
-                if np.asanyarray(u0).shape != (6,):
-                    raise ValueError("'u0_list' should be a list of arrays of size 6")
-        return value
+        # 2) fluctating part
+        du_fluct = dt * self.dudt_fluct(t, u, dt)
+        return du + du_fluct

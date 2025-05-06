@@ -72,7 +72,7 @@ def stop_speed_event(u: np.ndarray, stop_speed: list):
     return res
 
 
-class DeterministicBase(Simulation):
+class CustomSimulationBase(Simulation):
     """A Base for home-made deterministic simulations
 
     Not meant to be used directly, just gathering common method
@@ -82,7 +82,7 @@ class DeterministicBase(Simulation):
         self,
         config: Configuration = None,
     ):
-        super(DeterministicBase, self).__init__(config)
+        super(CustomSimulationBase, self).__init__(config)
 
     def get_force(self, u):
         force = get_force_vec(u, self.config)
@@ -157,7 +157,7 @@ class DeterministicBase(Simulation):
         return value
 
 
-class RK4(DeterministicBase):
+class RK4(CustomSimulationBase):
     """A homemade simulator based on fourth order Runge-Kutta method
 
     Parameters
