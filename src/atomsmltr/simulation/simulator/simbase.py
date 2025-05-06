@@ -66,7 +66,7 @@ def _get_force_vec(
         laser_intensity = laser.get_value(position)
         polarization = laser.get_polarization_quant(B)
         # Doppler
-        det_Doppler = -np.dot(speed, laser.kvec)
+        det_Doppler = -np.dot(speed, transition.k * laser.unit_vector)
         scattering_rate = transition.get_scattering_rate(
             laser_intensity, B_norm, polarization, detuning + det_Doppler
         )

@@ -68,22 +68,22 @@ class RK4_spontem(CustomSimulationBase):
     ):
         super(RK4_spontem, self).__init__(config)
 
-    def dudt_fluct(self, t, u, dt):
+    def du_fluct(self, t, u, dt):
         _, scatt_list = get_force_vec(u, self.config, return_list=True)
-        F = np.zeros_like(u[..., :3])
+        dv_tot = np.zeros_like(u[..., :3])
         rng = np.random.default_rng()
         for scatt in scatt_list:
             rate = scatt["rate"]  # scattering rate
             k = scatt["k"]  # laser wavenumber
             Ni = rate * dt  # number of scattered photons
-            sigma_F = (
-                np.sqrt(Ni / 3.0) * csts.hbar * k / dt
-            )  # std deviation of random force
-            dF = np.asanyarray(rng.normal(loc=0, scale=sigma_F))
+            sigma_v = (
+                np.sqrt(Ni * 2) * csts.hbar * k / self.config.atom.mass
+            )  # std deviation of random speed walk
+            dv = np.asanyarray(rng.normal(loc=0, scale=sigma_v))
             direction = random_unit_vector(shape=u.shape[:-1])
-            F = F + dF[..., np.newaxis] * direction
-        dx, dy, dz = np.zeros_like(F.T)
-        dvx, dvy, dvz = F.T / self.config.atom.mass
+            dv_tot = dv_tot + dv[..., np.newaxis] * direction
+        dx, dy, dz = np.zeros_like(dv_tot.T)
+        dvx, dvy, dvz = dv_tot.T
         res = np.array([dx, dy, dz, dvx, dvy, dvz]).T
         return res
 
@@ -100,5 +100,58 @@ class RK4_spontem(CustomSimulationBase):
         du = (dt / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
 
         # 2) fluctating part
-        du_fluct = dt * self.dudt_fluct(t, u, dt)
+        du_fluct = self.du_fluct(t, u, dt)
+        return du + du_fluct
+
+
+class Euler_spontem(CustomSimulationBase):
+    """A homemade simulator based on simple Euler integration method, taking into
+    account spontaneous emission.
+
+    Parameters
+    ----------
+    config : Configuration, optional
+        the configuration to consider for the simulation
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
+
+    """
+
+    def __init__(
+        self,
+        config: Configuration = None,
+    ):
+        super(Euler_spontem, self).__init__(config)
+
+    def du_fluct(self, t, u, dt):
+        _, scatt_list = get_force_vec(u, self.config, return_list=True)
+        dv_tot = np.zeros_like(u[..., :3])
+        rng = np.random.default_rng()
+        for scatt in scatt_list:
+            rate = scatt["rate"]  # scattering rate
+            k = scatt["k"]  # laser wavenumber
+            Ni = rate * dt  # number of scattered photons
+            sigma_v = (
+                np.sqrt(Ni * 2) * csts.hbar * k / self.config.atom.mass
+            )  # std deviation of random speed walk
+            dv = np.asanyarray(rng.normal(loc=0, scale=sigma_v))
+            direction = random_unit_vector(shape=u.shape[:-1])
+            dv_tot = dv_tot + dv[..., np.newaxis] * direction
+        dx, dy, dz = np.zeros_like(dv_tot.T)
+        dvx, dvy, dvz = dv_tot.T
+        res = np.array([dx, dy, dz, dvx, dvy, dvz]).T
+        return res
+
+    def _iterate(self, t, u, dt):
+        """returns the evolution du of u between t and t+dt
+        Here we use the fourth order Runge-Kutta method
+        """
+        # perform step
+        # 1) deterministic part
+        du = dt * self.dudt(t, u)
+
+        # 2) fluctating part
+        du_fluct = self.du_fluct(t, u, dt)
         return du + du_fluct

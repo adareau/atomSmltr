@@ -12,7 +12,8 @@ __all__ = [
     "ScipyIVP_3D",
     "RK4",
     "RK4_spontem",
+    "Euler_spontem",
 ]
 
 from .configurator import Configuration
-from .simulator import ScipyIVP_3D, RK4, RK4_spontem
+from .simulator import ScipyIVP_3D, RK4, RK4_spontem, Euler_spontem

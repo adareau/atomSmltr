@@ -58,9 +58,10 @@ __all__ = [
     "ScipyIVP_3D",
     "RK4",
     "RK4_spontem",
+    "Euler_spontem",
 ]
 
 from .simbase import Simulation
 from .scipy import ScipyIVP_3D
 from .deterministic import RK4
-from .stochastic import RK4_spontem
+from .stochastic import RK4_spontem, Euler_spontem
