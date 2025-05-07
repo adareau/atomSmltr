@@ -138,11 +138,9 @@ def test_ScipyIVP_3D_batch():
     return res_list
 
 
-def test_RK4_integrator():
-    from atomsmltr.simulation import RK4
-
+def _test_homemade_integrator(Simulator):
     # - init simulation object
-    sim = RK4()
+    sim = Simulator()
     config = _init_config()
     sim.config = config
 
@@ -161,31 +159,42 @@ def test_RK4_integrator():
     return res
 
 
+def test_RK4_integrator():
+    from atomsmltr.simulation import RK4
+
+    res = _test_homemade_integrator(RK4)
+    return res
+
+
 def test_RK4_spontem_integrator():
     from atomsmltr.simulation import RK4_spontem
 
-    # - init simulation object
-    sim = RK4_spontem()
-    config = _init_config()
-    sim.config = config
+    res = _test_homemade_integrator(RK4_spontem)
+    return res
 
-    # - parameters
-    u0 = (0, 0, -0.15, 0, 0, 200)
-    t = np.linspace(0, 0.05, 100)
 
-    # - integrate
-    res = sim.integrate(u0, t)
+def test_VelocityVerlet_integrator():
+    from atomsmltr.simulation import VelocityVerlet
 
-    # - check vectorization
-    grid = np.mgrid[0:0:1j, 0:0:1j, -0.15:-0.05:10j, 0:0:1j, 0:0:1j, 10:100:10]
-    u0 = np.squeeze(grid.T)
-    res = sim.integrate(u0, t)
+    res = _test_homemade_integrator(VelocityVerlet)
+    return res
 
+
+def test_Euler_integrator():
+    from atomsmltr.simulation import Euler
+
+    res = _test_homemade_integrator(Euler)
     return res
 
 
 def test_force_integration():
-    from atomsmltr.simulation import RK4, ScipyIVP_3D, Configuration
+    from atomsmltr.simulation import (
+        RK4,
+        Euler,
+        VelocityVerlet,
+        ScipyIVP_3D,
+        Configuration,
+    )
     from atomsmltr.environment import ConstantForce
     from atomsmltr.atoms import Strontium
     import numpy as np
@@ -203,11 +212,13 @@ def test_force_integration():
     t = np.linspace(0, 1, 1000)
     u0 = np.zeros((6,))
 
-    for Sim in [RK4, ScipyIVP_3D]:
+    for Sim in [RK4, ScipyIVP_3D, VelocityVerlet, Euler]:
         res = Sim(config).integrate(u0, t)
         z = res.y[2, :]
         z_th = -0.5 * g * t**2
-        assert np.std(z - z_th) < 1e-8
+        error = np.std(z - z_th)
+        print(f"'{Sim.__name__} >> {error:.2e}'")
+        assert error < 1e-8, f"Error with simulator '{Sim.__name__}'"
 
 
 def test_zone_tags():

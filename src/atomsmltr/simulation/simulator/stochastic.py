@@ -115,15 +115,17 @@ class Euler_spontem(CustomSimulationBase):
 
     References
     ----------
-    https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
+    TODO: put here
 
     """
 
     def __init__(
         self,
         config: Configuration = None,
+        enable_fluct: bool = True,
     ):
         super(Euler_spontem, self).__init__(config)
+        self.enable_fluct = enable_fluct
 
     def du_fluct(self, t, u, dt):
         _, scatt_list = get_force_vec(u, self.config, return_list=True)
@@ -150,8 +152,15 @@ class Euler_spontem(CustomSimulationBase):
         """
         # perform step
         # 1) deterministic part
-        du = dt * self.dudt(t, u)
+        F = self.get_force(u)
+        _, _, _, vx, vy, vz = u.T
+        dvx, dvy, dvz = F.T / self.config.atom.mass * dt
+        dx = vx * dt + 0.5 * dvx * dt
+        dy = vy * dt + 0.5 * dvy * dt
+        dz = vz * dt + 0.5 * dvz * dt
+        du = np.array([dx, dy, dz, dvx, dvy, dvz]).T
 
         # 2) fluctating part
-        du_fluct = self.du_fluct(t, u, dt)
-        return du + du_fluct
+        if self.enable_fluct:
+            du += self.du_fluct(t, u, dt)
+        return du
