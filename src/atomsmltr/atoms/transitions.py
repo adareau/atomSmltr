@@ -171,6 +171,24 @@ def _scattering_rate(lbda: float, Gamma: float, I: float, detuning: float) -> fl
     return gamma_scatt
 
 
+def _Doppler_temperature(Gamma: float) -> float:
+    """Returns the Doppler temperature for a transition
+
+
+    Parameters
+    ----------
+        Gamma : float
+            natural linewidth (in rad/s)
+
+    Returns
+    -------
+        T_Doppler : float
+            Doppler temperature in K
+    """
+    T_Dopp = csts.hbar * Gamma / 2 / csts.k
+    return T_Dopp
+
+
 # % ABSTRACT CLASSES
 
 
@@ -235,6 +253,11 @@ class AtomicTransition(ABC):
     def k(self):
         """float: transition wavenumber k = 2π / λ (m^-1)"""
         return 2 * np.pi / self.wavelength
+
+    @property
+    def Doppler_temperature(self):
+        """float: Doppler temperature TD = hbar k / 2 / kB (K)"""
+        return _Doppler_temperature(self.Gamma)
 
     # -- METHODS
 
@@ -317,6 +340,7 @@ class AtomicTransition(ABC):
         info.add_element("λ", f"{self.wavelength * 1e9:.2f} nm")
         info.add_element("Γ", f"2π × {self.Gamma / 2 / np.pi:.2e} Hz")
         info.add_element("Isat", f"{self.Isat_mW_per_cm2:.2f} mw/cm²")
+        info.add_element("Doppler temp.", f"{self.Doppler_temperature:.2e} K")
         return info
 
     def gen_infostring_obj(self):

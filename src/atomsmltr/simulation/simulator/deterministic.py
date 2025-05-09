@@ -8,6 +8,7 @@ acount diffusion due to photon scattering.
 # % IMPORTS
 import numpy as np
 from functools import partial
+from abc import abstractmethod
 
 # % LOCAL IMPORTS
 from .simbase import Simulation, SimRes, get_force_vec
@@ -71,25 +72,17 @@ def stop_speed_event(u: np.ndarray, stop_speed: list):
     return res
 
 
-class RK4(Simulation):
-    """A homemade simulator based on fourth order Runge-Kutta method
+class CustomSimulationBase(Simulation):
+    """A Base for home-made deterministic simulations
 
-    Parameters
-    ----------
-    config : Configuration, optional
-        the configuration to consider for the simulation
-
-    References
-    ----------
-    https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
-
+    Not meant to be used directly, just gathering common method
     """
 
     def __init__(
         self,
         config: Configuration = None,
     ):
-        super(RK4, self).__init__(config)
+        super(CustomSimulationBase, self).__init__(config)
 
     def get_force(self, u):
         force = get_force_vec(u, self.config)
@@ -102,6 +95,10 @@ class RK4(Simulation):
         dvx, dvy, dvz = F.T / self.config.atom.mass
         res = np.array([dx, dy, dz, dvx, dvy, dvz]).T
         return res
+
+    @abstractmethod
+    def _iterate(self, t, u, dt):
+        """returns the evolution du of u between t and t+dt"""
 
     def _integrate(self, u0, t):
         # - u0 to array
@@ -139,13 +136,8 @@ class RK4(Simulation):
                 break
 
             # perform step
-            k1 = self.dudt(tt, u)
-            k2 = self.dudt(tt + 0.5 * h, u + 0.5 * k1 * h)
-            k3 = self.dudt(tt + 0.5 * h, u + 0.5 * k2 * h)
-            k4 = self.dudt(tt + h, u + k3 * h)
-            u_new = u + (h / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
-            u = u_new
-            y[..., i + 1] = u_new
+            u = u + self._iterate(tt, u, h)
+            y[..., i + 1] = u
 
         if stop:
             y = y[..., : i + 1]
@@ -163,3 +155,112 @@ class RK4(Simulation):
                 if np.asanyarray(u0).shape != (6,):
                     raise ValueError("'u0_list' should be a list of arrays of size 6")
         return value
+
+
+class RK4(CustomSimulationBase):
+    """A homemade simulator based on fourth order Runge-Kutta method
+
+    Parameters
+    ----------
+    config : Configuration, optional
+        the configuration to consider for the simulation
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
+
+    """
+
+    def __init__(
+        self,
+        config: Configuration = None,
+    ):
+        super(RK4, self).__init__(config)
+
+    def _iterate(self, t, u, dt):
+        """returns the evolution du of u between t and t+dt
+        Here we use the fourth order Runge-Kutta method
+        """
+        # perform step
+        k1 = self.dudt(t, u)
+        k2 = self.dudt(t + 0.5 * dt, u + 0.5 * k1 * dt)
+        k3 = self.dudt(t + 0.5 * dt, u + 0.5 * k2 * dt)
+        k4 = self.dudt(t + dt, u + k3 * dt)
+        du = (dt / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
+        return du
+
+
+class Euler(CustomSimulationBase):
+    """A homemade simulator based on Euler's method
+
+    Parameters
+    ----------
+    config : Configuration, optional
+        the configuration to consider for the simulation
+
+    References
+    ----------
+    TODO: put here
+
+    """
+
+    def __init__(
+        self,
+        config: Configuration = None,
+    ):
+        super(Euler, self).__init__(config)
+
+    def _iterate(self, t, u, dt):
+        """returns the evolution du of u between t and t+dt
+        Here we use the Euler method
+        """
+        F = self.get_force(u)
+        _, _, _, vx, vy, vz = u.T
+        dvx, dvy, dvz = F.T / self.config.atom.mass * dt
+        dx = vx * dt + 0.5 * dvx * dt
+        dy = vy * dt + 0.5 * dvy * dt
+        dz = vz * dt + 0.5 * dvz * dt
+        du = np.array([dx, dy, dz, dvx, dvy, dvz]).T
+        return du
+
+
+class VelocityVerlet(CustomSimulationBase):
+    """A homemade simulator based on velocity verlet method
+
+    Parameters
+    ----------
+    config : Configuration, optional
+        the configuration to consider for the simulation
+
+    References
+    ----------
+    TODO: put here
+
+    """
+
+    def __init__(
+        self,
+        config: Configuration = None,
+    ):
+        super(VelocityVerlet, self).__init__(config)
+
+    def _iterate(self, t, u, dt):
+        """returns the evolution du of u between t and t+dt
+        Here we use the Velocity verlet method
+        """
+        # 1) compute next position
+        F = self.get_force(u)
+        x, y, z, vx, vy, vz = u.T
+        ax, ay, az = F.T / self.config.atom.mass
+        dx = vx * dt + 0.5 * ax * dt**2
+        dy = vy * dt + 0.5 * ay * dt**2
+        dz = vz * dt + 0.5 * az * dt**2
+        # 2) compute next speed
+        u_next = np.array([x + dx, y + dy, z + dz, vx, vy, vz]).T
+        F_next = self.get_force(u_next)
+        ax_next, ay_next, az_next = F_next.T / self.config.atom.mass
+        dvx = 0.5 * (ax + ax_next) * dt
+        dvy = 0.5 * (ay + ay_next) * dt
+        dvz = 0.5 * (az + az_next) * dt
+        du = np.array([dx, dy, dz, dvx, dvy, dvz]).T
+        return du

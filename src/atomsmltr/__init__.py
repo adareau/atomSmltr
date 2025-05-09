@@ -12,6 +12,7 @@ Package structure
 | ``atomsmltr.environment``  : define the atom environment (lasers, mag. fields, zones)
 | ``atomsmltr.simulation``   : manage simulation configuration & run simulations
 | ``atomsmltr.utils``        : misc tools
+| ``atomsmltr.examples``     : contain pre-made example configurations
 
 """
 

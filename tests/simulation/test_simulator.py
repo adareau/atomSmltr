@@ -138,11 +138,9 @@ def test_ScipyIVP_3D_batch():
     return res_list
 
 
-def test_RK4_integrator():
-    from atomsmltr.simulation import RK4
-
+def _test_homemade_integrator(Simulator):
     # - init simulation object
-    sim = RK4()
+    sim = Simulator()
     config = _init_config()
     sim.config = config
 
@@ -161,8 +159,42 @@ def test_RK4_integrator():
     return res
 
 
+def test_RK4_integrator():
+    from atomsmltr.simulation import RK4
+
+    res = _test_homemade_integrator(RK4)
+    return res
+
+
+def test_RK4_spontem_integrator():
+    from atomsmltr.simulation import RK4_spontem
+
+    res = _test_homemade_integrator(RK4_spontem)
+    return res
+
+
+def test_VelocityVerlet_integrator():
+    from atomsmltr.simulation import VelocityVerlet
+
+    res = _test_homemade_integrator(VelocityVerlet)
+    return res
+
+
+def test_Euler_integrator():
+    from atomsmltr.simulation import Euler
+
+    res = _test_homemade_integrator(Euler)
+    return res
+
+
 def test_force_integration():
-    from atomsmltr.simulation import RK4, ScipyIVP_3D, Configuration
+    from atomsmltr.simulation import (
+        RK4,
+        Euler,
+        VelocityVerlet,
+        ScipyIVP_3D,
+        Configuration,
+    )
     from atomsmltr.environment import ConstantForce
     from atomsmltr.atoms import Strontium
     import numpy as np
@@ -180,11 +212,13 @@ def test_force_integration():
     t = np.linspace(0, 1, 1000)
     u0 = np.zeros((6,))
 
-    for Sim in [RK4, ScipyIVP_3D]:
+    for Sim in [RK4, ScipyIVP_3D, VelocityVerlet, Euler]:
         res = Sim(config).integrate(u0, t)
         z = res.y[2, :]
         z_th = -0.5 * g * t**2
-        assert np.std(z - z_th) < 1e-8
+        error = np.std(z - z_th)
+        print(f"'{Sim.__name__} >> {error:.2e}'")
+        assert error < 1e-8, f"Error with simulator '{Sim.__name__}'"
 
 
 def test_zone_tags():
@@ -338,5 +372,6 @@ if __name__ == "__main__":
     # res = test_ScipyIVP_3D_integrator()
     # res_coll = test_ScipyIVP_3D_batch()
     # res = test_RK4_integrator()
+    res = test_RK4_spontem_integrator()
     # test_zone_tags()
-    test_force_integration()
+    # test_force_integration()
