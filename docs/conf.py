@@ -104,11 +104,11 @@ html_theme_options = {
     "navbar_align": "content",  # [left, content, right] For testing that the navbar items align properly
     "navbar_center": ["navbar-nav"],
     "navbar_persistent": ["version-switcher"],
-    "switcher": {
-        "json_url": json_url,
-        # "version_match": version_match,
-    },
-    "check_switcher": False,
+    # "switcher": {
+    #     "json_url": json_url,
+    #     # "version_match": version_match,
+    # },
+    "check_switcher": True,
     "navigation_with_keys": False,
     "footer_start": ["copyright"],
     "footer_end": [],
