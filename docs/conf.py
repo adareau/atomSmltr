@@ -119,4 +119,4 @@ html_sidebars = {
 }
 
 # --- switcher
-json_url = "https://magpylib.readthedocs.io/en/latest/_static/switcher.json"
+json_url = "https://atomsmltr.readthedocs.io/en/latest/_static/switcher.json"
