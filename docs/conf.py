@@ -83,6 +83,10 @@ myst_enable_extensions = [
     "html_image",
 ]
 
+# --- switcher
+json_url = "https://atomsmltr.readthedocs.io/en/latest/_static/switcher.json"
+
+
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
@@ -100,6 +104,10 @@ html_theme_options = {
     "navbar_align": "content",  # [left, content, right] For testing that the navbar items align properly
     "navbar_center": ["navbar-nav"],
     "navbar_persistent": ["version-switcher"],
+    "switcher": {
+        "json_url": json_url,
+        # "version_match": version_match,
+    },
     "check_switcher": True,
     "navigation_with_keys": False,
     "footer_start": ["copyright"],
@@ -125,6 +133,3 @@ html_context = {
 html_sidebars = {
     "**": ["search-field.html", "sidebar-nav-bs.html", "sidebar-ethical-ads.html"],
 }
-
-# --- switcher
-json_url = "https://atomsmltr.readthedocs.io/en/latest/_static/switcher.json"
