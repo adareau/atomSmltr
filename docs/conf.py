@@ -108,7 +108,7 @@ html_theme_options = {
         "json_url": json_url,
         # "version_match": version_match,
     },
-    "check_switcher": True,
+    "check_switcher": False,
     "navigation_with_keys": False,
     "footer_start": ["copyright"],
     "footer_end": [],
