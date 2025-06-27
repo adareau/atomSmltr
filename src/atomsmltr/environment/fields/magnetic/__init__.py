@@ -28,12 +28,14 @@ __all__ = [
     "MagneticQuadrupoleY",
     "MagneticQuadrupoleZ",
     "InterpMag1D1D",
+    "InterpMag3D3D",
 ]
 from .magnetic import (
     MagneticField,
     MagneticGradient,
     MagneticOffset,
     InterpMag1D1D,
+    InterpMag3D3D,
     MagneticQuadrupoleX,
     MagneticQuadrupoleY,
     MagneticQuadrupoleZ,

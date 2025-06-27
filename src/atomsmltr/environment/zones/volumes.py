@@ -56,6 +56,11 @@ class Box(Zone):
         Currently only "stop" is implemented, by default "stop"
     tag : str, optional
         the zone tag
+    in_tag : str, optional
+        tag for an object inside the zone, by default None
+    out_tag : str, optional
+        tag for an object inside the zone, by default None
+
 
     Example
     -------
@@ -89,9 +94,13 @@ class Box(Zone):
         target: str = "position",
         action: str = "stop",
         tag: str = None,
+        in_tag: str = None,
+        out_tag: str = None,
     ):
 
-        super(Box, self).__init__(target=target, action=action, tag=tag)
+        super(Box, self).__init__(
+            target=target, action=action, tag=tag, in_tag=in_tag, out_tag=out_tag
+        )
         self.xmin = xmin
         self.xmax = xmax
         self.ymin = ymin
@@ -164,12 +173,12 @@ class Box(Zone):
     def _in_zone(self, vector):
         x, y, z = vector.T
         in_zone = (
-            (x > self.xmin)
-            & (x < self.xmax)
-            & (y > self.ymin)
-            & (y < self.ymax)
-            & (z > self.zmin)
-            & (z < self.zmax)
+            (x >= self.xmin)
+            & (x <= self.xmax)
+            & (y >= self.ymin)
+            & (y <= self.ymax)
+            & (z >= self.zmin)
+            & (z <= self.zmax)
         )
         return in_zone.T
 
@@ -183,6 +192,8 @@ class Box(Zone):
         info.add_section("Parameters")
         info.add_element("type", "3D Box")
         info.add_element("tag", self.tag)
+        info.add_element("in_tag", self.in_tag)
+        info.add_element("out_tag", self.tag)
         info.add_element("target", self.target)
         info.add_element("action", self.action)
         info.add_element(f"xmin, xmax", f"{self.xmin, self.xmax}")
@@ -221,6 +232,10 @@ class Cylinder(Zone):
         Currently only "stop" is implemented, by default "stop"
     tag : str, optional
         the zone tag
+    in_tag : str, optional
+        tag for an object inside the zone, by default None
+    out_tag : str, optional
+        tag for an object inside the zone, by default None
     """
 
     def __init__(
@@ -231,9 +246,13 @@ class Cylinder(Zone):
         target="position",
         action="stop",
         tag=None,
+        in_tag: str = None,
+        out_tag: str = None,
     ):
 
-        super(Cylinder, self).__init__(target=target, action=action, tag=tag)
+        super(Cylinder, self).__init__(
+            target=target, action=action, tag=tag, in_tag=in_tag, out_tag=out_tag
+        )
         self.origin = origin
         self.direction = direction
         self.radius = radius
@@ -291,7 +310,7 @@ class Cylinder(Zone):
         cross_product = np.cross(r, self.direction)
         distance = np.linalg.norm(cross_product, axis=-1)
         # -- cylinder
-        return distance < self.radius
+        return distance <= self.radius
 
     # -- INFOSTRING
 
@@ -303,6 +322,8 @@ class Cylinder(Zone):
         info.add_section("Parameters")
         info.add_element("type", "3D Cylinder")
         info.add_element("tag", self.tag)
+        info.add_element("in_tag", self.in_tag)
+        info.add_element("out_tag", self.tag)
         info.add_element("target", self.target)
         info.add_element("action", self.action)
         info.add_element(f"direction", f"{self.direction}")

@@ -3,11 +3,12 @@
 Content
 ------------------
 
-| ``atomsmltr.environment.fields``  : vector fields, currently only magnetic
+| ``atomsmltr.environment.fields``  : vector fields (magnetic fields & forces)
 | ``atomsmltr.environment.lasers``  : laser beams
 | ``atomsmltr.environment.zones``   : zones in position or speed space
 """
 
 from .fields.magnetic import *
+from .fields.force import *
 from .lasers import *
 from .zones import *

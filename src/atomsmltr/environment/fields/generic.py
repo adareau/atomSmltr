@@ -21,7 +21,6 @@ from abc import abstractmethod
 # % LOCAL IMPORTS
 from ..envbase import EnvObject
 from ...utils.infostring import InfoString
-from ...utils.misc import check_position_array
 
 # % ABSTRACT CLASSES
 
@@ -33,12 +32,16 @@ class Field(EnvObject):
         super(Field, self).__init__(*args, **kwargs)
 
     @property
+    def vector(self):
+        return True
+
+    @property
     @abstractmethod
     def unit():
         """str: returns the unit of the field"""
         pass
 
-    def value(self, position: np.ndarray) -> np.ndarray:
+    def get_value(self, position: np.ndarray) -> np.ndarray:
         """returns the value of the field at a given position.
 
         Parameters
@@ -59,12 +62,12 @@ class Field(EnvObject):
 
         The field value is returned as an array with the same shape as `position`.
 
-        >>> field_value = field.value(position)
+        >>> field_value = field.get_value(position)
         >>> X, Y, Z = position.T
         >>> Fx, Fy, Fz = field_value.T
         """
         # Check position
-        position = check_position_array(position)
+        position = self._check_position_array(position)
         # call hidden function that actually does the computation
         return self._field_value_func(position)
 
@@ -72,7 +75,7 @@ class Field(EnvObject):
     def _field_value_func(self, position):
         """Actual method for field computation ; defined for each subclass"""
 
-    def norm(self, position: np.ndarray) -> np.ndarray:
+    def get_norm(self, position: np.ndarray) -> np.ndarray:
         """Returns the field norm at a given position in the lab frame
 
         Parameters
@@ -86,15 +89,101 @@ class Field(EnvObject):
         norm : np.ndarray, shape (,1) or (n1, n2, .., 1)
             returns the (scalar) field norm
         """
-        F = self.value(position)
+        F = self.get_value(position)
         Fx, Fy, Fz = F.T
         F_norm = np.sqrt(Fx**2 + Fy**2 + Fz**2).T
         return F_norm
 
-    # -- PLOT
-    # TODO > plot methods, at this level !!!
-    def plot1D(self, ax=None):
-        pass
+    def plot1D(
+        self,
+        start: np.ndarray,
+        stop: np.ndarray,
+        Npoints: int = 100,
+        component: str = "Bz",
+        ax=None,
+        show: bool = False,
+        space_scale: float = 1.0,
+    ):
+        """Plots a 1D line cut of the magnetic field using Matplotlib
+
+        Parameters
+        ----------
+        start : array-like, shape (3,)
+            Starting point (x, y, z) of the line along which to sample the field.
+        stop : array-like, shape (3,)
+            Ending point (x, y, z) of the line along which to sample the field.
+        Npoints : int, optional
+            Number of points sampled along the line. Defaults to 100.
+        component : str, optional
+            Field component to plot. Accepted values are "Bx", "By", "Bz" for vector components,
+            or "B" for total field magnitude. Defaults to "Bz".
+        ax : Matplotlib Axes, optional
+            The matplotlib axis on which to plot.
+            If None is given, a new figure is created. Defaults to None.
+        show : bool, optional
+            Whether to show the figure after calling the method. Defaults to False.
+        space_scale : float, optional
+            Space coordinates will be multiplied by this when plotting. Defaults to 1.
+
+        Returns
+        -------
+        ax : Matplotlib Axes
+            The axis on which the plot was performed.
+
+        Notes
+        ------
+        The field is sampled along a straight line between `start` and `stop` using
+        `Npoints` equally spaced positions. The field component or magnitude is computed
+        and plotted as a function of the distance along the line.
+
+        Examples
+        ---------
+        >>> field.plot1D(start=[0, 0, -10], stop=[0, 0, 10], Npoints=200)
+        >>> field.plot1D(start=[0, 0, -5], stop=[5, 0, 0], component="B", show=True)
+        >>> field.plot1D(start=[-5, 0, 0], stop=[5, 0, 0], component="Bx", space_scale=1e-3)
+
+        """
+        # Create points along the line
+        start = np.array(start)
+        stop = np.array(stop)
+        t = np.linspace(0, 1, Npoints)
+        points = start[None, :] + t[:, None] * (stop - start)[None, :]
+
+        # Compute field
+        B = self.get_value(points)
+
+        # Choose component
+        if component == "Bx":
+            values = B[:, 0]
+        elif component == "By":
+            values = B[:, 1]
+        elif component == "Bz":
+            values = B[:, 2]
+        elif component == "B":
+            values = np.linalg.norm(B, axis=1)
+        else:
+            raise ValueError(
+                f"Unknown component '{component}'. Choose 'Bx', 'By', 'Bz', or 'B'."
+            )
+
+        # Compute position along the line (scaled if needed)
+        distances = np.linspace(0, np.linalg.norm(stop - start), Npoints) * space_scale
+
+        # Plot
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        ax.plot(distances, values, label=component)
+        ax.set_xlabel("Distance along line")
+        ax.set_ylabel(f"Magnetic field [{component}]")
+        ax.set_title(f"Field along 1D line from {start} to {stop}")
+        ax.grid(True)
+        ax.legend()
+
+        if show:
+            plt.show()
+
+        return ax
 
     def plot2D(
         self,
@@ -158,7 +247,7 @@ class Field(EnvObject):
             cut=cut,
         )
         # - compute field
-        mag_field = self.value(position)
+        mag_field = self.get_value(position)
         Bx, By, Bz = mag_field.T
         Bx = Bx.T
         By = By.T
@@ -261,7 +350,7 @@ class Field(EnvObject):
         X, Y, Z = grid
         position = grid.T
         # - get magnetic field
-        B = self.value(position)
+        B = self.get_value(position)
         # - normalize ?
         if normalize:
             B = B / np.max(np.abs(B.ravel()))
@@ -309,30 +398,31 @@ class Field(EnvObject):
 # % TOOL CLASSES
 
 
-class OffsetField(Field):
-    """Generates a constant offset
+class ConstantField(Field):
+    """Generates a constant field
 
     Parameters
     ----------
-    offset : np.ndarray, shape (3,), optional
-        Offset field value, by default (0, 0, 0)
+    field_value : np.ndarray, shape (3,), optional
+        Constant field value, by default (0, 0, 0)
     tag : str, optional
         Field tag, by default None
     """
 
-    def __init__(self, offset: np.ndarray = (0, 0, 0), tag: str = None):
-        self.offset = offset
+    def __init__(self, field_value: np.ndarray = (0, 0, 0), tag: str = None):
+        self.field_value = field_value
         super(Field, self).__init__(tag)
 
     # -- getters and setters
 
     @property
-    def offset(self) -> np.ndarray:
-        return self.__offset
+    def field_value(self) -> np.ndarray:
+        return self.__field_value
 
-    @offset.setter
-    def offset(self, value: np.ndarray):
-        self.__offset = self._check_3D_vector(value, "offset")
+    @field_value.setter
+    def field_value(self, value: np.ndarray):
+        """field_value (array): constant field value"""
+        self.__field_value = self._check_3D_vector(value, "value")
 
     # -- requested methods for Field
     # pylint : disable=method_hidden
@@ -348,7 +438,7 @@ class OffsetField(Field):
         # 'position' already has the right size here
         # as it contains 3D vectors (position)
         # so we can generate an homogeneous field quite easily
-        value = position * 0.0 + self.__offset
+        value = position * 0.0 + self.__field_value
         return value
 
     def gen_infostring_obj(self):
@@ -357,10 +447,10 @@ class OffsetField(Field):
         title = title[:1].upper() + title[1:]  # capitalize first letter
         info = InfoString(title=title)
         info.add_section("Parameters")
-        info.add_element("type", "offset (constant field)")
+        info.add_element("type", "constant field")
         info.add_element("tag", self.tag)
-        info.add_element(f"value ({unit})", f"{self.offset}")
-        info.add_element(f"norm ({unit})", f"{np.linalg.norm(self.offset):.3g}")
+        info.add_element(f"field_value ({unit})", f"{self.field_value}")
+        info.add_element(f"norm ({unit})", f"{np.linalg.norm(self.field_value):.3g}")
         return info
 
 

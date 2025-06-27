@@ -74,13 +74,27 @@ suppress_warnings = [
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
 
+# --- myst options
+myst_enable_extensions = [
+    "amsmath",
+    "colon_fence",
+    "deflist",
+    "dollarmath",
+    "html_image",
+]
+
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "pydata_sphinx_theme"
+html_logo = "./_static/images/atomsmltr_logo.svg"
+html_favicon = "./_static/images/favicon.ico"
 html_static_path = ["_static"]
 html_theme_options = {
     # "announcement": announcement,
+    "logo": {
+        "text": "atomSmltr",
+    },
     "header_links_before_dropdown": 4,
     "show_version_warning_banner": True,
     "navbar_align": "content",  # [left, content, right] For testing that the navbar items align properly

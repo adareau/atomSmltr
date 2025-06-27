@@ -65,6 +65,8 @@ class SingleLimit(Zone):
         elif isinstance(self, LowerLimit):
             info.add_element("type", "1D lower limit")
         info.add_element("tag", self.tag)
+        info.add_element("in_tag", self.in_tag)
+        info.add_element("out_tag", self.tag)
         info.add_element("target", self.target)
         info.add_element("action", self.action)
         info.add_element(f"value", f"{self.value}")
@@ -97,9 +99,13 @@ class UpperLimit(SingleLimit):
         the target for the zone, can be "position" or "speed", by default "position"
     action : str, optional
         the action associated to the zone.
-        Currently only "stop" is implemented, by default "stop"
+        implemented actions = ["stop", "ignore"], default is "stop"
     tag : str, optional
         the zone tag
+    in_tag : str, optional
+        tag for an object inside the zone, by default None
+    out_tag : str, optional
+        tag for an object inside the zone, by default None
 
     Example
     -------
@@ -114,15 +120,23 @@ class UpperLimit(SingleLimit):
         target: str = "position",
         action: str = "stop",
         tag: str = None,
+        in_tag: str = None,
+        out_tag: str = None,
     ):
         super(UpperLimit, self).__init__(
-            value=value, axis=axis, target=target, action=action, tag=tag
+            value=value,
+            axis=axis,
+            target=target,
+            action=action,
+            tag=tag,
+            in_tag=in_tag,
+            out_tag=out_tag,
         )
 
     def _in_zone(self, vector):
         u = {}
         u[0], u[1], u[2] = vector.T
-        in_zone = u[self.axis] < self.value
+        in_zone = u[self.axis] <= self.value
         return in_zone.T
 
     @property
@@ -143,9 +157,13 @@ class LowerLimit(SingleLimit):
         the target for the zone, can be "position" or "speed", by default "position"
     action : str, optional
         the action associated to the zone.
-        Currently only "stop" is implemented, by default "stop"
+        implemented actions = ["stop", "ignore"], default is "stop"
     tag : str, optional
         the zone tag
+    in_tag : str, optional
+        tag for an object inside the zone, by default None
+    out_tag : str, optional
+        tag for an object inside the zone, by default None
 
     Example
     -------
@@ -160,15 +178,23 @@ class LowerLimit(SingleLimit):
         target: str = "position",
         action: str = "stop",
         tag: str = None,
+        in_tag: str = None,
+        out_tag: str = None,
     ):
         super(LowerLimit, self).__init__(
-            value=value, axis=axis, target=target, action=action, tag=tag
+            value=value,
+            axis=axis,
+            target=target,
+            action=action,
+            tag=tag,
+            in_tag=in_tag,
+            out_tag=out_tag,
         )
 
     def _in_zone(self, vector):
         u = {}
         u[0], u[1], u[2] = vector.T
-        in_zone = u[self.axis] > self.value
+        in_zone = u[self.axis] >= self.value
         return in_zone.T
 
     @property
@@ -191,9 +217,14 @@ class Limits(Zone):
         the target for the zone, can be "position" or "speed", by default "position"
     action : str, optional
         the action associated to the zone.
-        Currently only "stop" is implemented, by default "stop"
+        implemented actions = ["stop", "ignore"], default is "stop"
     tag : str, optional
         the zone tag
+    in_tag : str, optional
+        tag for an object inside the zone, by default None
+    out_tag : str, optional
+        tag for an object inside the zone, by default None
+
 
     Example
     --------
@@ -208,8 +239,12 @@ class Limits(Zone):
         target: str = "position",
         action: str = "stop",
         tag: str = None,
+        in_tag: str = None,
+        out_tag: str = None,
     ):
-        super(Limits, self).__init__(target=target, action=action, tag=tag)
+        super(Limits, self).__init__(
+            target=target, action=action, tag=tag, in_tag=in_tag, out_tag=out_tag
+        )
         self.axis = axis
         self.min = min
         self.max = max
@@ -253,7 +288,7 @@ class Limits(Zone):
     def _in_zone(self, vector):
         u = {}
         u[0], u[1], u[2] = vector.T
-        in_zone = (u[self.axis] > self.min) & (u[self.axis] < self.max)
+        in_zone = (u[self.axis] >= self.min) & (u[self.axis] <= self.max)
         return in_zone.T
 
     # -- INFOSTRING
@@ -266,6 +301,8 @@ class Limits(Zone):
         info.add_section("Parameters")
         info.add_element("type", "1D limits")
         info.add_element("tag", self.tag)
+        info.add_element("in_tag", self.in_tag)
+        info.add_element("out_tag", self.tag)
         info.add_element("target", self.target)
         info.add_element("action", self.action)
         info.add_element(f"min", f"{self.min}")

@@ -36,7 +36,7 @@ A ``ANDCollection`` can be generated using the ``&`` operator :
 
 The created ``and_collection`` object then has two zones in its ``.zones`` list,
 namely ``zone1`` and ``zone2``. Its ``in_zone()`` method will return the result of
-``zone1.in_zone() and zone2.in_zone()``
+``zone1.get_value() and zone2.get_value()``
 
 
 ORCollection
