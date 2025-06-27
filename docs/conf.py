@@ -117,3 +117,6 @@ html_context = {
 html_sidebars = {
     "**": ["search-field.html", "sidebar-nav-bs.html", "sidebar-ethical-ads.html"],
 }
+
+# --- switcher
+json_url = "https://magpylib.readthedocs.io/en/latest/_static/switcher.json"
