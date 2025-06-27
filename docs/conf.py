@@ -111,7 +111,7 @@ html_theme_options = {
         {
             "name": "GitHub",
             "url": "https://github.com/adareau/atomSmltr",
-            "icon": "https://img.shields.io/github/stars/magpylib/magpylib?style=social",
+            "icon": "https://img.shields.io/github/stars/adareau/atomSmltr?style=social",
             "type": "url",
         },
     ],
