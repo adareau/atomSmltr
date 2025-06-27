@@ -107,6 +107,14 @@ html_theme_options = {
     "use_edit_page_button": True,
     "navigation_depth": 3,
     "collapse_navigation": False,
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/adareau/atomSmltr",
+            "icon": "https://img.shields.io/github/stars/magpylib/magpylib?style=social",
+            "type": "url",
+        },
+    ],
 }
 html_context = {
     "github_user": "adareau",
