@@ -9,7 +9,7 @@ rotation on those objects.
 Warning
 --------
 
-/!\ This module is still at an experimental stage /!\
+(!) This module is still at an experimental stage (!)
 
 Do not use it yet, as it might yield unexpected results
 
