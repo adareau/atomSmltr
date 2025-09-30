@@ -55,8 +55,16 @@ def test_strontium_atom():
     sr.print_info()
 
 
+def test_rubidium_atom():
+    from atomsmltr.atoms.collection import Rubidium
+
+    sr = Rubidium()
+    sr.print_info()
+
+
 if __name__ == "__main__":
     test_atom_import()
     test_atom_transitions()
     test_ytterbium_atom()
     test_strontium_atom()
+    test_rubidium_atom()
