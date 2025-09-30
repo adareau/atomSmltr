@@ -2,7 +2,7 @@
 Examples : Chen 2021
 =======================
 
-This example provides the configuration for the 1D MOT et the 1 molasse
+This example provides the configuration for the 1D MOT et the 1 molasses
 in Chen 2021 'insert exact ref here'
 """
 
@@ -69,7 +69,7 @@ config_1D_MOT.add_atomlight_coupling("las1", "main", -2 * np.pi * 12e6)
 config_1D_MOT.add_atomlight_coupling("las2", "main", -2 * np.pi * 12e6)
 
 
-# % GENERATE CONFIGURATION of the 1D molasse
+# % GENERATE CONFIGURATION of the 1D molasses
 
 
 # -- init config with strontium atom
@@ -79,37 +79,37 @@ atom_rubidium = Rubidium()
 main = atom_rubidium.trans["main"]
 
 
-# -- setup lasers of the 1D molasse
+# -- setup lasers of the 1D molasses
 # cf. config from Chen 2021
-laser_1_molasse = GaussianLaserBeam(
+laser_1_molasses = GaussianLaserBeam(
     wavelength=780.241e-9,
     waist=(1e-2) * np.sqrt(2),
     power=1e-2,
     waist_position=(0, 0, 0),
     direction=(0, 0, 1),
     polarization=CircularLeft(),
-    tag="las1molasse",
+    tag="las1molasses",
 )
 
-laser_2_molasse = GaussianLaserBeam(
+laser_2_molasses = GaussianLaserBeam(
     wavelength=780.241e-9,
     waist=(1e-2) * np.sqrt(2),
     power=1e-2,
     waist_position=(0, 0, 0),
     direction=(0, 0, -1),
     polarization=CircularLeft(),
-    tag="las2molasse",
+    tag="las2molasses",
 )
 
 
 # -- add everything to the configuration
 
-config_1D_molasse = Configuration()
-config_1D_molasse.atom = atom_rubidium
+config_1D_molasses = Configuration()
+config_1D_molasses.atom = atom_rubidium
 
 # add objects
-config_1D_molasse += laser_1_molasse, laser_2_molasse
+config_1D_molasses += laser_1_molasses, laser_2_molasses
 
 # setup atomlight
-config_1D_molasse.add_atomlight_coupling("las1molasse", "main", -2 * np.pi * 6e6)
-config_1D_molasse.add_atomlight_coupling("las2molasse", "main", -2 * np.pi * 6e6)
+config_1D_molasses.add_atomlight_coupling("las1molasses", "main", -2 * np.pi * 6e6)
+config_1D_molasses.add_atomlight_coupling("las2molasses", "main", -2 * np.pi * 6e6)
