@@ -29,7 +29,7 @@ RUBIDIUM_D2_LANDE_FACTOR = 1.0
 # %% TRANSITIONS
 
 
-class D2Line(J0J1Transition):
+class MainLine(J0J1Transition):
     """The D2 (780nm) transition of Rubidium"""
 
     def __init__(self):
@@ -37,7 +37,7 @@ class D2Line(J0J1Transition):
             lande_factor=RUBIDIUM_D2_LANDE_FACTOR,
             wavelength=RUBIDIUM_D2_WAVELENGTH,
             Gamma=RUBIDIUM_D2_GAMMA,
-            tag="D2",
+            tag="main",
         )
 
 
@@ -55,5 +55,5 @@ class Rubidium(Atom):
             name="Rubidium",
         )
         # add transitions
-        D2 = D2Line()
+        D2 = MainLine()
         self.add_transition(D2)
