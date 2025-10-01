@@ -18,28 +18,27 @@ RUBIDIUM_87_MASS = 87 * csts.m_u  # kg
 """float: Rubidium 87 mass (kg)"""
 
 
-# - main transition
-RUBIDIUM_MAIN_WAVELENGTH = 780.241e-9  # m
-"""float: Rubidium main transition wavelength (m)"""
-RUBIDIUM_MAIN_GAMMA = 38.11e6  # rad/s
-"""float: Rubidium main transition natural linewidth (rad/s)"""
-RUBIDIUM_MAIN_LANDE_FACTOR = 1.0
-"""float: Rubidium main transition Lande factor"""
+# - D2 transition
+RUBIDIUM_D2_WAVELENGTH = 780.241e-9  # m
+"""float: Rubidium D2 transition wavelength (m)"""
+RUBIDIUM_D2_GAMMA = 38.11e6  # rad/s
+"""float: Rubidium D2 transition natural linewidth (rad/s)"""
+RUBIDIUM_D2_LANDE_FACTOR = 1.0
+"""float: Rubidium D2 transition Lande factor"""
 
 # %% TRANSITIONS
 
 
-class MainLine(J0J1Transition):
-    """The main (780nm) transition of Rubidium"""
+class D2Line(J0J1Transition):
+    """The D2 (780nm) transition of Rubidium"""
 
     def __init__(self):
         super().__init__(
-            lande_factor=RUBIDIUM_MAIN_LANDE_FACTOR,
-            wavelength=RUBIDIUM_MAIN_WAVELENGTH,
-            Gamma=RUBIDIUM_MAIN_GAMMA,
-            tag="main",
+            lande_factor=RUBIDIUM_D2_LANDE_FACTOR,
+            wavelength=RUBIDIUM_D2_WAVELENGTH,
+            Gamma=RUBIDIUM_D2_GAMMA,
+            tag="D2",
         )
-
 
 
 # %% ATOM
@@ -56,6 +55,5 @@ class Rubidium(Atom):
             name="Rubidium",
         )
         # add transitions
-        main = MainLine()
-        self.add_transition(main)
-
+        D2 = D2Line()
+        self.add_transition(D2)
