@@ -36,3 +36,20 @@ def test_config_1D_molasses_structure():
     objs = config_1D_molasses.objects
     num_lasers = len(objs["laser"])
     assert num_lasers == 2, f"Il devrait y avoir 2 lasers, trouvé {num_lasers}"
+
+
+def test_config_3D_MOT_structure():
+    from atomsmltr.examples.chen2021 import config_3D_MOT
+
+    # Check if the atom is strontium
+    assert config_3D_MOT.atom.name.lower() == "rubidium"
+
+    # Vérifie qu'il y a au moins un laser et un champ magnétique
+    objs = config_3D_MOT.objects
+
+    # compter les lasers
+    num_lasers = len(objs["laser"])
+    num_mags = len(objs["magnetic field"])
+
+    assert num_lasers == 6, f"Il devrait y avoir 2 lasers, trouvé {num_lasers}"
+    assert num_mags == 1, f"Il devrait y avoir 1 champ magnétique, trouvé {num_mags}"
