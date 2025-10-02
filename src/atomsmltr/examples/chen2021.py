@@ -3,7 +3,8 @@ Examples : Chen 2021
 =======================
 
 This example provides the configuration for the 1D MOT et the 1 molasses
-in Chen 2021 'insert exact ref here'
+in Chen 2021 arXiv:2105.06447
+
 """
 
 # % IMPORTS
