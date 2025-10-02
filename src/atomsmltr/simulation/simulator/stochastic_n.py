@@ -15,8 +15,6 @@ from .simbase import Simulation, SimRes, get_force_vec
 from .deterministic import CustomSimulationBase
 from ..configurator import Configuration
 
-Gamma_ytterbium = 2 * np.pi * 28.9e6  # rad/s
-
 
 # % HOME-MADE SIMULATORS
 
@@ -157,7 +155,8 @@ class RK4_Stochastic_n(CustomSimulationBase):
         dv_tot = np.zeros((n_atoms, 3))
         # get scattering info once for the whole batch
         _, scatt_list = get_force_vec(u, self.config, return_list=True)
-        Gamma = Gamma_ytterbium
+        atom_config = self.config.atom
+        Gamma = atom_config.trans["main"].Gamma
         # compute the scattering rate Ri for each channel (as array shape (n_atoms,))
         Ri_arrays = []
         k_list = []
