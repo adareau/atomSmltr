@@ -876,3 +876,67 @@ class QuadrupoleFieldZ(BaseQuadrupoleField):
         value = np.array([slope * xc, slope * yc, -2 * slope * zc]).T
 
         return value
+
+
+class QuadrupoleField(BaseQuadrupoleField):
+    """A perfect quadrupole field with strong axis along a given vector
+
+    Parameters
+    ----------
+    origin : array, shape (,3)
+        origin for the quadrupole, in cartesian coordinates in the lab frame
+    strong_axis : array, shape (,3)
+        the direction of the strong axis
+    slope : float
+        the gradient of the weak axes
+    tag : str, optional
+        field tag, by default None
+
+    Notes
+    ------
+
+    Note that 'strong_axis' is meant to be a unit vector, but the class will take care of normalizing
+    any non normalized entry
+
+    """
+
+    def __init__(
+        self,
+        origin: np.ndarray,
+        strong_axis: np.ndarray,
+        slope: float,
+        tag: str = None,
+    ):
+        super(QuadrupoleFieldZ, self).__init__(
+            origin=origin, slope=slope, tag=tag, strong_axis=strong_axis
+        )
+
+    def _field_value_func(self, position):
+        """Returns field value at point position
+
+        position should be an array of shape (3,) or (n1,n2,..,3)
+        last axis contains coordinates x, y, z
+
+        NB: position is already checked and converted to an array in the
+            `Field` class
+        """
+        # - get X, Y, and Z
+        x, y, z = position.T
+        r = np.array([x, y, z])
+
+        # - get coordinates w.r.t origin
+        x0, y0, z0 = self.origin
+        r0 = np.array([x0, y0, z0])
+
+        xc, yc, zc = x - x0, y - y0, z - z0
+        rc = np.array([xc, yc, zc])
+
+        # - compute
+        slope = self.slope
+        strong_axis = self.strong_axis / np.linalg.norm(self.strong_axis)
+
+        value = np.dot(slope * (np.dot(rc, strong_axis)), strong_axis) - (slope / 2) * (
+            rc - np.dot(np.dot(rc, strong_axis), strong_axis)
+        )
+
+        return value
