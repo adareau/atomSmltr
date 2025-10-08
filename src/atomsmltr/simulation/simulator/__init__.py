@@ -61,9 +61,11 @@ __all__ = [
     "Euler",
     "Euler_spontem",
     "VelocityVerlet",
+    "RK4_Stochastic_n",
 ]
 
 from .simbase import Simulation
 from .scipy import ScipyIVP_3D
 from .deterministic import RK4, Euler, VelocityVerlet
 from .stochastic import RK4_spontem, Euler_spontem
+from .stochastic_n import RK4_Stochastic_n

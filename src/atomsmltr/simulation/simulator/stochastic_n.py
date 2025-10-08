@@ -155,9 +155,14 @@ class RK4_Stochastic_n(CustomSimulationBase):
         dv_tot = np.zeros((n_atoms, 3))
         # get scattering info once for the whole batch
         _, scatt_list = get_force_vec(u, self.config, return_list=True)
+        rng = np.random.default_rng()
+
+        """
         atom_config = self.config.atom
         Gamma = atom_config.trans["main"].Gamma
         # compute the scattering rate Ri for each channel (as array shape (n_atoms,))
+        """
+
         Ri_arrays = []
         k_list = []
         dir_list = []
@@ -186,6 +191,8 @@ class RK4_Stochastic_n(CustomSimulationBase):
                     direction = np.zeros((n_atoms, 3))
             dir_list.append(direction)
         # sum scattering rates per atom across channels -> shape (n_atoms,)
+
+        """
         Ri_sum = np.zeros(n_atoms)
         for Ri in Ri_arrays:
             Ri_sum = Ri_sum + Ri
@@ -197,36 +204,94 @@ class RK4_Stochastic_n(CustomSimulationBase):
         )
         N_gamma = dt * rho_ee * Gamma
         # creates a randomdirection vector
-        rng = np.random.default_rng()
+        """
+
         # loop over channels (still a small loop over beams, not atoms)
         for idx, Ri in enumerate(Ri_arrays):
             k_val = k_list[idx]
             # shape (n_atoms,3)
             direction = dir_list[idx]
+
+            """
             # Ni per atom for this channel
             if np.all(Ri_sum == 0):
                 Ni = np.zeros_like(Ri_sum)
             else:
-                Ni = np.where(Ri_sum == 0, 0.0, (Ri / Ri_sum) * N_gamma)
+                Ni = np.where(Ri_sum == 0, 0.0, (Ri / Ri_sum) * N_gamma)    
             # draw Poisson samples per atom
             N_i_tilde = rng.poisson(Ni)
+            """
+            N_i_tilde = Ri * dt
+
+            """
             # absorption force: per-atom per-channel
             # (n_atoms,1) * scalar(ki*hbar) * (n_atoms,3) -> (n_atoms,3)
             F_abs = (N_i_tilde[:, None] * (k_val * csts.hbar)) * direction
             dv_tot += F_abs / self.config.atom.mass
+            """
+
             # spontaneous emission: random directions per atom
             rd_vec = random_unit_vector(shape=(n_atoms,))  # (n_atoms,3)
-            gauss_moyenne = np.sqrt(np.maximum(N_i_tilde, 0) / 3.0) * (
-                csts.hbar * k_val
+            gauss_variance = (
+                np.sqrt(N_i_tilde * 2) * csts.hbar * k_val / self.config.atom.mass
             )
-            F_spontem = gauss_moyenne[:, None] * rd_vec
-            dv_tot += F_spontem / self.config.atom.mass
+            # correct 3D Gaussian per atom, independent components
+            dv_fluct = rng.normal(
+                loc=0.0, scale=gauss_variance[:, None], size=(n_atoms, 3)
+            )
+            dv_tot += dv_fluct
+
         # build output (n_atoms,6)
         dx = np.zeros(n_atoms)
         dy = np.zeros(n_atoms)
         dz = np.zeros(n_atoms)
         dvx, dvy, dvz = dv_tot.T
         res = np.stack([dx, dy, dz, dvx, dvy, dvz], axis=1)
+        return res
+
+    def du_fluct_2(self, t, u, dt):
+        _, scatt_list = get_force_vec(u, self.config, return_list=True)
+        dv_tot = np.zeros_like(u[..., :3])
+        rng = np.random.default_rng()
+        atom_config = self.config.atom
+        gamma = atom_config.trans["main"].Gamma
+        sum_Ri = np.zeros(len(u))
+        N_gamma = np.zeros(len(u))
+        for scatt in scatt_list:
+            sum_Ri += np.array(scatt["rate"])
+
+        safe_sum_Ri = np.where(sum_Ri == 0, 1.0, sum_Ri)
+        N_gamma = (sum_Ri / (gamma + 2 * sum_Ri)) * gamma * dt
+
+        for scatt in scatt_list:
+            rate = scatt["rate"]  # scattering rate
+            k = scatt["k"]  # laser wavenumber
+            Ni = (rate / safe_sum_Ri) * N_gamma  # number of scattered photons
+
+            direction_laser = scatt["unit_vector"]
+            N_i_tilde = rng.poisson(Ni)
+
+            # inside simulation
+            R_sum = np.sum(
+                [np.asarray(sc["rate"]) for sc in scatt_list], axis=0
+            )  # per-atom
+
+            # Spontaneous absorption
+
+            F_abs = (N_i_tilde[:, None] * (k * csts.hbar)) * direction_laser
+            dv_tot += F_abs / self.config.atom.mass
+
+            # Spontaneous emission
+
+            sigma_v = (
+                np.sqrt(N_i_tilde / 3) * csts.hbar * k / self.config.atom.mass
+            )  # std deviation of random speed walk
+            dv = np.asanyarray(rng.normal(loc=0, scale=sigma_v))
+            direction = random_unit_vector(shape=u.shape[:-1])
+            dv_tot = dv_tot + dv[..., np.newaxis] * direction
+        dx, dy, dz = np.zeros_like(dv_tot.T)
+        dvx, dvy, dvz = dv_tot.T
+        res = np.array([dx, dy, dz, dvx, dvy, dvz]).T
         return res
 
     def _iterate(self, t, u, dt):
@@ -254,7 +319,7 @@ class RK4_Stochastic_n(CustomSimulationBase):
         k4 = self.dudt(t + dt, u + k3 * dt)
         du_det = (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
         # stochastic part
-        du_fluct = self.du_fluct(t, u, dt)
+        du_fluct = self.du_fluct_2(t, u, dt)
         # sum of the two contributions
         du_tot = du_det + du_fluct
         return du_tot
@@ -305,15 +370,14 @@ class RK4_Stochastic_n(CustomSimulationBase):
             ranging from t_start to t_final
         """
         trajectories = self.resolve_stochastic(t, u)
-        start_frame = int(5 * len(t) / 6)
-        n_record_frames = max(1, len(t) - start_frame)
-        instant_temperature = np.zeros((n_record_frames, u.shape[0]))
-        for i in range(start_frame, len(t)):
-            instant_speed = trajectories[i, :, 3:6]
-            quadratic_speed = np.sum(instant_speed**2, axis=1)
-            instant_temperature[i - start_frame] = (
-                self.config.atom.mass * quadratic_speed
-            ) / (3.0 * csts.Boltzmann)
+
+        instant_speed = trajectories[:, :, 3:6]  # shape (len(t), n_atoms, 3)
+        quadratic_speed = np.sum(instant_speed**2, axis=2)  # (len(t), n_atoms)
+
+        instant_temperature = (self.config.atom.mass * quadratic_speed) / (
+            3.0 * csts.Boltzmann
+        )
+
         return instant_temperature
 
     def doppler_temperature_temporal_mean(self, t, u):

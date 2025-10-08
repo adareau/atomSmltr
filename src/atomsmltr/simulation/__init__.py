@@ -15,6 +15,7 @@ __all__ = [
     "Euler",
     "Euler_spontem",
     "VelocityVerlet",
+    "RK4_Stochastic_n",
 ]
 
 from .configurator import Configuration
@@ -25,4 +26,5 @@ from .simulator import (
     Euler,
     Euler_spontem,
     VelocityVerlet,
+    RK4_Stochastic_n,
 )
