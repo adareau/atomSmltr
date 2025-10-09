@@ -907,9 +907,7 @@ class QuadrupoleField(BaseQuadrupoleField):
         slope: float,
         tag: str = None,
     ):
-        super(QuadrupoleFieldZ, self).__init__(
-            origin=origin, slope=slope, tag=tag, strong_axis=strong_axis
-        )
+        super().__init__(origin=origin, slope=slope, tag=tag, strong_axis=strong_axis)
 
     def _field_value_func(self, position):
         """Returns field value at point position
@@ -921,22 +919,18 @@ class QuadrupoleField(BaseQuadrupoleField):
             `Field` class
         """
         # - get X, Y, and Z
-        x, y, z = position.T
-        r = np.array([x, y, z])
+        x, y, z = np.moveaxis(position, -1, 0)
 
         # - get coordinates w.r.t origin
         x0, y0, z0 = self.origin
-        r0 = np.array([x0, y0, z0])
-
         xc, yc, zc = x - x0, y - y0, z - z0
-        rc = np.array([xc, yc, zc])
+        rc = np.stack((xc, yc, zc), axis=-1)
 
         # - compute
         slope = self.slope
-        strong_axis = self.strong_axis / np.linalg.norm(self.strong_axis)
+        s = self.strong_axis / np.linalg.norm(self.strong_axis)
+        projection = np.sum(rc * s, axis=-1, keepdims=True)
 
-        value = np.dot(slope * (np.dot(rc, strong_axis)), strong_axis) - (slope / 2) * (
-            rc - np.dot(np.dot(rc, strong_axis), strong_axis)
-        )
+        value = slope * projection * s - (slope / 2) * (rc - projection * s)
 
         return value
