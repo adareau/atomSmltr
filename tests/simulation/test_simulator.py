@@ -166,17 +166,17 @@ def test_RK4_integrator():
     return res
 
 
-def test_RK4_spontem_integrator():
-    from atomsmltr.simulation import RK4_spontem
+def test_RK4St_integrator():
+    from atomsmltr.simulation import RK4St
 
-    res = _test_homemade_integrator(RK4_spontem)
+    res = _test_homemade_integrator(RK4St)
     return res
 
 
-def test_Euler_spontem_integrator():
-    from atomsmltr.simulation import Euler_spontem
+def test_EulerSt_integrator():
+    from atomsmltr.simulation import EulerSt
 
-    res = _test_homemade_integrator(Euler_spontem)
+    res = _test_homemade_integrator(EulerSt)
     return res
 
 
@@ -379,7 +379,7 @@ if __name__ == "__main__":
     # res = test_ScipyIVP_3D_integrator()
     # res_coll = test_ScipyIVP_3D_batch()
     # res = test_RK4_integrator()
-    # res = test_RK4_spontem_integrator()
-    res = test_Euler_spontem_integrator()
+    # res = test_RK4St_integrator()
+    res = test_EulerSt_integrator()
     # test_zone_tags()
     # test_force_integration()

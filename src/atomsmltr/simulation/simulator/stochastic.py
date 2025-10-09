@@ -47,7 +47,7 @@ def random_unit_vector(shape=(1,)):
 # % HOME-MADE SIMULATORS
 
 
-class RK4_spontem(CustomSimulationBase):
+class RK4St(CustomSimulationBase):
     """A homemade simulator based on fourth order Runge-Kutta method, taking into
     account spontaneous emission.
 
@@ -66,7 +66,7 @@ class RK4_spontem(CustomSimulationBase):
         self,
         config: Configuration = None,
     ):
-        super(RK4_spontem, self).__init__(config)
+        super(RK4St, self).__init__(config)
         self.rng = np.random.default_rng()
 
     def du_fluct(self, t, u, dt):
@@ -117,7 +117,7 @@ class RK4_spontem(CustomSimulationBase):
         return du + du_fluct
 
 
-class Euler_spontem(CustomSimulationBase):
+class EulerSt(CustomSimulationBase):
     """A homemade simulator based on simple Euler integration method, taking into
     account spontaneous emission.
 
@@ -141,7 +141,7 @@ class Euler_spontem(CustomSimulationBase):
         config: Configuration = None,
         enable_fluct: bool = True,
     ):
-        super(Euler_spontem, self).__init__(config)
+        super(EulerSt, self).__init__(config)
         self.enable_fluct = enable_fluct
         self.rng = np.random.default_rng()
 
