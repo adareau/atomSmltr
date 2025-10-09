@@ -171,7 +171,7 @@ def _scattering_rate(lbda: float, Gamma: float, I: float, detuning: float) -> fl
     return gamma_scatt
 
 
-def _Doppler_temperature(Gamma: float) -> float:
+def _Doppler_temperature(Gamma: float, delta: float) -> float:
     """Returns the Doppler temperature for a transition
 
 
@@ -180,12 +180,15 @@ def _Doppler_temperature(Gamma: float) -> float:
         Gamma : float
             natural linewidth (in rad/s)
 
+        delta : float
+            laser detuning (in Hz)
+
     Returns
     -------
         T_Doppler : float
             Doppler temperature in K
     """
-    T_Dopp = csts.hbar * Gamma / 2 / csts.k
+    T_Dopp = csts.hbar / 2 / csts.k * (delta**2 + Gamma**2 / 4) / np.abs(delta)
     return T_Dopp
 
 
@@ -257,9 +260,24 @@ class AtomicTransition(ABC):
     @property
     def Doppler_temperature(self):
         """float: Doppler temperature TD = hbar k / 2 / kB (K)"""
-        return _Doppler_temperature(self.Gamma)
+        return _Doppler_temperature(self.Gamma, -0.5 * self.Gamma)
 
     # -- METHODS
+
+    def get_Doppler_temperature(self, detuning: float) -> float:
+        """Returns the Doppler temperature for a given laser detuning
+
+        Parameters
+        ----------
+        detuning : float
+            laser detuning, in Hz
+
+        Returns
+        -------
+        float
+            the Doppler temperature, in K
+        """
+        return _Doppler_temperature(self.Gamma, detuning)
 
     def get_saturation_parameter(self, intensity: float, detuning: float) -> float:
         """Returns the saturation parameter (for a two-level system)
