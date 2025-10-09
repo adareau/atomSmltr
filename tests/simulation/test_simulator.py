@@ -173,6 +173,13 @@ def test_RK4_spontem_integrator():
     return res
 
 
+def test_Euler_spontem_integrator():
+    from atomsmltr.simulation import Euler_spontem
+
+    res = _test_homemade_integrator(Euler_spontem)
+    return res
+
+
 def test_VelocityVerlet_integrator():
     from atomsmltr.simulation import VelocityVerlet
 
@@ -372,6 +379,7 @@ if __name__ == "__main__":
     # res = test_ScipyIVP_3D_integrator()
     # res_coll = test_ScipyIVP_3D_batch()
     # res = test_RK4_integrator()
-    res = test_RK4_spontem_integrator()
+    # res = test_RK4_spontem_integrator()
+    res = test_Euler_spontem_integrator()
     # test_zone_tags()
     # test_force_integration()
