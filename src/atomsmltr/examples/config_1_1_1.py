@@ -2,8 +2,35 @@
 Examples : Configuration (1,1,1)
 =======================
 
-This example provides the configuration for the 3D MOT 
+This example provides the configuration for the (1,1,1) 3D MOT as described
 in 'insert exact ref here'
+"""
+
+# % EXPERIENCE DESCRIPTION
+decription = """
+
+Atomic fountain with launched 87Rb atoms in a (1,1,1) MOT configuration:
+
+In a 3D magneto-optical trap (MOT), the standard setup uses three orthogonal pairs of 
+counter-propagating laser beams along the x, y, and z axes. If we picture the trapping zone as a cube, then 
+the (1,1,1) configuration is the same as a classical MOT, only rotated such that the summit initially 
+on (1,1,1) and the one on (0,0,0) are now both located on the z-axis.
+
+This simulation models an atomic fountain using cold 87Rb atoms initially trapped in a 3D
+magneto-optical trap (MOT) in a configuration (1,1,1). 
+After cooling, the magnetic field is suppressed and the atomic ensemble is launched upwards along
+the vertical axis using a moving optical molasses, which relies on a detuning (epsilon) 
+between the upward and the downward-propagating laser beams.
+
+Physical configuration:
+- Atom species: 87Rb (D2 cooling transition at 780 nm)
+- Polarization : 2 counter-propagating σ- beams + 4 counter-propating σ+ beams
+- Laser power = 16.7 mW
+- Beam waist (1/e radius): 15.5 mm
+- MOT detuning: -3 Γ 
+- Detuning between upwards and donwards-propagating lasers : 1 Mhz
+- Quadrupole magnetic field gradient: 8.3 G/cm axial, half along radial plane
+
 """
 
 # % IMPORTS
@@ -18,7 +45,6 @@ from atomsmltr.simulation import Configuration
 from atomsmltr.atoms import Rubidium
 from atomsmltr.environment.lasers import CircularLeft, CircularRight
 from atomsmltr.environment import ConstantForce
-
 
 # --------------------------------------------------------------------------------------------------------
 
