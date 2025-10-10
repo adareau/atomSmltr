@@ -3,12 +3,66 @@ Examples : Chen 2021
 =======================
 
 This example provides the configuration for the 1D MOT et the 1 molasses
-in Chen 2021 arXiv:2105.06447
+in Chen 2021  : arXiv:2105.06447
+
+"""
+
+# % EXPERIENCE DESCRIPTION
+decription = """
+
+This code includes three example simulations from the AtomECS paper, demonstrating
+atomic motion under different laser cooling configurations:
+
+1 ) One-dimensionnal molasses : 
+This simulation models a one-dimensional optical molasses for 87Rb atoms, following the setup
+described in AtomECS. The system consists of two counter-propagating,
+red-detuned laser beams along the z-axis, forming an optical molasses that slows atomic motion
+through Doppler cooling.
+
+Physical configuration:
+- Atom species: 87Rb (main cooling transition at 780 nm)
+- Laser power: 10 mW per beam
+- Beam waist (1/e radius): 1 cm
+- Detuning: -12 MHz from resonance
+- Polarization: σ-
+
+2 ) One-dimensional Magneto-Optical Trap (1D MOT):
+This simulation models a one-dimensional magneto-optical trap for 88Sr atoms, extending the
+optical molasses setup by adding a magnetic quadrupole field along the z-axis. The combination
+of red-detuned counter-propagating laser beams and the position-dependent magnetic field
+allows atoms with velocities below the capture velocity to be trapped and cooled.
+
+Physical configuration:
+- Atom species: 88Sr (main cooling transition at 461 nm)
+- Laser power: 30 mW per beam
+- Beam waist (1/e radius): 1 cm
+- Detuning: -12 MHz from resonance
+- Polarization: σ-
+- Magnetic field type : Perfect quadrupole
+- Magnetic field direction : (0, 0, 1)
+- Magnetic field origin = (0, 0, 0)
+- Magnetic field gradient : 0.15 T/m
+
+
+3 ) Three-dimensional MOT :
+This simulation models a three-dimensional MOT for 87Rb atoms using six counter-propagating
+laser beams along the Cartesian axes, combined with a 3D quadrupole magnetic with strong axis along the z-axis. 
+
+Physical configuration:
+- Atom species: 87Rb (main cooling transition at 461 nm)
+- Laser power: 20 mW per beam
+- Beam waist (1/e radius): 1 cm
+- Detuning: -12 MHz from resonance
+- Polarization for laser along the z-axis : σ-
+- Polarization for laser along the other axis : σ+
+- Magnetic field type : Perfect quadrupole
+- Magnetic field direction : (0, 0, 1)
+- Magnetic field origin = (0, 0, 0)
+- Magnetic field gradient : 0.3 T/m
 
 """
 
 # % IMPORTS
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -18,6 +72,54 @@ from atomsmltr.atoms import Strontium, Rubidium
 from atomsmltr.simulation import Configuration
 from atomsmltr.environment.lasers import CircularLeft, CircularRight
 from atomsmltr.environment.fields.magnetic import MagneticQuadrupoleZ
+
+# --------------------------------------------------------------------------------------------------------
+
+# % GENERATE CONFIGURATION of the 1D molasses
+
+
+# -- init config with strontium atom
+atom_rubidium = Rubidium()
+
+# -- get Strontium main transition information
+main = atom_rubidium.trans["main"]
+
+
+# -- setup lasers of the 1D molasses
+# cf. config from Chen 2021
+laser_1_molasses = GaussianLaserBeam(
+    wavelength=780.241e-9,
+    waist=(1e-2) * np.sqrt(2),
+    power=1e-2,
+    waist_position=(0, 0, 0),
+    direction=(0, 0, 1),
+    polarization=CircularLeft(),
+    tag="las1molasses",
+)
+
+laser_2_molasses = GaussianLaserBeam(
+    wavelength=780.241e-9,
+    waist=(1e-2) * np.sqrt(2),
+    power=1e-2,
+    waist_position=(0, 0, 0),
+    direction=(0, 0, -1),
+    polarization=CircularLeft(),
+    tag="las2molasses",
+)
+
+
+# -- add everything to the configuration
+
+config_1D_molasses = Configuration()
+config_1D_molasses.atom = atom_rubidium
+
+# add objects
+config_1D_molasses += laser_1_molasses, laser_2_molasses
+
+# setup atomlight
+config_1D_molasses.add_atomlight_coupling("las1molasses", "main", -2 * np.pi * 6e6)
+config_1D_molasses.add_atomlight_coupling("las2molasses", "main", -2 * np.pi * 6e6)
+
 
 # --------------------------------------------------------------------------------------------------------
 
@@ -72,54 +174,6 @@ config_1D_MOT += laser_1_MOT, laser_2_MOT, mag_field_1D
 # setup atomlight
 config_1D_MOT.add_atomlight_coupling("las1mot", "main", -2 * np.pi * 12e6)
 config_1D_MOT.add_atomlight_coupling("las2mot", "main", -2 * np.pi * 12e6)
-
-
-# --------------------------------------------------------------------------------------------------------
-
-# % GENERATE CONFIGURATION of the 1D molasses
-
-
-# -- init config with strontium atom
-atom_rubidium = Rubidium()
-
-# -- get Strontium main transition information
-main = atom_rubidium.trans["main"]
-
-
-# -- setup lasers of the 1D molasses
-# cf. config from Chen 2021
-laser_1_molasses = GaussianLaserBeam(
-    wavelength=780.241e-9,
-    waist=(1e-2) * np.sqrt(2),
-    power=1e-2,
-    waist_position=(0, 0, 0),
-    direction=(0, 0, 1),
-    polarization=CircularLeft(),
-    tag="las1molasses",
-)
-
-laser_2_molasses = GaussianLaserBeam(
-    wavelength=780.241e-9,
-    waist=(1e-2) * np.sqrt(2),
-    power=1e-2,
-    waist_position=(0, 0, 0),
-    direction=(0, 0, -1),
-    polarization=CircularLeft(),
-    tag="las2molasses",
-)
-
-
-# -- add everything to the configuration
-
-config_1D_molasses = Configuration()
-config_1D_molasses.atom = atom_rubidium
-
-# add objects
-config_1D_molasses += laser_1_molasses, laser_2_molasses
-
-# setup atomlight
-config_1D_molasses.add_atomlight_coupling("las1molasses", "main", -2 * np.pi * 6e6)
-config_1D_molasses.add_atomlight_coupling("las2molasses", "main", -2 * np.pi * 6e6)
 
 
 # --------------------------------------------------------------------------------------------------------
