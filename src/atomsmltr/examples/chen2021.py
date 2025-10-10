@@ -2,7 +2,7 @@
 Examples : Chen 2021
 =======================
 
-This example provides the configuration for the 1D MOT et the 1 molasses
+This file provides the configuration for the 1D MOT, 1D molasses and 3D MOT configurations 
 in Chen 2021  : arXiv:2105.06447
 
 """
