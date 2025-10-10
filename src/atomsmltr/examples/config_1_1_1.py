@@ -7,7 +7,7 @@ in 'insert exact ref here'
 """
 
 # % EXPERIENCE DESCRIPTION
-decription = """
+description = """
 
 Atomic fountain with launched 87Rb atoms in a (1,1,1) MOT configuration:
 
