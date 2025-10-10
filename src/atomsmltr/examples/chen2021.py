@@ -2,7 +2,7 @@
 Examples : Chen 2021
 =======================
 
-This file provides the configuration for the 1D MOT, 1D molasses and 3D MOT configurations 
+This file provides the configuration for the 1D MOT, 1D molasses and 3D MOT configurations
 in Chen 2021  : arXiv:2105.06447
 
 """
@@ -10,12 +10,15 @@ in Chen 2021  : arXiv:2105.06447
 # % EXPERIENCE DESCRIPTION
 description = """
 
-This code includes three example simulations from the AtomECS paper, demonstrating
+This code includes three example simulations from the AtomECS paper (Chen et al., arXiv:2105.06447), demonstrating
 atomic motion under different laser cooling configurations.
 
-1 ) One-dimensionnal molasses : 
+1 ) One-dimensionnal molasses :
+
+>> from atomsmltr.examples.chen2021 import config_1D_molasses
+
 This simulation models a one-dimensional optical molasses for 87Rb atoms, following the setup
-described in AtomECS. The system consists of two counter-propagating, red-detuned laser beams 
+described in the AtomECS paper. The system consists of two counter-propagating, red-detuned laser beams
 along the z-axis, forming an optical molasses that slows atomic motion through Doppler cooling.
 
 Physical configuration:
@@ -26,6 +29,9 @@ Physical configuration:
 - Polarization: σ-
 
 2 ) One-dimensional Magneto-Optical Trap (1D MOT):
+
+>> from atomsmltr.examples.chen2021 import config_1D_MOT
+
 This simulation models a one-dimensional magneto-optical trap for 88Sr atoms, extending the
 optical molasses setup by adding a magnetic quadrupole field along the z-axis. The combination
 of red-detuned counter-propagating laser beams and the position-dependent magnetic field
@@ -44,8 +50,11 @@ Physical configuration:
 
 
 3 ) Three-dimensional MOT :
+
+>> from atomsmltr.examples.chen2021 import config_3D_MOT
+
 This simulation models a three-dimensional MOT for 87Rb atoms using six counter-propagating
-laser beams along the Cartesian axes, combined with a 3D quadrupole magnetic with strong axis along the z-axis. 
+laser beams along the Cartesian axes, combined with a 3D quadrupole magnetic with strong axis along the z-axis.
 
 Physical configuration:
 - Atom species: 87Rb (D2 cooling transition at 461 nm)
