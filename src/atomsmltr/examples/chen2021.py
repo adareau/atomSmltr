@@ -8,19 +8,18 @@ in Chen 2021  : arXiv:2105.06447
 """
 
 # % EXPERIENCE DESCRIPTION
-decription = """
+description = """
 
 This code includes three example simulations from the AtomECS paper, demonstrating
-atomic motion under different laser cooling configurations:
+atomic motion under different laser cooling configurations.
 
 1 ) One-dimensionnal molasses : 
 This simulation models a one-dimensional optical molasses for 87Rb atoms, following the setup
-described in AtomECS. The system consists of two counter-propagating,
-red-detuned laser beams along the z-axis, forming an optical molasses that slows atomic motion
-through Doppler cooling.
+described in AtomECS. The system consists of two counter-propagating, red-detuned laser beams 
+along the z-axis, forming an optical molasses that slows atomic motion through Doppler cooling.
 
 Physical configuration:
-- Atom species: 87Rb (main cooling transition at 780 nm)
+- Atom species: 87Rb (D2 cooling transition at 780 nm)
 - Laser power: 10 mW per beam
 - Beam waist (1/e radius): 1 cm
 - Detuning: -12 MHz from resonance
@@ -49,7 +48,7 @@ This simulation models a three-dimensional MOT for 87Rb atoms using six counter-
 laser beams along the Cartesian axes, combined with a 3D quadrupole magnetic with strong axis along the z-axis. 
 
 Physical configuration:
-- Atom species: 87Rb (main cooling transition at 461 nm)
+- Atom species: 87Rb (D2 cooling transition at 461 nm)
 - Laser power: 20 mW per beam
 - Beam waist (1/e radius): 1 cm
 - Detuning: -12 MHz from resonance
