@@ -43,7 +43,7 @@ def _test_Dopper_temp(simulator, plot=False):
     v = res.y[:, 3:6, :]
     v_norm = np.linalg.norm(v, axis=1)
     T = Ytterbium().mass * np.mean(v_norm**2, axis=0) / csts.k / 3
-    T_Doppler = csts.hbar / 2 / csts.k * (delta**2 + main.Gamma**2 / 4) / np.abs(delta)
+    T_Doppler = main.get_Doppler_temperature(delta)
     Tf = T[-1]
     error = np.abs((Tf - T_Doppler) / T_Doppler)
     if plot:
