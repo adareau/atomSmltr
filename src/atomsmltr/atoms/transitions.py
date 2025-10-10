@@ -487,6 +487,7 @@ class J0J1Transition(AtomicTransition):
     ):
         # -- get projections
         # TODO : checks here
+        polarization = np.asanyarray(polarization)
         proj_pi, proj_sigm_plus, proj_sigm_minus = polarization.T
         proj_pi = proj_pi.T
         proj_sigm_minus = proj_sigm_minus.T
