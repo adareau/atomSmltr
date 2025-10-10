@@ -907,7 +907,9 @@ class QuadrupoleField(BaseQuadrupoleField):
         slope: float,
         tag: str = None,
     ):
-        super().__init__(origin=origin, slope=slope, tag=tag, strong_axis=strong_axis)
+        super(QuadrupoleField, self).__init__(
+            origin=origin, slope=slope, tag=tag, strong_axis=strong_axis
+        )
 
     def _field_value_func(self, position):
         """Returns field value at point position
