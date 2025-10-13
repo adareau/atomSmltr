@@ -1,0 +1,12 @@
+[
+    {
+        "version": "dev",
+        "url": "https://atomsmltr.readthedocs.io/en/latest/"
+    },
+    {
+        "name": "0.1.0 (alpha)",
+        "version": "0.1.0-alpha",
+        "url": "https://atomsmltr.readthedocs.io/en/0.1.0-alpha/",
+        "preferred": true
+    }
+]
