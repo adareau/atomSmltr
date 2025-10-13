@@ -19,6 +19,7 @@ from ..generic import (
     QuadrupoleFieldX,
     QuadrupoleFieldZ,
     QuadrupoleFieldY,
+    QuadrupoleField,
 )
 from ..interpolated import InterpolatedField1D1D, InterpolatedField3D3D
 
@@ -108,6 +109,19 @@ class MagneticQuadrupoleZ(MagneticField, QuadrupoleFieldZ):
     @property
     def type(self):
         return "magnetic quadrupole z"
+
+
+class MagneticQuadrupole(MagneticField, QuadrupoleField):
+    """A perfect magnetic field quadrupole, with strong axis along a given vector (x,y,z)
+
+    See also
+    ---------
+    atomsmltr.environment.fields.generic.QuadrupoleField
+    """
+
+    @property
+    def type(self):
+        return "magnetic quadrupole"
 
 
 # -- INTERPOLATED

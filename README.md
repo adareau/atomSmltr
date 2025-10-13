@@ -103,4 +103,18 @@ plt.show()
 
 
 ## 🐍 How to contribute
-TODO: add information on tools we use (poetry, documentation, etc..)
+
+``atomsmltr`` is still under active development, and we would be more than happy to welcome contributions!
+
+We encourage anyone willing to contribute to first have a look at the global architecture underlying ``atomsmtlr``. Note that it is coded in a modular way.
+
+The easiest way to contribute would then be to expand the collection of Environment objects (magnetic field profiles, laser beam types, etc.) or to add new types of integrators in ``simulation.simulator``.
+
+Contributions to the core structure of ``atomsmltr`` would also be welcome, but should be discussed with the main development team to ensure a good coordination of efforts.
+
+In all cases, please make sure that you comply with our coding standards:
+
++ comment your code: always include docstrings, add comments to tricky code parts, etc.
++ add unit tests: whenever adding a new feature, please make sure that you write a corresponding unit test in the ``tests`` folder.
++ use black for code formatting.
++ use poetry for dependency management.
