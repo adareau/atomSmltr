@@ -1,11 +1,11 @@
 """
-Examples : Feng 2024
+Examples: Feng 2024
 =======================
 
 This example provides the configuration for the Strontium source described
-in Feng et al 2024 Quantum Sci. Technol. 9 025017 (DOI 10.1088/2058-9565/ad310b).
+in Feng et al., 2024, Quantum Sci. Technol. 9, 025017 (DOI: 10.1088/2058-9565/ad310b).
 
-This example requires magpylib.
+This example requires Magpylib.
 """
 
 # % EXPERIENCE DESCRIPTION
@@ -27,32 +27,32 @@ lasers in the Zeeman slower slow atoms along z, and orthogonal 2D MOT beams crea
 in the x-z and y-z planes.
 
 Physical configuration:
-- Atom species: 88Sr (main transition at 461 nm)
-- Magnetic field: symmetric configuration of permanent cuboid magnets
-  - Magnetization: -8.7e5 A/m along x
-  - Dimensions: 3 × 10 × 25 mm
-  - Arrangement: 4 cubes, each with 9 magnets along x, rotated ±180° along y for symmetry
+- Atom species : 88Sr (main transition at 461 nm)
+- Magnetic field : symmetric configuration of permanent cuboid magnets
+  - Magnetization : -8.7e5 A/m along x
+  - Dimensions : 3 × 10 × 25 mm
+  - Arrangement : 4 cubes, each with 9 magnets along x, rotated ±180° along the y-axis for symmetry
 - Zeeman slower lasers 1:
-  - Wavelength: 461 nm
-  - Waist: 6.7 mm
-  - Power: 45 mW
-  - Polarization: σ
-  - Direction: along negative z-axis
-  - Detuning: -13 Γ
+  - Wavelength : 461 nm
+  - Waist : 6.7 mm 
+  - Power : 45 mW 
+  - Polarization : σ+/σ−
+  - Direction : along negative z-axis
+  - Detuning : -13 Γ
 - Zeeman slower lasers 2:
   -Wavelength : 461 nm
-  - Waist ; 7.2 mm
-  - Power : 85 mW
-  - Polarization : σ
-  - Direction: along negative z-axis
-  - Detuning: -13 Γ
+  - Waist : 7.2 mm
+  - Power : 85 mW 
+  - Polarization : σ+/σ−
+  - Direction : along negative z-axis
+  - Detuning : -13 Γ
 - 2D MOT lasers:
-  - Wavelength: 461 nm
-  - Waist: 12 mm
-  - Power: 80 mW per beam
-  - Polarization: σ
-  - Directions: tilted diagonally in x-z and y-z planes (±45°)
-  - Detuning: -1.15 Γ
+  - Wavelength : 461 nm
+  - Waist : 12 mm
+  - Power : 80 mW per beam
+  - Polarization : σ+/σ−
+  - Directions : tilted diagonally in x-z and y-z planes (±45°)
+  - Detuning : -1.15 Γ
 
 """
 
