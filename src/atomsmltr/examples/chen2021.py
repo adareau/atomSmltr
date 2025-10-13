@@ -22,11 +22,11 @@ described in the AtomECS paper. The system consists of two counter-propagating, 
 along the z-axis, forming an optical molasses that slows atomic motion through Doppler cooling.
 
 Physical configuration:
-- Atom species: 87Rb (D2 cooling transition at 780 nm)
-- Laser power: 10 mW per beam
-- Beam waist (1/e radius): 1 cm
-- Detuning: -12 MHz from resonance
-- Polarization: σ-
+- Atom species : 87Rb (D2 cooling transition at 780 nm)
+- Laser power : 10 mW per beam
+- Beam waist (1/e radius) : 1 cm
+- Detuning : -12 MHz from resonance
+- Polarization : σ-
 
 2 ) One-dimensional Magneto-Optical Trap (1D MOT):
 
@@ -38,14 +38,14 @@ of red-detuned counter-propagating laser beams and the position-dependent magnet
 allows atoms with velocities below the capture velocity to be trapped and cooled.
 
 Physical configuration:
-- Atom species: 88Sr (main cooling transition at 461 nm)
-- Laser power: 30 mW per beam
+- Atom species : 88Sr (main cooling transition at 461 nm)
+- Laser power : 30 mW per beam
 - Beam waist (1/e radius): 1 cm
-- Detuning: -12 MHz from resonance
-- Polarization: σ-
+- Detuning : -12 MHz from resonance
+- Polarization : σ-
 - Magnetic field type : Perfect quadrupole
 - Magnetic field direction : (0, 0, 1)
-- Magnetic field origin = (0, 0, 0)
+- Magnetic field origin : (0, 0, 0)
 - Magnetic field gradient : 0.15 T/m
 
 
@@ -54,18 +54,18 @@ Physical configuration:
 >> from atomsmltr.examples.chen2021 import config_3D_MOT
 
 This simulation models a three-dimensional MOT for 87Rb atoms using six counter-propagating
-laser beams along the Cartesian axes, combined with a 3D quadrupole magnetic with strong axis along the z-axis.
+laser beams along the Cartesian axes, combined with a 3D quadrupole magnetic field with strong axis along the z-axis. 
 
 Physical configuration:
-- Atom species: 87Rb (D2 cooling transition at 461 nm)
-- Laser power: 20 mW per beam
-- Beam waist (1/e radius): 1 cm
-- Detuning: -12 MHz from resonance
-- Polarization for laser along the z-axis : σ-
-- Polarization for laser along the other axis : σ+
+- Atom species : 87Rb (D2 cooling transition at 461 nm)
+- Laser power : 20 mW per beam
+- Beam waist (1/e radius) : 1 cm
+- Detuning : -12 MHz from resonance
+- Polarization for lasers along the z-axis : σ-
+- Polarization for lasers along the other axis : σ+
 - Magnetic field type : Perfect quadrupole
 - Magnetic field direction : (0, 0, 1)
-- Magnetic field origin = (0, 0, 0)
+- Magnetic field origin : (0, 0, 0)
 - Magnetic field gradient : 0.3 T/m
 
 """
