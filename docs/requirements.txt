@@ -7,3 +7,4 @@ sphinx-copybutton==0.5.2
 myst-nb==1.2.0
 matplotlib==3.10.0
 pydata-sphinx-theme==0.16.1
+atomsmltr>=0.1.0
