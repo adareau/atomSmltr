@@ -3,7 +3,7 @@ Examples : Chen 2021
 =======================
 
 This file provides the configuration for the 1D MOT, 1D molasses and 3D MOT configurations 
-in Chen 2021  : arXiv:2105.06447
+in Chen 2021: arXiv:2105.06447
 
 """
 
@@ -13,17 +13,17 @@ description = """
 This code includes three example simulations from the AtomECS paper, demonstrating
 atomic motion under different laser cooling configurations.
 
-1 ) One-dimensionnal molasses : 
+1 ) One-dimensional molasses : 
 This simulation models a one-dimensional optical molasses for 87Rb atoms, following the setup
-described in AtomECS. The system consists of two counter-propagating, red-detuned laser beams 
+described in AtomECS. The system consists of two counter-propagating red-detuned laser beams 
 along the z-axis, forming an optical molasses that slows atomic motion through Doppler cooling.
 
 Physical configuration:
-- Atom species: 87Rb (D2 cooling transition at 780 nm)
-- Laser power: 10 mW per beam
-- Beam waist (1/e radius): 1 cm
-- Detuning: -12 MHz from resonance
-- Polarization: σ-
+- Atom species : 87Rb (D2 cooling transition at 780 nm)
+- Laser power : 10 mW per beam
+- Beam waist (1/e radius) : 1 cm
+- Detuning : -12 MHz from resonance
+- Polarization : σ-
 
 2 ) One-dimensional Magneto-Optical Trap (1D MOT):
 This simulation models a one-dimensional magneto-optical trap for 88Sr atoms, extending the
@@ -32,31 +32,31 @@ of red-detuned counter-propagating laser beams and the position-dependent magnet
 allows atoms with velocities below the capture velocity to be trapped and cooled.
 
 Physical configuration:
-- Atom species: 88Sr (main cooling transition at 461 nm)
-- Laser power: 30 mW per beam
+- Atom species : 88Sr (main cooling transition at 461 nm)
+- Laser power : 30 mW per beam
 - Beam waist (1/e radius): 1 cm
-- Detuning: -12 MHz from resonance
-- Polarization: σ-
+- Detuning : -12 MHz from resonance
+- Polarization : σ-
 - Magnetic field type : Perfect quadrupole
 - Magnetic field direction : (0, 0, 1)
-- Magnetic field origin = (0, 0, 0)
+- Magnetic field origin : (0, 0, 0)
 - Magnetic field gradient : 0.15 T/m
 
 
 3 ) Three-dimensional MOT :
 This simulation models a three-dimensional MOT for 87Rb atoms using six counter-propagating
-laser beams along the Cartesian axes, combined with a 3D quadrupole magnetic with strong axis along the z-axis. 
+laser beams along the Cartesian axes, combined with a 3D quadrupole magnetic field with strong axis along the z-axis. 
 
 Physical configuration:
-- Atom species: 87Rb (D2 cooling transition at 461 nm)
-- Laser power: 20 mW per beam
-- Beam waist (1/e radius): 1 cm
-- Detuning: -12 MHz from resonance
-- Polarization for laser along the z-axis : σ-
-- Polarization for laser along the other axis : σ+
+- Atom species : 87Rb (D2 cooling transition at 461 nm)
+- Laser power : 20 mW per beam
+- Beam waist (1/e radius) : 1 cm
+- Detuning : -12 MHz from resonance
+- Polarization for lasers along the z-axis : σ-
+- Polarization for lasers along the other axis : σ+
 - Magnetic field type : Perfect quadrupole
 - Magnetic field direction : (0, 0, 1)
-- Magnetic field origin = (0, 0, 0)
+- Magnetic field origin : (0, 0, 0)
 - Magnetic field gradient : 0.3 T/m
 
 """
