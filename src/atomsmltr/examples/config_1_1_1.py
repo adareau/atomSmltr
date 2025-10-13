@@ -80,7 +80,8 @@ laser_1 = GaussianLaserBeam(
     waist=22e-3,
     power=100e-3 / 6,
     waist_position=(0, 0, 0),
-    direction=(0, 0, 1),
+    direction=(0.955, 0),
+    direction_type="thetaphi",
     polarization=CircularLeft(),
     tag="las1",
 )
@@ -90,17 +91,22 @@ laser_2 = GaussianLaserBeam(
     waist=22e-3,
     power=100e-3 / 6,
     waist_position=(0, 0, 0),
-    direction=(0, 0, -1),
+    direction=(2.187, 0),
+    direction_type="thetaphi",
     polarization=CircularLeft(),
     tag="las2",
 )
+
+print(laser_2.direction_type)
+print(laser_2.direction)
 
 laser_3 = GaussianLaserBeam(
     wavelength=780.241e-9,
     waist=22e-3,
     power=100e-3 / 6,
     waist_position=(0, 0, 0),
-    direction=(1, 0, 0),
+    direction=(0.955, -1.047),
+    direction_type="thetaphi",
     polarization=CircularRight(),
     tag="las3",
 )
@@ -110,7 +116,8 @@ laser_4 = GaussianLaserBeam(
     waist=22e-3,
     power=100e-3 / 6,
     waist_position=(0, 0, 0),
-    direction=(-1, 0, 0),
+    direction=(2.186, 2.0946),
+    direction_type="thetaphi",
     polarization=CircularRight(),
     tag="las4",
 )
@@ -120,7 +127,8 @@ laser_5 = GaussianLaserBeam(
     waist=22e-3,
     power=100e-3 / 6,
     waist_position=(0, 0, 0),
-    direction=(0, 1, 0),
+    direction=(0.955, 1.047),
+    direction_type="thetaphi",
     polarization=CircularRight(),
     tag="las5",
 )
@@ -130,7 +138,8 @@ laser_6 = GaussianLaserBeam(
     waist=22e-3,
     power=100e-3 / 6,
     waist_position=(0, 0, 0),
-    direction=(0, -1, 0),
+    direction=(2.186, -2.0946),
+    direction_type="thetaphi",
     polarization=CircularRight(),
     tag="las6",
 )
@@ -141,10 +150,6 @@ config = Configuration()
 config.atom = atom
 config.add_objects([gravity])
 config += laser_1, laser_2, laser_3, laser_4, laser_5, laser_6
-
-
-# -- rotate the config to a (1,1,1)
-config.config_to_1_1_1()
 
 
 # -- setup lasers detuning parameters of the 3D MOT
@@ -158,7 +163,7 @@ list_lasers = config.list_lasers()
 for laser_name in list_lasers:
     laser = config.get_laser_copy(laser_name)
     direction = laser.direction
-    if direction[2] > 0:
+    if direction[0] < np.pi / 2:
         config.add_atomlight_coupling(laser_name, "main", detuning + epsilon)
     else:
         config.add_atomlight_coupling(laser_name, "main", detuning - epsilon)
