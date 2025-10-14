@@ -54,7 +54,7 @@ Physical configuration:
 >> from atomsmltr.examples.chen2021 import config_3D_MOT
 
 This simulation models a three-dimensional MOT for 87Rb atoms using six counter-propagating
-laser beams along the Cartesian axes, combined with a 3D quadrupole magnetic field with strong axis along the z-axis. 
+laser beams along the Cartesian axes, combined with a 3D quadrupole magnetic field with strong axis along the z-axis.
 
 Physical configuration:
 - Atom species : 87Rb (D2 cooling transition at 461 nm)
