@@ -198,7 +198,7 @@ main = atom_rubidium.trans["main"]
 # -- setup magnetic field: perfect quadrupole with a strong Z-axis in Chen 2021
 # Define magnet properties
 origin_3D = np.array((0, 0, 0))
-gradient_3D = 0.3  # T/m
+gradient_3D = 18.2 * 1e-4  # T/m
 mag_field_3D = MagneticQuadrupoleZ(
     origin=origin_3D, slope=gradient_3D, tag="mag_field_3D"
 )
