@@ -29,43 +29,10 @@ from ..environment import LaserBeam, MagneticField, Zone, SuperZone, Force
 from ..environment.envbase import EnvObject
 from ..atoms import Atom
 from ..utils.infostring import InfoString
-from atomsmltr.environment.lasers import Linear, CircularLeft, CircularRight, Vector
-
 
 # % CONSTANTS
 
 SEP_STR = "# ------------ {} ------------ #"
-
-
-def rotation_x(theta):
-    return np.array(
-        [
-            [1, 0, 0],
-            [0, np.cos(theta), -np.sin(theta)],
-            [0, np.sin(theta), np.cos(theta)],
-        ]
-    )
-
-
-def rotation_y(theta):
-    return np.array(
-        [
-            [np.cos(theta), 0, np.sin(theta)],
-            [0, 1, 0],
-            [-np.sin(theta), 0, np.cos(theta)],
-        ]
-    )
-
-
-def rotation_z(theta):
-    return np.array(
-        [
-            [np.cos(theta), -np.sin(theta), 0],
-            [np.sin(theta), np.cos(theta), 0],
-            [0, 0, 1],
-        ]
-    )
-
 
 # % DEFINE THE CLASS
 
@@ -977,83 +944,3 @@ class Configuration(object):
         """updates the objects"""
         self.update_objects(object)
         return self
-
-    # Implements rotations of objects
-
-    def laser_rotation(self, Rotation_array, Laser_name_list=None):
-        """
-        Rotates the specified lasers according to Rotation_array.
-
-        Parameters
-        ----------
-        Rotation_array : array-like
-            Each row: [theta, x0, y0, z0, rot_x, rot_y, rot_z]
-            theta: rotation angle (rad)
-            x0, y0, z0: rotation center
-            rot_x, rot_y, rot_z: 1 if rotation about that axis, 0 otherwise
-        Laser_name_list : list, optional
-            List of laser names to rotate. Defaults to all lasers.
-        """
-
-        # Select lasers to rotate
-        if Laser_name_list == None:
-            laser_list = self.list_lasers()
-        else:
-            laser_list = Laser_name_list
-
-        # --- Step 1: rotate waist positions ---
-        for laser_name in laser_list:
-            R_total = np.eye(3)
-
-            laser = self.get_laser_copy(laser_name)
-
-            for rotation in Rotation_array:
-                theta, x0, y0, z0 = rotation[:4]
-                rot_axes = rotation[4:7]
-
-                # Relative position
-                r_0 = np.array(laser.waist_position) - np.array([x0, y0, z0])
-
-                if rot_axes[0] == 1:
-                    Rx = rotation_x(theta)
-                    r_rot = Rx @ r_0
-                    R_total = Rx @ R_total
-                elif rot_axes[1] == 1:
-                    Ry = rotation_y(theta)
-                    r_rot = Ry @ r_0
-                    R_total = Ry @ R_total
-                elif rot_axes[2] == 1:
-                    Rz = rotation_z(theta)
-                    r_rot = Rz @ r_0
-                    R_total = Rz @ R_total
-                else:
-                    r_rot = r_0
-
-                # Update waist
-                laser.waist_position = r_rot + np.array([x0, y0, z0])
-
-            self.update_objects(laser, verbose=True)
-
-        # now we handle the direction
-
-        for laser_name in laser_list:
-            laser = self.get_laser_copy(laser_name)
-            pol_lab = laser.get_polarization_vector_in_lab_frame()
-            laser.direction = R_total @ laser.direction
-
-            # Rotate polarization in lab frame using built-in methods
-
-            pol_rotated_lab = R_total @ pol_lab
-
-            # Update laser polarization in laser frame
-
-            pol_rotated_laser = laser._convert_vector_to_laser_frame(pol_rotated_lab)
-
-            laser.polarization = Vector(pol_rotated_laser)
-
-            self.update_objects(laser)
-
-    def config_to_1_1_1(self):
-        self.laser_rotation(
-            np.array([[-np.pi / 4, 0, 0, 0, 0, 0, 1], [-0.955, 0, 0, 0, 0, 1, 0]])
-        )
