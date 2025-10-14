@@ -3,7 +3,7 @@ Examples : Configuration (1,1,1)
 =======================
 
 This example provides the configuration for the (1,1,1) 3D MOT as described
-in 'insert exact ref here'
+in http://dx.doi.org/10.1103/PhysRevLett.100.050801
 """
 
 # % EXPERIENCE DESCRIPTION
@@ -11,23 +11,25 @@ description = """
 
 Atomic fountain with launched 87Rb atoms in a (1,1,1) MOT configuration:
 
-In a 3D magneto-optical trap (MOT), the standard setup uses three orthogonal pairs of 
-counter-propagating laser beams along the x, y, and z axis. If we picture the trapping zone as a cube, then 
-the (1,1,1) configuration is the same as a classical MOT, only rotated such that the summit initially 
+Ref: http://dx.doi.org/10.1103/PhysRevLett.100.050801
+
+In a 3D magneto-optical trap (MOT), the standard setup uses three orthogonal pairs of
+counter-propagating laser beams along the x, y, and z axis. If we picture the trapping zone as a cube, then
+the (1,1,1) configuration is the same as a classical MOT, only rotated such that the summit initially
 on (1,1,1) and the one on (0,0,0) are now both located on the z-axis.
 
 To do so, we first rotate the lasers by φ = -π/4 (around the z-axis), thus the summit initially in (1,1,1) is
 now in (sqrt(2), 0, 1).
-Then, we rotate them by an angle θ around the y-axix, such that the the summit initially in (sqrt(2), 0, 1) 
-is now in (0, 0, sqrt(3)) (because the rotations are orthogonal, the norm of the vector remains the same), 
+Then, we rotate them by an angle θ around the y-axix, such that the the summit initially in (sqrt(2), 0, 1)
+is now in (0, 0, sqrt(3)) (because the rotations are orthogonal, the norm of the vector remains the same),
 and we solve for θ using the rotation matrix.
 
 You can refer to the github in "" for exact calculations.
 
 This simulation models an atomic fountain using cold 87Rb atoms initially trapped in a 3D
-magneto-optical trap (MOT) in a configuration (1,1,1). 
+magneto-optical trap (MOT) in a configuration (1,1,1).
 After cooling, the magnetic field is suppressed and the atomic ensemble is launched upwards along
-the vertical axis using a moving optical molasses, which relies on a detuning (epsilon) 
+the vertical axis using a moving optical molasses, which relies on a detuning (epsilon)
 between the upward and the downward-propagating laser beams.
 
 Physical configuration:
@@ -35,7 +37,7 @@ Physical configuration:
 - Polarization : 2 counter-propagating σ- beams + 4 counter-propating σ+ beams
 - Laser power : 16.7 mW
 - Beam waist (1/e radius) : 15.5 mm
-- MOT detuning : -3 Γ 
+- MOT detuning : -3 Γ
 - Detuning between upwards and donwards-propagating lasers : 1 Mhz
 
 """
@@ -43,7 +45,6 @@ Physical configuration:
 # % IMPORTS
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 # % LOCAL IMPORTS
 
@@ -62,14 +63,13 @@ from atomsmltr.environment import ConstantForce
 # -- init config with rubidium atom
 atom = Rubidium()
 
-# -- get Strontium main transition information
+# -- get rubidium main (D2) transition information
 main = atom.trans["main"]
 gamma = main.Gamma
 
 
-# -- setup magnetic field: perfect quadrupole with a strong Z-axis in Chen 2021
-# Define magnet properties
-
+# -- setup magnetic field
+# no magnetic field here ¯\_(ツ)_/¯
 
 # -- add the relevant constant forces
 
