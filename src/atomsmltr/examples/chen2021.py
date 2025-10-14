@@ -54,7 +54,7 @@ Physical configuration:
 >> from atomsmltr.examples.chen2021 import config_3D_MOT
 
 This simulation models a three-dimensional MOT for 87Rb atoms using six counter-propagating
-laser beams along the Cartesian axes, combined with a 3D quadrupole magnetic field with strong axis along the z-axis. 
+laser beams along the Cartesian axes, combined with a 3D quadrupole magnetic field with strong axis along the z-axis.
 
 Physical configuration:
 - Atom species : 87Rb (D2 cooling transition at 461 nm)
@@ -198,7 +198,7 @@ main = atom_rubidium.trans["main"]
 # -- setup magnetic field: perfect quadrupole with a strong Z-axis in Chen 2021
 # Define magnet properties
 origin_3D = np.array((0, 0, 0))
-gradient_3D = 18.2 * 1e-4  # T/m
+gradient_3D = 0.3  # T/m
 mag_field_3D = MagneticQuadrupoleZ(
     origin=origin_3D, slope=gradient_3D, tag="mag_field_3D"
 )
