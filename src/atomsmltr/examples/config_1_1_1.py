@@ -16,6 +16,14 @@ counter-propagating laser beams along the x, y, and z axis. If we picture the tr
 the (1,1,1) configuration is the same as a classical MOT, only rotated such that the summit initially 
 on (1,1,1) and the one on (0,0,0) are now both located on the z-axis.
 
+To do so, we first rotate the lasers by φ = -π/4 (around the z-axis), thus the summit initially in (1,1,1) is
+now in (sqrt(2), 0, 1).
+Then, we rotate them by an angle θ around the y-axix, such that the the summit initially in (sqrt(2), 0, 1) 
+is now in (0, 0, sqrt(3)) (because the rotations are orthogonal, the norm of the vector remains the same), 
+and we solve for θ using the rotation matrix.
+
+You can refer to the github in "" for exact calculations.
+
 This simulation models an atomic fountain using cold 87Rb atoms initially trapped in a 3D
 magneto-optical trap (MOT) in a configuration (1,1,1). 
 After cooling, the magnetic field is suppressed and the atomic ensemble is launched upwards along
@@ -47,6 +55,7 @@ from atomsmltr.environment import ConstantForce
 
 # --------------------------------------------------------------------------------------------------------
 
+
 # % GENERATE CONFIGURATION of the (1,1,1) 3D MOT
 
 
@@ -73,7 +82,6 @@ gravity = ConstantForce(field_value=grav_force, tag="gravity")
 
 # -- setup lasers of the 1D MOT
 # cf. config from 'insert ref here'
-
 
 laser_1 = GaussianLaserBeam(
     wavelength=780.241e-9,
