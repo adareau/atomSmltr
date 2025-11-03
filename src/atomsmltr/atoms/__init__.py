@@ -28,10 +28,11 @@ __all__ = [
     "Atom",
     "Ytterbium",
     "Strontium",
+    "Rubidium",
     "DummyTransition",
     "J0J1Transition",
 ]
 
 from .generic import Atom
-from .collection import Ytterbium, Strontium
+from .collection import Ytterbium, Strontium, Rubidium
 from .transitions import DummyTransition, J0J1Transition

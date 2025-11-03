@@ -12,6 +12,7 @@ Package structure
 | ``atomsmltr.environment``  : define the atom environment (lasers, mag. fields, zones)
 | ``atomsmltr.simulation``   : manage simulation configuration & run simulations
 | ``atomsmltr.utils``        : misc tools
+| ``atomsmltr.examples``     : contain pre-made example configurations
 
 """
 
@@ -25,6 +26,7 @@ __all__ = [
     "fields",
     "simulation",
     "utils",
+    "examples",
 ]
 
 from atomsmltr import atoms
@@ -32,3 +34,4 @@ from atomsmltr import datapipe
 from atomsmltr.environment import lasers, zones, fields
 from atomsmltr import simulation
 from atomsmltr import utils
+from atomsmltr import examples

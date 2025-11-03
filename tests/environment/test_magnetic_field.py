@@ -176,6 +176,7 @@ def test_magnetic_quadrupole():
         MagneticQuadrupoleX,
         MagneticQuadrupoleZ,
         MagneticQuadrupoleY,
+        MagneticQuadrupole,
     )
 
     # -- Quadrupole X
@@ -234,6 +235,30 @@ def test_magnetic_quadrupole():
             for z in [-8, 8, 6, 10]:
                 B = mag_field.get_value((x, y, z))
                 B_exp = (slope * x, slope * y, -2 * slope * z)
+                assert np.allclose(B, B_exp)
+
+    # -- Generic Quadrupole
+    # init
+    mag_field = MagneticQuadrupole(origin=(0, 0, 0), strong_axis=(1, 1, 1), slope=0.5)
+    mag_field.print_info()
+    # basic tests
+    _generic_magfield_test(mag_field)
+    _check_position_exceptions(mag_field.get_value)
+    check_vector_field_value_function(mag_field.get_value)
+    # value test
+    slope = mag_field.slope
+    strong_axis = np.array(mag_field.strong_axis)
+    strong_axis = strong_axis / np.linalg.norm(strong_axis)
+    for x in [-5, 8, -9, 7]:
+        for y in [0, 1, 2, 3, -9]:
+            for z in [-8, 8, 6, 10]:
+                r = np.array([x, y, z])
+                rc = r - np.array(mag_field.origin)
+                B_exp = slope * np.dot(rc, strong_axis) * strong_axis - (slope / 2) * (
+                    rc - np.dot(np.dot(rc, strong_axis), strong_axis)
+                )
+                B = mag_field.get_value((x, y, z))
+
                 assert np.allclose(B, B_exp)
 
 

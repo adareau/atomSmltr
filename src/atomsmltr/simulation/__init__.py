@@ -11,7 +11,18 @@ __all__ = [
     "Configuration",
     "ScipyIVP_3D",
     "RK4",
+    "RK4St",
+    "Euler",
+    "EulerSt",
+    "VelocityVerlet",
 ]
 
 from .configurator import Configuration
-from .simulator import ScipyIVP_3D, RK4
+from .simulator import (
+    ScipyIVP_3D,
+    RK4,
+    RK4St,
+    Euler,
+    EulerSt,
+    VelocityVerlet,
+)

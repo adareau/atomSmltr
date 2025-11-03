@@ -2,7 +2,7 @@
 Examples
 ==========
 
-Nice examples here
+In this section you will find a collection of examples illustrating the use of atomsmltr.
 
 .. toctree::
    :maxdepth: 1

@@ -83,6 +83,13 @@ myst_enable_extensions = [
     "html_image",
 ]
 
+# --- switcher
+json_url = "https://atomsmltr.readthedocs.io/en/latest/_static/switcher.json"
+
+
+# -- Options for myst-nb
+nb_execution_mode = "off"
+
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
@@ -100,6 +107,10 @@ html_theme_options = {
     "navbar_align": "content",  # [left, content, right] For testing that the navbar items align properly
     "navbar_center": ["navbar-nav"],
     "navbar_persistent": ["version-switcher"],
+    # "switcher": {
+    #     "json_url": json_url,
+    #     # "version_match": version_match,
+    # },
     "check_switcher": True,
     "navigation_with_keys": False,
     "footer_start": ["copyright"],
@@ -107,6 +118,14 @@ html_theme_options = {
     "use_edit_page_button": True,
     "navigation_depth": 3,
     "collapse_navigation": False,
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/adareau/atomSmltr",
+            "icon": "https://img.shields.io/github/stars/adareau/atomSmltr?style=social",
+            "type": "url",
+        },
+    ],
 }
 html_context = {
     "github_user": "adareau",

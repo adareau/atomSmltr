@@ -171,6 +171,27 @@ def _scattering_rate(lbda: float, Gamma: float, I: float, detuning: float) -> fl
     return gamma_scatt
 
 
+def _Doppler_temperature(Gamma: float, delta: float) -> float:
+    """Returns the Doppler temperature for a transition
+
+
+    Parameters
+    ----------
+        Gamma : float
+            natural linewidth (in rad/s)
+
+        delta : float
+            laser detuning (in Hz)
+
+    Returns
+    -------
+        T_Doppler : float
+            Doppler temperature in K
+    """
+    T_Dopp = csts.hbar / 2 / csts.k * (delta**2 + Gamma**2 / 4) / np.abs(delta)
+    return T_Dopp
+
+
 # % ABSTRACT CLASSES
 
 
@@ -236,7 +257,27 @@ class AtomicTransition(ABC):
         """float: transition wavenumber k = 2π / λ (m^-1)"""
         return 2 * np.pi / self.wavelength
 
+    @property
+    def Doppler_temperature(self):
+        """float: Doppler temperature TD = hbar k / 2 / kB (K)"""
+        return _Doppler_temperature(self.Gamma, -0.5 * self.Gamma)
+
     # -- METHODS
+
+    def get_Doppler_temperature(self, detuning: float) -> float:
+        """Returns the Doppler temperature for a given laser detuning
+
+        Parameters
+        ----------
+        detuning : float
+            laser detuning, in Hz
+
+        Returns
+        -------
+        float
+            the Doppler temperature, in K
+        """
+        return _Doppler_temperature(self.Gamma, detuning)
 
     def get_saturation_parameter(self, intensity: float, detuning: float) -> float:
         """Returns the saturation parameter (for a two-level system)
@@ -317,6 +358,7 @@ class AtomicTransition(ABC):
         info.add_element("λ", f"{self.wavelength * 1e9:.2f} nm")
         info.add_element("Γ", f"2π × {self.Gamma / 2 / np.pi:.2e} Hz")
         info.add_element("Isat", f"{self.Isat_mW_per_cm2:.2f} mw/cm²")
+        info.add_element("Doppler temp.", f"{self.Doppler_temperature:.2e} K")
         return info
 
     def gen_infostring_obj(self):
@@ -445,6 +487,7 @@ class J0J1Transition(AtomicTransition):
     ):
         # -- get projections
         # TODO : checks here
+        polarization = np.asanyarray(polarization)
         proj_pi, proj_sigm_plus, proj_sigm_minus = polarization.T
         proj_pi = proj_pi.T
         proj_sigm_minus = proj_sigm_minus.T

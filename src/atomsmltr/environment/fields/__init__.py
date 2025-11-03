@@ -27,6 +27,7 @@ __all__ = [
     "MagneticQuadrupoleX",
     "MagneticQuadrupoleY",
     "MagneticQuadrupoleZ",
+    "MagneticQuadrupole",
     "InterpMag1D1D",
     "InterpMag3D3D",
     # - Forces
@@ -41,6 +42,7 @@ from .magnetic import (
     MagneticQuadrupoleX,
     MagneticQuadrupoleY,
     MagneticQuadrupoleZ,
+    MagneticQuadrupole,
     InterpMag1D1D,
     InterpMag3D3D,
 )

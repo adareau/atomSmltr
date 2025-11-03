@@ -16,7 +16,9 @@ Import an ytterbium atom
 __all__ = [
     "Ytterbium",
     "Strontium",
+    "Rubidium",
 ]
 
 from .ytterbium import Ytterbium
 from .strontium import Strontium
+from .rubidium import Rubidium
