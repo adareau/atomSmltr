@@ -87,6 +87,9 @@ myst_enable_extensions = [
 json_url = "https://atomsmltr.readthedocs.io/en/latest/_static/switcher.json"
 
 
+# -- Options for myst-nb
+nb_execution_mode = "off"
+
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
