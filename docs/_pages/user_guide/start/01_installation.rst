@@ -7,9 +7,6 @@ pip
 
 you can install the latest stable release using ``pip``
 
-🚨 **Not implemented yet > when we go public** 🚨
-
-
 .. code-block:: bash
 
     pip install atomsmtlr
