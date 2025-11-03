@@ -1,17 +1,30 @@
 
-# atomSmltr - atomSimulator
+# atomSmltr ⚛️ simulating laser cooling & trapping
+
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Read the Docs](https://img.shields.io/readthedocs/atomsmltr)](https://atomsmltr.readthedocs.io)
+[![PyPI - Version](https://img.shields.io/pypi/v/atomsmltr)](https://pypi.org/project/atomsmltr/)
+-----------
+
+<img src="docs/_static/images/atomsmltr_logo_name.svg" height="60">
+
+**atomSmltr** is a _user-friendly_ and _modular_ python package designed to **simulate laser cooling in complex magnetic field and laser
+geometries**.
+
+---
+
+🚨 **Disclaimer:** this package is still under active development.
+
+---
+[**📃 Full documentation**](https://atomsmltr.readthedocs.io)  | [**🐍 PyPi**](https://pypi.org/project/atomsmltr/)
 
 
-A user-friendly python package to perform semi-classical atomic physics simulations.
 
-**Attention:** this package is still under active development.
 
 ## 🚀 Installation notes
 
 ### install latest stable release
-🚨 **Not implemented yet > when we go public** 🚨
 
 just pip it
 ```
