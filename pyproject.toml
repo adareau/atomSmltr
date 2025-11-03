@@ -1,6 +1,6 @@
 [project]
 name = "atomsmltr"
-version = "0.1.1"
+version = "0.1.2"
 description = "Laser cooling and trapping simulation tool"
 authors = [
     {name = "Alexandre Dareau",email = "alexandre.dareau@protonmail.com"}
