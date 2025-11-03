@@ -7,7 +7,7 @@
 [![PyPI - Version](https://img.shields.io/pypi/v/atomsmltr)](https://pypi.org/project/atomsmltr/)
 -----------
 
-<a href="https://github.com/adareau/atomSmltr"><img src="docs/_static/images/atomsmltr_logo_name.svg" height="60"></a>
+<a href="https://github.com/adareau/atomSmltr"><img src="https://raw.githubusercontent.com/adareau/atomSmltr/main/docs/_static/images/atomsmltr_logo_name.svg" alt="atomsmtlr logo" height="60"></a>
 
 **atomSmltr** is a _user-friendly_ and _modular_ python package designed to **simulate laser cooling in complex magnetic field and laser
 geometries**.
