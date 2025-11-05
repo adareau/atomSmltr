@@ -230,17 +230,15 @@ lasers_symmetric = {}
 # -- create Zeeman slower lasers
 create_laser("ZS1", lasers_symmetric, l461_ZS, [0, 0, -1], Horizontal())
 
-# -- define directions for MM 2D MOT
-d1_dir = np.array([1, 1, 1]) / np.sqrt(3)
-d2_dir = np.array([-1, 1, -1]) / np.sqrt(3)
-d3_dir = np.array([1, -1, -1]) / np.sqrt(3)
-d4_dir = np.array([-1, -1, 1]) / np.sqrt(3)
+# -- define directions for 2D MOT
+d1_dir = np.array([1, 0, 1]) / np.sqrt(2)
+d2_dir = np.array([1, 0, -1]) / np.sqrt(2)
 
 # -- create 2D MOT lasers
-create_laser("d1<", lasers_symmetric, l461_2DMOT, d1_dir, CircularLeft())
-create_laser("d1>", lasers_symmetric, l461_2DMOT, d2_dir, CircularLeft())
-create_laser("d2<", lasers_symmetric, l461_2DMOT, d3_dir, CircularRight())
-create_laser("d2>", lasers_symmetric, l461_2DMOT, d4_dir, CircularRight())
+create_laser("d1<", lasers_symmetric, l461_2DMOT, -d1_dir, CircularLeft())
+create_laser("d1>", lasers_symmetric, l461_2DMOT, d1_dir, CircularLeft())
+create_laser("d2<", lasers_symmetric, l461_2DMOT, -d2_dir, CircularRight())
+create_laser("d2>", lasers_symmetric, l461_2DMOT, d2_dir, CircularRight())
 
 # -- configure the zone limits
 xlim_symmetric = Limits(
@@ -262,15 +260,11 @@ config_symmetric_field += (
 for laser in config_symmetric_field.list_lasers():
     if laser == "ZS1":
         config_symmetric_field.add_atomlight_coupling(
-            laser=laser, transition="main", detuning=-13 * main.Gamma
+            laser=laser, transition="main", detuning=-13.5 * main.Gamma
         )
-    if (laser == "d1>") or (laser == "d1<"):
+    if (laser == "d1>") or (laser == "d1<") or (laser == "d2>") or (laser == "d2<"):
         config_symmetric_field.add_atomlight_coupling(
-            laser=laser, transition="main", detuning=-1.0 * main.Gamma
-        )
-    if (laser == "d2>") or (laser == "d2<"):
-        config_symmetric_field.add_atomlight_coupling(
-            laser=laser, transition="main", detuning=-1.4 * main.Gamma
+            laser=laser, transition="main", detuning=-1.15 * main.Gamma
         )
 
 
@@ -341,12 +335,15 @@ lasers_asymmetric_2 = {}
 create_laser("ZS1", lasers_asymmetric_2, l461_ZS, [0, 0, -1], Horizontal())
 create_laser("ZS2", lasers_asymmetric_2, l461_ZS, [0, 0, -1], Horizontal())
 
+# -- define directions for 2D MOT
+d1_dir = np.array([1, 0, 1]) / np.sqrt(2)
+d2_dir = np.array([1, 0, -1]) / np.sqrt(2)
 
 # -- create 2D MOT lasers
-create_laser("d1<", lasers_asymmetric_2, l461_2DMOT, d1_dir, CircularLeft())
-create_laser("d1>", lasers_asymmetric_2, l461_2DMOT, d2_dir, CircularLeft())
-create_laser("d2<", lasers_asymmetric_2, l461_2DMOT, d3_dir, CircularRight())
-create_laser("d2>", lasers_asymmetric_2, l461_2DMOT, d4_dir, CircularRight())
+create_laser("d1<", lasers_asymmetric_2, l461_2DMOT, -d1_dir, CircularLeft())
+create_laser("d1>", lasers_asymmetric_2, l461_2DMOT, d1_dir, CircularLeft())
+create_laser("d2<", lasers_asymmetric_2, l461_2DMOT, -d2_dir, CircularRight())
+create_laser("d2>", lasers_asymmetric_2, l461_2DMOT, d2_dir, CircularRight())
 
 # -- add everything to the configuration
 xlim_asymmetric_2 = Limits(
@@ -369,15 +366,11 @@ config_asymmetric_field_2 += (
 for laser in config_asymmetric_field_2.list_lasers():
     if laser == "ZS1":
         config_asymmetric_field_2.add_atomlight_coupling(
-            laser=laser, transition="main", detuning=-13 * main.Gamma
+            laser=laser, transition="main", detuning=-13.5 * main.Gamma
         )
-    if (laser == "d1>") or (laser == "d1<"):
+    if (laser == "d1>") or (laser == "d1<") or (laser == "d2>") or (laser == "d2<"):
         config_asymmetric_field_2.add_atomlight_coupling(
-            laser=laser, transition="main", detuning=-1.0 * main.Gamma
-        )
-    if (laser == "d2>") or (laser == "d2<"):
-        config_asymmetric_field_2.add_atomlight_coupling(
-            laser=laser, transition="main", detuning=-1.4 * main.Gamma
+            laser=laser, transition="main", detuning=-1.15 * main.Gamma
         )
     if laser == "ZS2":
         config_asymmetric_field_2.add_atomlight_coupling(
