@@ -96,7 +96,7 @@ Since this definition is not sufficient to unambiguously define the laser frame 
             \left\{
                 \begin{array}{lrlrl}
                 x^\prime = & & x\cos(\phi) & + &y \sin(\phi)\\
-                y^\prime = & - &x\cos(\phi) & + &y \sin(\phi)\\
+                y^\prime = & - &x\sin(\phi) & + &y \cos(\phi)\\
                 z^\prime = & & z & &\\
                 \end{array}
             \right.
