@@ -158,12 +158,16 @@ class Configuration(object):
         if not isinstance(laser, str):
             laser = laser.tag
         if laser not in self.__lasers:
-            raise KeyError(f"No entry for laser tag '{laser}'. Available: {list(self.__lasers)}.")
+            raise KeyError(
+                f"No entry for laser tag '{laser}'. Available: {list(self.__lasers)}."
+            )
 
         if self.atom is None:
             raise ValueError("No atom was defined for this config.")
         if transition not in self.__atomlight:
-            raise KeyError(f"No entry for transition '{transition}'. Available: {list(self.__atomlight)}.")
+            raise KeyError(
+                f"No entry for transition '{transition}'. Available: {list(self.__atomlight)}."
+            )
 
         # --- Parse detuning(s) ---
         detunings, weights = None, None
@@ -179,9 +183,13 @@ class Configuration(object):
                 detunings = [float(d) for d, _ in detuning]
                 weights = [float(w) for _, w in detuning]
             else:
-                raise TypeError("Invalid detuning format: use [d1, d2, ...] or [(d1, w1), (d2, w2), ...]")
+                raise TypeError(
+                    "Invalid detuning format: use [d1, d2, ...] or [(d1, w1), (d2, w2), ...]"
+                )
         else:
-            raise TypeError("Detuning must be a float, list of floats, or list of (float, float) pairs.")
+            raise TypeError(
+                "Detuning must be a float, list of floats, or list of (float, float) pairs."
+            )
 
         # --- Store / update coupling ---
         self.__atomlight[transition][laser] = {
@@ -193,7 +201,6 @@ class Configuration(object):
             print(f" > Coupling added: {laser} ↔ {transition}")
             print(f"   detunings = {detunings}")
             print(f"   weights   = {weights}")
-
 
     def rm_atomlight_coupling(
         self,
@@ -221,7 +228,10 @@ class Configuration(object):
         if not isinstance(laser, str):
             laser = laser.tag
 
-        if transition not in self.__atomlight or laser not in self.__atomlight[transition]:
+        if (
+            transition not in self.__atomlight
+            or laser not in self.__atomlight[transition]
+        ):
             raise KeyError(f"There is no link between '{laser}' and '{transition}'.")
 
         coupling = self.__atomlight[transition][laser]
@@ -238,14 +248,18 @@ class Configuration(object):
         elif isinstance(detuning, (list, tuple)):
             detunings_to_remove = [float(d) for d in detuning]
         else:
-            raise TypeError("Invalid detuning format; must be a float or list of floats.")
+            raise TypeError(
+                "Invalid detuning format; must be a float or list of floats."
+            )
 
         # --- Filter out detunings ---
         new_detunings = []
         new_weights = []
 
         for d, w in zip(coupling["detunings"], coupling["weights"]):
-            if not any(abs(d - dr) < 1e-9 for dr in detunings_to_remove):  # small tolerance
+            if not any(
+                abs(d - dr) < 1e-9 for dr in detunings_to_remove
+            ):  # small tolerance
                 new_detunings.append(d)
                 new_weights.append(w)
 
@@ -255,8 +269,6 @@ class Configuration(object):
         else:
             coupling["detunings"] = new_detunings
             coupling["weights"] = new_weights
-
-
 
     def reset_atomlight_coupling(self):
         for transition in self.__atomlight:
