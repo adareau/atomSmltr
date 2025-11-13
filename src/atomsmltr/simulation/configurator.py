@@ -888,11 +888,19 @@ class Configuration(object):
         for transition, couplings in self.__atomlight.items():
             info.add_section(f"transition > '{transition}'")
             if couplings:
-                for laser, params in couplings.items():
-                    detuning = params["detuning"]
-                    trans_Gamma = self.atom.trans[transition].Gamma
-                    det_str = f"{detuning=:.3g}"
-                    det_str += f" ({detuning / trans_Gamma:.2f}Γ)"
+                for laser, detunings_list in couplings.items():
+                    det_strs = []
+                    for d in detunings_list:
+                        if isinstance(d, tuple):
+                            delta, weight = d
+                            det_strs.append(
+                                f"{delta:.3g} ({delta / self.atom.trans[transition].Gamma:.2f}Γ) * w={weight:.3g}"
+                            )
+                        else:
+                            det_strs.append(
+                                f"{d:.3g} ({d / self.atom.trans[transition].Gamma:.2f}Γ)"
+                            )
+                    det_str = ", ".join(det_strs)
                     info.add_element(f"laser '{laser}'", det_str)
             else:
                 info.add_element("empty")
