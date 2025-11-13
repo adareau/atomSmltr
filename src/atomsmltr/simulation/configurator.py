@@ -124,6 +124,7 @@ class Configuration(object):
         transition: str,
         detuning: float | list | tuple,
         verbose: bool = False,
+        warn_existing: bool = True,
     ):
         """Adds a atom-light coupling element in the configuration
 
@@ -152,7 +153,7 @@ class Configuration(object):
         Stated otherwise, detuning units is in units of 2π x Hz
         """
 
-        # --- Check inputs ---
+        # - Check Laser input
         if not isinstance(laser, (str, LaserBeam)):
             raise TypeError("'laser' should be a tag (string) or a Laser object")
         if not isinstance(laser, str):
@@ -162,6 +163,7 @@ class Configuration(object):
                 f"No entry for laser tag '{laser}'. Available: {list(self.__lasers)}."
             )
 
+        # - Check Transition input
         if self.atom is None:
             raise ValueError("No atom was defined for this config.")
         if transition not in self.__atomlight:
@@ -169,45 +171,44 @@ class Configuration(object):
                 f"No entry for transition '{transition}'. Available: {list(self.__atomlight)}."
             )
 
-        # --- Parse detuning(s) ---
-        detunings, weights = None, None
+        # - Build unified detuning list
+        detunings_list = []
 
         if isinstance(detuning, (int, float)):
-            detunings = [float(detuning)]
-            weights = [1.0]
+            detunings_list = [float(detuning)]
+
+        elif isinstance(detuning, tuple) and len(detuning) == 2:
+            detunings_list = [detuning]
+
         elif isinstance(detuning, (list, tuple)):
-            if all(isinstance(x, (int, float)) for x in detuning):
-                detunings = list(map(float, detuning))
-                weights = [1.0 for _ in detunings]
-            elif all(isinstance(x, (list, tuple)) and len(x) == 2 for x in detuning):
-                detunings = [float(d) for d, _ in detuning]
-                weights = [float(w) for _, w in detuning]
-            else:
-                raise TypeError(
-                    "Invalid detuning format: use [d1, d2, ...] or [(d1, w1), (d2, w2), ...]"
-                )
+            for d in detuning:
+                if isinstance(d, (int, float)):
+                    detunings_list.append(d)
+                elif isinstance(d, tuple) and len(d) == 2:
+                    detunings_list.append(d)
+                else:
+                    raise TypeError(
+                        "Invalid detuning format in list: must be float or (delta, weight) tuple."
+                    )
         else:
             raise TypeError(
-                "Detuning must be a float, list of floats, or list of (float, float) pairs."
+                "Detuning must be float, tuple (delta, weight), or list of these."
             )
 
-        # --- Store / update coupling ---
-        self.__atomlight[transition][laser] = {
-            "detunings": detunings,
-            "weights": weights,
-        }
+        # - Warn if coupling already exists
+        if laser in self.__atomlight[transition] and warn_existing:
+            print(
+                f"Warning: Coupling for laser '{laser}' and transition '{transition}' already exists."
+            )
+
+        # - Store the coupling
+        self.__atomlight[transition][laser] = detunings_list
 
         if verbose:
             print(f" > Coupling added: {laser} ↔ {transition}")
-            print(f"   detunings = {detunings}")
-            print(f"   weights   = {weights}")
+            print(f"   detunings = {detunings_list}")
 
-    def rm_atomlight_coupling(
-        self,
-        laser: str | LaserBeam,
-        transition: str,
-        detuning: float | list | tuple | None = None,
-    ):
+    def rm_atomlight_coupling(self, transition: str, laser: str | LaserBeam):
         """
         Removes an atom-light coupling.
         If 'detuning' is provided, only removes those detunings for the given (laser, transition) pair.
@@ -218,57 +219,21 @@ class Configuration(object):
             laser coupled : tag (str) or directly the object
         transition : str
             transition tag
-        detuning : float | list | tuple | None, optional
-            detuning(s) to remove (in rad/s). If None, remove the whole laser-transition link.
         """
-
-        # --- check laser argument ---
         if not isinstance(laser, (str, LaserBeam)):
             raise TypeError("'laser' should be a tag (string) or a Laser object")
         if not isinstance(laser, str):
             laser = laser.tag
 
-        if (
-            transition not in self.__atomlight
-            or laser not in self.__atomlight[transition]
-        ):
-            raise KeyError(f"There is no link between '{laser}' and '{transition}'.")
-
-        coupling = self.__atomlight[transition][laser]
-
-        # --- Remove the entire link if no detuning specified ---
-        if detuning is None:
-            self.__atomlight[transition].pop(laser)
-            return
-
-        # --- Handle detuning list ---
-        detunings_to_remove = detuning
-        if isinstance(detuning, (int, float)):
-            detunings_to_remove = [float(detuning)]
-        elif isinstance(detuning, (list, tuple)):
-            detunings_to_remove = [float(d) for d in detuning]
-        else:
-            raise TypeError(
-                "Invalid detuning format; must be a float or list of floats."
-            )
-
-        # --- Filter out detunings ---
-        new_detunings = []
-        new_weights = []
-
-        for d, w in zip(coupling["detunings"], coupling["weights"]):
-            if not any(
-                abs(d - dr) < 1e-9 for dr in detunings_to_remove
-            ):  # small tolerance
-                new_detunings.append(d)
-                new_weights.append(w)
-
-        if len(new_detunings) == 0:
-            # No detunings left thus remove the whole entry
-            self.__atomlight[transition].pop(laser)
-        else:
-            coupling["detunings"] = new_detunings
-            coupling["weights"] = new_weights
+        # - remove
+        success = False
+        if transition in self.__atomlight:
+            if laser in self.__atomlight[transition]:
+                self.__atomlight[transition].pop(laser)
+                success = True
+        if not success:
+            msg = f"There is no link between '{laser}' and '{transition}'."
+            raise KeyError(msg)
 
     def reset_atomlight_coupling(self):
         for transition in self.__atomlight:
