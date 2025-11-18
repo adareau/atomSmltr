@@ -24,8 +24,8 @@ along the z-axis, forming an optical molasses that slows atomic motion through D
 Physical configuration:
 - Atom species : 87Rb (D2 cooling transition at 780 nm)
 - Laser power : 10 mW per beam
-- Beam waist (1/e radius) : 1 cm
-- Detuning : -12 MHz from resonance
+- Beam waist (1/e^2 radius) : 1.41 cm
+- Detuning : -2*π*6 rad.MHz from resonance
 - Polarization : σ-
 
 2 ) One-dimensional Magneto-Optical Trap (1D MOT):
@@ -40,8 +40,8 @@ allows atoms with velocities below the capture velocity to be trapped and cooled
 Physical configuration:
 - Atom species : 88Sr (main cooling transition at 461 nm)
 - Laser power : 30 mW per beam
-- Beam waist (1/e radius): 1 cm
-- Detuning : -12 MHz from resonance
+- Beam waist (1/e^2 radius): 1.41 cm
+- Detuning : -2*π*6 rad.MHz from resonance
 - Polarization : σ-
 - Magnetic field type : Perfect quadrupole
 - Magnetic field direction : (0, 0, 1)
@@ -59,8 +59,8 @@ laser beams along the Cartesian axes, combined with a 3D quadrupole magnetic fie
 Physical configuration:
 - Atom species : 87Rb (D2 cooling transition at 461 nm)
 - Laser power : 20 mW per beam
-- Beam waist (1/e radius) : 1 cm
-- Detuning : -12 MHz from resonance
+- Beam waist (1/e^2 radius) : 1.41 cm
+- Detuning : -2*π*6 rad.MHz from resonance
 - Polarization for lasers along the z-axis : σ-
 - Polarization for lasers along the other axis : σ+
 - Magnetic field type : Perfect quadrupole
