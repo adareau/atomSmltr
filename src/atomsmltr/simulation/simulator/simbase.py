@@ -67,7 +67,8 @@ def _get_force_vec(
         polarization = laser.get_polarization_quant(B)
         det_Doppler = -np.dot(speed, transition.k * laser.unit_vector)
 
-        total_scattering_rate = 0.0
+        scalar_shape = position[..., 0:1].shape
+        total_scattering_rate = np.zeros(scalar_shape, dtype=float)
 
         for d in detunings_list:
             if isinstance(d, tuple):
@@ -81,13 +82,13 @@ def _get_force_vec(
 
             total_scattering_rate += scattering_rate * weight
 
-        radiation_pressure = csts.hbar * transition.k * scattering_rate
+        radiation_pressure = csts.hbar * transition.k * total_scattering_rate
         force = force + radiation_pressure[..., np.newaxis] * laser.unit_vector
 
         if return_list:
             scattering_list.append(
                 {
-                    "rate": scattering_rate,
+                    "rate": total_scattering_rate,
                     "k": transition.k,
                     "unit_vector": laser.unit_vector,
                 }
