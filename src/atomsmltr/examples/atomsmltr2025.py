@@ -67,7 +67,6 @@ from ..simulation import Configuration
 # - parameters
 atom = Ytterbium()
 transition = atom.trans["main"]
-transition.print_info()
 s = 0.02
 b = 0.1  # T/m
 delta = -0.5 * transition.Gamma
