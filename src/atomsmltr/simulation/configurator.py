@@ -202,7 +202,7 @@ class Configuration(object):
             )
 
         # - Store the coupling
-        self.__atomlight[transition][laser] = detunings_list
+        self.__atomlight[transition][laser] = {"detuning": detunings_list}
 
         if verbose:
             print(f" > Coupling added: {laser} ↔ {transition}")
