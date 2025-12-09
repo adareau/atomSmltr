@@ -1,7 +1,7 @@
 User Guide
 ==========
 
-Here we will provide all the information needed to use the `atomSmltr` package
+Here we provide all the information needed to use the `atomSmltr` package
 
 .. toctree::
    :maxdepth: 1

@@ -34,15 +34,15 @@ Physical configuration:
   - Arrangement : 4 cubes, each with 9 magnets along x, rotated ±180° along the y-axis for symmetry
 - Zeeman slower lasers 1:
   - Wavelength : 461 nm
-  - Waist : 6.7 mm 
-  - Power : 45 mW 
+  - Waist : 6.7 mm
+  - Power : 45 mW
   - Polarization : σ+/σ−
   - Direction : along negative z-axis
   - Detuning : -13 Γ
 - Zeeman slower lasers 2:
   -Wavelength : 461 nm
   - Waist : 7.2 mm
-  - Power : 85 mW 
+  - Power : 85 mW
   - Polarization : σ+/σ−
   - Direction : along negative z-axis
   - Detuning : -13 Γ
@@ -64,18 +64,45 @@ import numpy as np
 # % LOCAL IMPORTS
 from ..atoms import Strontium
 from ..environment.lasers import GaussianLaserBeam
-from ..environment.lasers.polarization import CircularLeft, CircularRight
+from ..environment.lasers.polarization import CircularLeft, CircularRight, Horizontal
 from ..environment.fields.magnetic.magpylib import MagpylibWrapper
 from ..environment.zones import Limits
 from ..simulation import Configuration
 
-# % GENERATE CONFIGURATION
+# --------------------------------------------------------------------------------------------------------------------------------
 
-# -- init config with strontium atom
-config = Configuration(atom=Strontium())
+# % GENERATE ELEMENTS OF THE CONFIGURATIONS
+
+# -- setup lasers
+# cf. config from Feng et al. 2024
+l461_ZS = {
+    "wavelength": 461e-9,
+    "waist": 6.7e-3,
+    "power": 90e-3,
+    "waist_position": (0, 0, 0),
+}
+l461_ZS2 = {
+    "wavelength": 461e-9,
+    "waist": 7.2e-3,
+    "power": 150e-3,
+    "waist_position": (0, 0, 0),
+}
+l461_2DMOT = {
+    "wavelength": 461e-9,
+    "waist": 12e-3,
+    "power": 80e-3,
+    "waist_position": (0, 0, 0),
+}
+
+# -- setup atom
+atom_strontium = Strontium()
 
 # -- get Strontium main transition information
-main = config.atom.trans["main"]
+main = atom_strontium.trans["main"]
+
+# --------------------------------------------------------------------------------------------------------------------------------
+
+# GENERATE SYMMETRIC FIELD
 
 # -- setup magnetic field: symmetric configuration of permanent magnets in Feng et a 2024
 # Define magnet properties
@@ -85,7 +112,7 @@ dimension = (0.003, 0.010, 0.025)
 # X positions for the cuboids (same as in your original code)
 x_positions = np.linspace(-0.012, 0.012, 9)
 
-# Create cube1 and cube2 (lists of magnets)
+# Create cube1 and cube2 for symetric field (lists of magnets)
 cube1 = [
     magpy.magnet.Cuboid(magnetization=magnetization, dimension=dimension)
     for _ in x_positions
@@ -115,31 +142,71 @@ magnetSet = magpy.Collection(cube1 + cube2 + cube3 + cube4)
 mag_field = MagpylibWrapper(magnetSet)
 mag_field.tag = "Symmetric Permanent Magnet Configuration"
 
-# -- setup lasers
-# cf. config from Feng et al. 2024
-l461_ZS = {
-    "wavelength": 461e-9,
-    "waist": 6.7e-3,
-    "power": 45e-3,
-    "waist_position": (0, 0, 0),
-}
-l461_ZS2 = {
-    "wavelength": 461e-9,
-    "waist": 7.2e-3,
-    "power": 85e-3,
-    "waist_position": (0, 0, 0),
-}
-l461_2DMOT = {
-    "wavelength": 461e-9,
-    "waist": 12e-3,
-    "power": 80e-3,
-    "waist_position": (0, 0, 0),
-}
 
-lasers = {}
+# --------------------------------------------------------------------------------------------------------------------------------
+
+# % GENERATE ASYMMETRIC FIELD
+
+# -- setup magnetic field: asymmetric configuration of permanent magnets in Feng et a 2024
+# Define magnet properties
+magnetization_asymmetric = (-8.7e5, 0, 0)
+inv_magnetization = (8.7e5, 0, 0)
+dimension_asymmetric = (0.003, 0.010, 0.025)
 
 
-# Updated function to allow specifying direction
+# X positions for the cuboids (same as in your original code)
+x_positions_1_2 = np.linspace(-0.012, 0.012, 9)  # Positions for cube1 and cube2
+x_positions_3_4 = np.linspace(-0.018, 0.018, 13)  # Positions for cube3 and cube4
+x_positions_1_2 = np.linspace(-0.012, 0.012, 9)  # Positions for cube1 and cube2
+x_positions_3_4 = np.linspace(-0.018, 0.018, 13)  # Positions for cube3 and cube4
+
+# Create cube1 and cube2 (lists of magnets)
+cube1_asymmetric = [
+    magpy.magnet.Cuboid(
+        magnetization=magnetization_asymmetric, dimension=dimension_asymmetric
+    )
+    for _ in x_positions_1_2
+]
+cube2_asymmetric = [
+    magpy.magnet.Cuboid(
+        magnetization=magnetization_asymmetric, dimension=dimension_asymmetric
+    )
+    for _ in x_positions_1_2
+]
+
+# Assign positions to cube1 and cube2
+for i, x in enumerate(x_positions_1_2):
+    cube1_asymmetric[i].position = (x, 0.039, -0.050)
+    cube2_asymmetric[i].position = (x, -0.039, -0.050)
+
+# Create cube3 and cube4 with 13 elements each
+cube3_asymmetric = [
+    magpy.magnet.Cuboid(magnetization=inv_magnetization, dimension=dimension_asymmetric)
+    for _ in x_positions_3_4
+]
+cube4_asymmetric = [
+    magpy.magnet.Cuboid(magnetization=inv_magnetization, dimension=dimension_asymmetric)
+    for _ in x_positions_3_4
+]
+
+# Assign positions to cube3 and cube4
+for i, x in enumerate(x_positions_3_4):
+    cube3_asymmetric[i].position = (x, 0.035, 0.0623)
+    cube4_asymmetric[i].position = (x, -0.035, 0.0623)
+
+# Combine all cubes into magnetSet as a single MagnetSet
+magnetSet = magpy.Collection(
+    cube1_asymmetric + cube2_asymmetric + cube3_asymmetric + cube4_asymmetric
+)
+
+# wrap it up
+mag_field_asymmetric = MagpylibWrapper(magnetSet)
+mag_field_asymmetric.tag = "Asymmetric Permanent Magnet Configuration"
+
+# --------------------------------------------------------------------------------------------------------------------------------
+
+
+# UPDATED FUBCTION TO ALLOW SPECIFIC DIRECTION
 def create_laser(tag, lasers_dict, params, direction, polarization=None):
     laser = GaussianLaserBeam(**params)
     laser.direction = np.array(direction)
@@ -149,46 +216,163 @@ def create_laser(tag, lasers_dict, params, direction, polarization=None):
     lasers_dict[tag] = laser
 
 
-# Create Zeeman slower lasers
-create_laser("ZS+", lasers, l461_ZS, [0, 0, -1], CircularRight())
-create_laser("ZS-", lasers, l461_ZS, [0, 0, -1], CircularLeft())
+# --------------------------------------------------------------------------------------------------------------------------------
 
-# Create Zeeman2 slower lasers
-create_laser("ZS2+", lasers, l461_ZS2, [0, 0, -1], CircularRight())
-create_laser("ZS2-", lasers, l461_ZS2, [0, 0, -1], CircularLeft())
+# % GENERATE CONFIGURATION WITH SYMMETRIC MAGNETIC FIELD
 
-# Define directions for 2D MOT
+# -- init config with strontium atom
+config_symmetric_field = Configuration()
+config_symmetric_field.atom = atom_strontium
+
+# -- init laser list for the symmetric config
+lasers_symmetric = {}
+
+# -- create Zeeman slower lasers
+create_laser("ZS1", lasers_symmetric, l461_ZS, [0, 0, -1], Horizontal())
+
+# -- define directions for 2D MOT
 d1_dir = np.array([1, 0, 1]) / np.sqrt(2)
 d2_dir = np.array([1, 0, -1]) / np.sqrt(2)
 
-# Create 2D MOT lasers
-create_laser("d1<", lasers, l461_2DMOT, -d1_dir, CircularLeft())
-create_laser("d1>", lasers, l461_2DMOT, d1_dir, CircularLeft())
-create_laser("d2<", lasers, l461_2DMOT, -d2_dir, CircularRight())
-create_laser("d2>", lasers, l461_2DMOT, d2_dir, CircularRight())
+# -- create 2D MOT lasers
+create_laser("d1<", lasers_symmetric, l461_2DMOT, -d1_dir, CircularLeft())
+create_laser("d1>", lasers_symmetric, l461_2DMOT, d1_dir, CircularLeft())
+create_laser("d2<", lasers_symmetric, l461_2DMOT, -d2_dir, CircularRight())
+create_laser("d2>", lasers_symmetric, l461_2DMOT, d2_dir, CircularRight())
 
-# -- add everything to the configuration
+# -- configure the zone limits
+xlim_symmetric = Limits(
+    -0.15, 0.35, axis=2, target="position", action="stop", tag="xlim"
+)
 
-xlim = Limits(-0.15, 0.35, axis=2, target="position", action="stop", tag="xlim")
-# add objects
-config += (
-    xlim,
-    lasers["d1>"],
-    lasers["d1<"],
-    lasers["d2>"],
-    lasers["d2<"],
-    lasers["ZS+"],
-    lasers["ZS-"],
+# -- add objects
+config_symmetric_field += (
+    xlim_symmetric,
+    lasers_symmetric["d1>"],
+    lasers_symmetric["d1<"],
+    lasers_symmetric["d2>"],
+    lasers_symmetric["d2<"],
+    lasers_symmetric["ZS1"],
     mag_field,
 )
 
-# setup atomlight
-for laser in config.list_lasers():
-    if (laser == "ZS+") or (laser == "ZS-"):
-        config.add_atomlight_coupling(
-            laser=laser, transition="main", detuning=-13 * main.Gamma
+# -- setup atomlight
+for laser in config_symmetric_field.list_lasers():
+    if laser == "ZS1":
+        config_symmetric_field.add_atomlight_coupling(
+            laser=laser, transition="main", detuning=-13.5 * main.Gamma
         )
     if (laser == "d1>") or (laser == "d1<") or (laser == "d2>") or (laser == "d2<"):
-        config.add_atomlight_coupling(
+        config_symmetric_field.add_atomlight_coupling(
             laser=laser, transition="main", detuning=-1.15 * main.Gamma
+        )
+
+
+# --------------------------------------------------------------------------------------------------------------------------------
+
+# % GENERATE CONFIGURATION WITH ASYMMETRIC MAGNETIC FIELD AND A SINGLE FREQUENCY LASER
+
+# -- init config with strontium atom
+config_asymmetric_field_1 = Configuration()
+config_asymmetric_field_1.atom = atom_strontium
+
+# -- init laser list for the symmetric config
+lasers_asymmetric_1 = {}
+
+# -- create Zeeman slower lasers
+create_laser("ZS1", lasers_asymmetric_1, l461_ZS, [0, 0, -1], Horizontal())
+
+# -- define directions for 2D MOT
+d1_dir = np.array([1, 0, 1]) / np.sqrt(2)
+d2_dir = np.array([1, 0, -1]) / np.sqrt(2)
+
+# -- create 2D MOT lasers
+create_laser("d1<", lasers_asymmetric_1, l461_2DMOT, -d1_dir, CircularLeft())
+create_laser("d1>", lasers_asymmetric_1, l461_2DMOT, d1_dir, CircularLeft())
+create_laser("d2<", lasers_asymmetric_1, l461_2DMOT, -d2_dir, CircularRight())
+create_laser("d2>", lasers_asymmetric_1, l461_2DMOT, d2_dir, CircularRight())
+
+# -- add everything to the configuration
+xlim_asymmetric_1 = Limits(
+    -0.15, 0.35, axis=0, target="position", action="stop", tag="xlim"
+)
+
+# -- add objects
+config_asymmetric_field_1 += (
+    xlim_asymmetric_1,
+    lasers_asymmetric_1["d1>"],
+    lasers_asymmetric_1["d1<"],
+    lasers_asymmetric_1["d2>"],
+    lasers_asymmetric_1["d2<"],
+    lasers_asymmetric_1["ZS1"],
+    mag_field_asymmetric,
+)
+
+# -- setup atomlight
+for laser in config_asymmetric_field_1.list_lasers():
+    if laser == "ZS1":
+        config_asymmetric_field_1.add_atomlight_coupling(
+            laser=laser, transition="main", detuning=-14 * main.Gamma
+        )
+    if (laser == "d1>") or (laser == "d1<") or (laser == "d2>") or (laser == "d2<"):
+        config_asymmetric_field_1.add_atomlight_coupling(
+            laser=laser, transition="main", detuning=-1.15 * main.Gamma
+        )
+
+
+# --------------------------------------------------------------------------------------------------------------------------------
+
+# % GENERATE CONFIGURATION WITH ASYMMETRIC MAGNETIC FIELD AND A TWO FREQUENCY LASER
+
+# -- init config with strontium atom
+config_asymmetric_field_2 = Configuration()
+config_asymmetric_field_2.atom = atom_strontium
+
+# -- init laser list for the symmetric config
+lasers_asymmetric_2 = {}
+
+# -- create Zeeman slower lasers
+create_laser("ZS1", lasers_asymmetric_2, l461_ZS, [0, 0, -1], Horizontal())
+create_laser("ZS2", lasers_asymmetric_2, l461_ZS, [0, 0, -1], Horizontal())
+
+# -- define directions for 2D MOT
+d1_dir = np.array([1, 0, 1]) / np.sqrt(2)
+d2_dir = np.array([1, 0, -1]) / np.sqrt(2)
+
+# -- create 2D MOT lasers
+create_laser("d1<", lasers_asymmetric_2, l461_2DMOT, -d1_dir, CircularLeft())
+create_laser("d1>", lasers_asymmetric_2, l461_2DMOT, d1_dir, CircularLeft())
+create_laser("d2<", lasers_asymmetric_2, l461_2DMOT, -d2_dir, CircularRight())
+create_laser("d2>", lasers_asymmetric_2, l461_2DMOT, d2_dir, CircularRight())
+
+# -- add everything to the configuration
+xlim_asymmetric_2 = Limits(
+    -0.15, 0.35, axis=0, target="position", action="stop", tag="xlim"
+)
+
+# -- add objects
+config_asymmetric_field_2 += (
+    xlim_asymmetric_1,
+    lasers_asymmetric_2["d1>"],
+    lasers_asymmetric_2["d1<"],
+    lasers_asymmetric_2["d2>"],
+    lasers_asymmetric_2["d2<"],
+    lasers_asymmetric_2["ZS1"],
+    lasers_asymmetric_2["ZS2"],
+    mag_field_asymmetric,
+)
+
+# -- setup atomlight
+for laser in config_asymmetric_field_2.list_lasers():
+    if laser == "ZS1":
+        config_asymmetric_field_2.add_atomlight_coupling(
+            laser=laser, transition="main", detuning=-13.5 * main.Gamma
+        )
+    if (laser == "d1>") or (laser == "d1<") or (laser == "d2>") or (laser == "d2<"):
+        config_asymmetric_field_2.add_atomlight_coupling(
+            laser=laser, transition="main", detuning=-1.15 * main.Gamma
+        )
+    if laser == "ZS2":
+        config_asymmetric_field_2.add_atomlight_coupling(
+            laser=laser, transition="main", detuning=-28.5 * main.Gamma
         )
