@@ -80,7 +80,10 @@ def _get_force_vec(
                 delta, weight = d, 1.0
 
             scattering_rate = transition.get_scattering_rate(
-                laser_intensity * weight, B_norm, polarization, delta + det_Doppler
+                laser_intensity * np.abs(weight),
+                B_norm,
+                polarization,
+                delta + det_Doppler,
             )
 
             total_scattering_rate += scattering_rate
