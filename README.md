@@ -5,6 +5,8 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Read the Docs](https://img.shields.io/readthedocs/atomsmltr)](https://atomsmltr.readthedocs.io)
 [![PyPI - Version](https://img.shields.io/pypi/v/atomsmltr)](https://pypi.org/project/atomsmltr/)
+[![Lint](https://github.com/adareau/atomSmltr/actions/workflows/black.yml/badge.svg)](https://github.com/adareau/atomSmltr/actions/workflows/black.yml)
+[![unit-test](https://github.com/adareau/atomSmltr/actions/workflows/unit-test.yml/badge.svg)](https://github.com/adareau/atomSmltr/actions/workflows/unit-test.yml)
 -----------
 
 <a href="https://github.com/adareau/atomSmltr"><img src="https://raw.githubusercontent.com/adareau/atomSmltr/main/docs/_static/images/atomsmltr_logo_name.svg" alt="atomsmtlr logo" height="60"></a>
