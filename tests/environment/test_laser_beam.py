@@ -77,7 +77,7 @@ def _LaserBeam_classes_generic_properties_test(LaserBeamClass):
     beam.direction = new_direction
     assert np.array_equal(beam.direction, new_direction)
     # check that unit vector is well normalized
-    assert np.linalg.norm(beam._unit_vector) == 1.0
+    assert np.allclose(np.linalg.norm(beam._unit_vector), 1.0)
 
     # direction > vector
     beam.direction_type = "vector"
@@ -85,7 +85,7 @@ def _LaserBeam_classes_generic_properties_test(LaserBeamClass):
     beam.direction = new_direction
     assert np.array_equal(beam.direction, new_direction)
     # check that unit vector is well normalized
-    assert np.linalg.norm(beam._unit_vector) == 1.0
+    assert np.allclose(np.linalg.norm(beam._unit_vector), 1.0)
     # check that unit vector is colinear to new_direction
     assert np.allclose(np.cross(new_direction, beam._unit_vector), np.zeros(3))
 
