@@ -134,8 +134,10 @@ class Configuration(object):
             either a laser tag or a laser object. This object/tag has to be in the configuration laser list
         transition : str
             the tag of the transition. Should be part of the collection's atom transition list
-        detuning : float
-            detuning of the laser w.r.t to transition (rad/s), see notes for the definition
+        detuning : float | list | tuple
+            detuning of the laser w.r.t to transition (rad/s), see notes for the definition. Can be given in the form of
+            a float for a single frequency laser beam, a list of detunings, a tuple (detuning, weight) or a list of
+            tuples. See notes for more information.
         verbose : bool, optional
             if True, will print messages when adding the couplint, by default False
         override : bool, optional
@@ -151,6 +153,22 @@ class Configuration(object):
 
         Where ωL is the laser pulsation and ω0 the atomic transition pulsation (hence, in rad/s)
         Stated otherwise, detuning units is in units of 2π x Hz
+
+        It is possible to give a list of value instead of a single float, for instance to simulate a
+        laser beam with multiple frequency components. It is possible to provide either a list of detunings,
+        for instance [δ1, δ2, δ3], or a liste of tuples associating a detuning and a weight, i.e. [(δ1, weight1), (δ2, weight2)].
+        Our convention is the following :
+
+            + if no weight is given, we assume a weight of 1
+            + the atom-light interaction is then computed, for each detuning, with an intensity I0 * weight
+
+        Where I0 is the total intensity of the laser beam. Note that then weights are given, we do not check the normalization
+        of the intensity. It is up to the user to provide the good values for the laser beam intensity and the weights to account
+        for a physical configuration.
+
+        For instance, if the configuration contains a laser beam with a total power of 100mW, a list of detunings
+        [(δ1, 0.5), (δ2, 0.5)] would correspond to two frequency components with each 50mW of power, whereas a list
+        [δ1, δ2] would actually correspond to two laser beams of 100mW with detunings δ1 and δ2.
         """
 
         # - Check Laser input
