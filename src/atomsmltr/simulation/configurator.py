@@ -140,9 +140,9 @@ class Configuration(object):
             tuples. See notes for more information.
         verbose : bool, optional
             if True, will print messages when adding the couplint, by default False
-        override : bool, optional
+        warn_existing : bool, optional
             if set to True, if a coupling between the laser and the transition already
-            exists, then it will be overriden. Otherwise it will raise an error, by default False
+            exists, a warning will be raised. Otherwise, the detuning will be overriden.
 
         Notes
         ------
@@ -215,7 +215,7 @@ class Configuration(object):
 
         # - Warn if coupling already exists
         if laser in self.__atomlight[transition] and warn_existing:
-            print(
+            raise Warning(
                 f"Warning: Coupling for laser '{laser}' and transition '{transition}' already exists."
             )
 
@@ -226,7 +226,7 @@ class Configuration(object):
             print(f" > Coupling added: {laser} ↔ {transition}")
             print(f"   detunings = {detunings_list}")
 
-    def rm_atomlight_coupling(self, transition: str, laser: str | LaserBeam):
+    def rm_atomlight_coupling(self, laser: str | LaserBeam, transition: str):
         """
         Removes an atom-light coupling.
         If 'detuning' is provided, only removes those detunings for the given (laser, transition) pair.
@@ -903,23 +903,24 @@ class Configuration(object):
     # -- INFO PRINTER
     def gen_atomlight_infostring_obj(self):
         info = InfoString("Atom-light couplings")
-        for transition, couplings in self.__atomlight.items():
-            info.add_section(f"transition > '{transition}'")
-            if couplings:
-                for laser, detunings_list in couplings.items():
+        for transition_tag, laser_dict in self.__atomlight.items():
+            info.add_section(f"transition > '{transition_tag}'")
+            if laser_dict:
+                for laser_tag, coupling_info in laser_dict.items():
                     det_strs = []
+                    detunings_list = coupling_info["detuning"]
                     for d in detunings_list:
                         if isinstance(d, tuple):
                             delta, weight = d
                             det_strs.append(
-                                f"{delta:.3g} ({delta / self.atom.trans[transition].Gamma:.2f}Γ) * w={weight:.3g}"
+                                f"{delta:.3g} ({delta / self.atom.trans[transition_tag].Gamma:.2f}Γ) * w={weight:.3g}"
                             )
                         else:
                             det_strs.append(
-                                f"{d:.3g} ({d / self.atom.trans[transition].Gamma:.2f}Γ)"
+                                f"{d:.3g} ({d / self.atom.trans[transition_tag].Gamma:.2f}Γ)"
                             )
                     det_str = ", ".join(det_strs)
-                    info.add_element(f"laser '{laser}'", det_str)
+                    info.add_element(f"laser '{laser_tag}'", det_str)
             else:
                 info.add_element("empty")
         return info
