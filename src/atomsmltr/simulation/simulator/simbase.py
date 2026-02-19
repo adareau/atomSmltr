@@ -62,20 +62,39 @@ def _get_force_vec(
     # - loop over atom-light couplings
     atomlight_couples = config.get_atomlight_couples()
     for elements in atomlight_couples:
-        transition, laser, detuning = elements
+        transition, laser, detunings_list = elements
         laser_intensity = laser.get_value(position)
         polarization = laser.get_polarization_quant(B)
-        # Doppler
         det_Doppler = -np.dot(speed, transition.k * laser.unit_vector)
-        scattering_rate = transition.get_scattering_rate(
-            laser_intensity, B_norm, polarization, detuning + det_Doppler
-        )
-        radiation_pressure = csts.hbar * transition.k * scattering_rate
+
+        # scalar_shape = position[..., 0:1].shape
+        # total_scattering_rate = np.zeros(scalar_shape, dtype=float)
+
+        scalar_shape = position.shape[:-1]
+        total_scattering_rate = np.zeros(scalar_shape, dtype=float)
+
+        for d in detunings_list:
+            if isinstance(d, tuple):
+                delta, weight = d
+            else:
+                delta, weight = d, 1.0
+
+            scattering_rate = transition.get_scattering_rate(
+                laser_intensity * np.abs(weight),
+                B_norm,
+                polarization,
+                delta + det_Doppler,
+            )
+
+            total_scattering_rate += scattering_rate
+
+        radiation_pressure = csts.hbar * transition.k * total_scattering_rate
         force = force + radiation_pressure[..., np.newaxis] * laser.unit_vector
+
         if return_list:
             scattering_list.append(
                 {
-                    "rate": scattering_rate,
+                    "rate": total_scattering_rate,
                     "k": transition.k,
                     "unit_vector": laser.unit_vector,
                 }

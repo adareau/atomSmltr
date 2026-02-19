@@ -174,10 +174,12 @@ def test_configuration_atom_light():
 
     # - add
     config.add_atomlight_coupling("556", "intercombination", 0, True)
-    config.add_atomlight_coupling(laser399_1, "main", 0, True)
-    with pytest.raises(KeyError) as excinfo:
-        config.add_atomlight_coupling(laser399_1, "main", 0, True)
-    config.add_atomlight_coupling(laser399_1, "main", -2, override=True, verbose=True)
+    config.add_atomlight_coupling(laser399_1, "main", 0, False)
+    with pytest.raises(Warning) as excinfo:
+        config.add_atomlight_coupling(laser399_1, "main", 0, warn_existing=True)
+    config.add_atomlight_coupling(
+        laser399_1, "main", -2, warn_existing=False, verbose=True
+    )
     config.print_atomlight_info()
 
     # - remove
@@ -188,6 +190,41 @@ def test_configuration_atom_light():
         config.rm_atomlight_coupling("556", "intercombination")
     config.reset_atomlight_coupling()
     config.print_atomlight_info()
+
+
+def test_atomlight_multiple_detunings():
+    from atomsmltr.simulation import Configuration
+    from atomsmltr.atoms.collection import Ytterbium
+    from atomsmltr.environment.lasers.beams import GaussianLaserBeam
+
+    # -- init config
+    config = Configuration()
+
+    # -- set atom
+    config.atom = Ytterbium()
+    main = config.atom.trans["main"]
+    ic = config.atom.trans["intercombination"]
+
+    # -- set lasers
+    laser399 = GaussianLaserBeam(399e-9, 100e-6, 10e-3, (0, 0, 0), (0, 0, 1), tag="399")
+    laser556 = GaussianLaserBeam(556e-9, 100e-6, 10e-3, (0, 0, 0), (0, 0, 1), tag="556")
+    config += laser399, laser556
+
+    # -- play with atomlight
+    config.add_atomlight_coupling("399", "main", [0, 1 * main.Gamma, 2 * main.Gamma])
+    config.print_atomlight_info()
+    config.add_atomlight_coupling("556", "intercombination", [(-2 * ic.Gamma, 0.5)])
+    config.print_atomlight_info()
+    config.add_atomlight_coupling(
+        "556",
+        "intercombination",
+        [(-2 * ic.Gamma, 0.5), (-0.5 * ic.Gamma, 0.2), (-0.5 * ic.Gamma, 0.1)],
+        warn_existing=False,
+    )
+    config.print_atomlight_info()
+    config.rm_atomlight_coupling(laser556, "intercombination")
+    with pytest.raises(KeyError) as excinfo:
+        config.rm_atomlight_coupling("556", "intercombination")
 
 
 def test_configuration_exceptions():
@@ -355,5 +392,6 @@ if __name__ == "__main__":
     # test_configuration_print_info()
     # test_configuration_operators()
     # test_configuration_methods()
-    test_configuration_inzone()
+    # test_configuration_inzone()
+    test_atomlight_multiple_detunings()
     pass
