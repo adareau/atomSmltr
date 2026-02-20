@@ -22,6 +22,7 @@ is setup with the ``add_atomlight_coupling()`` method.
 # % IMPORTS
 import warnings
 import numpy as np
+import scipy.constants as csts
 from copy import copy, deepcopy
 
 # % LOCAL IMPORTS
@@ -261,8 +262,7 @@ class Configuration(object):
     def add_dipole_coupling(
         self,
         laser: str | LaserBeam,
-        transition: str,
-        detuning: float,
+        omega_laser: float,
     ):
         """Adds an off-resonant dipole (light shift) coupling.
 
@@ -270,19 +270,15 @@ class Configuration(object):
         ----------
         laser : str | LaserBeam
             either a laser tag or a laser object. This object/tag has to be in the configuration laser list
-        transition : str
-            the tag of the transition. Should be part of the collection's atom transition list
-        detuning : float | list | tuple
-            detuning of the laser w.r.t to transition (rad/s), see notes for the definition. Can be given in the form of
-            a float for a single frequency laser beam, a list of detunings, a tuple (detuning, weight) or a list of
-            tuples. See notes for more information.
+        omega_laser : float
+            laser angular frequency in rad/s
 
         Notes
         ------
 
-        The dipole potential is:
+        The dipole potential is summed over all possible transitions:
 
-            U_dip = - (hbar * Gamma^2) / (8 * delta * Isat) * I(r)
+            U_dip(r) = - ∑_j  (ħ Γ_j²) / (8 δ_j Isat_j)  *  I(r)
 
         and the dipole force is:
 
@@ -300,29 +296,27 @@ class Configuration(object):
                 f"No entry for laser tag '{laser}'. Available: {list(self.__lasers)}."
             )
 
-        # - validate transition input
-        if self.atom is None:
-            raise ValueError("No atom was defined for this config.")
-        if transition not in self.__dipole:
-            raise KeyError(
-                f"No entry for transition '{transition}'. Available: {list(self.__dipole)}."
-            )
+        # - validate laser pulsation
+        if not isinstance(omega_laser, (int, float)):
+            raise TypeError("Laser frequency must be a float (rad/s).")
 
-        # - validate detuning
-        if not isinstance(detuning, (int, float)):
-            raise TypeError("Detuning must be a float (rad/s).")
-
-        # - store
-        self.__dipole[transition][laser] = {"detuning": float(detuning)}
+        # compute detuning for every transition and store
+        self.__dipole[laser] = {}
+        for tag, trans in self.atom.trans.items():
+            omega_0 = 2 * np.pi * csts.c / trans.wavelength
+            detuning = omega_laser - omega_0
+            self.__dipole[laser][tag] = {"detuning": detuning}
 
     def get_dipole_couples(self) -> list:
         """Returns a list of (transition, laser, detuning) tuples for dipole couplings"""
         out = []
-        for transition_tag, laser_dict in self.__dipole.items():
-            transition = self.atom.trans[transition_tag]
-            for laser_tag, info in laser_dict.items():
-                laser = self.__lasers[laser_tag]
-                out.append((transition, laser, info["detuning"]))
+        for laser_tag, trans_dict in self.__dipole.items():
+            laser = self.__lasers[laser_tag]
+            pairs = []
+            for trans_tag, info in trans_dict.items():
+                transition = self.atom.trans[trans_tag]
+                pairs.append((transition, info["detuning"]))
+            out.append((laser, pairs))
         return out
 
     # -- GETTING VALUES
@@ -959,7 +953,6 @@ class Configuration(object):
             # warnings.warn("Resetting atom-light dictionnary...")
         for transition_tag in self.atom.list_transitions():
             self.__atomlight[transition_tag] = {}
-            self.__dipole[transition_tag] = {}
 
     @property
     def objects(self) -> dict:
