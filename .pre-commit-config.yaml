@@ -1,25 +1,25 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0
     hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: check-yaml
-    -   id: check-added-large-files
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
         args: ["--maxkb=2000"]
 
-  # Using this mirror lets us use mypyc-compiled black, which is about 2x faster
--   repo: https://github.com/psf/black-pre-commit-mirror
+    # Using this mirror lets us use mypyc-compiled black, which is about 2x faster
+  - repo: https://github.com/psf/black-pre-commit-mirror
     rev: 24.8.0
     hooks:
-    - id: black
-      language_version: python3.12
+      - id: black
+        language_version: python3.13
 
--   repo: https://github.com/python-poetry/poetry
-    rev: 2.0.0  # add version here
+  - repo: https://github.com/python-poetry/poetry
+    rev: 2.0.0 # add version here
     hooks:
-    -   id: poetry-check
-    -   id: poetry-lock
-    -   id: poetry-install
+      - id: poetry-check
+      - id: poetry-lock
+      - id: poetry-install

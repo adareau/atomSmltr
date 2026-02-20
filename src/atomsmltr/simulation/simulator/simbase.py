@@ -100,6 +100,24 @@ def _get_force_vec(
                 }
             )
 
+    # loop over dipolar forces/light shifts
+    dipole_couples = config.get_dipole_couples()
+    for transition, laser, detuning in dipole_couples:
+        # prefactor: hbar * Gamma^2 / (8 * delta * Isat)
+        prefactor = csts.hbar * transition.Gamma**2 / (8.0 * detuning * transition.Isat)
+        # numerical gradient of intensity via finite differences
+        dx = 1e-6  # 1 µm step — small enough for any realistic beam waist
+        grad_I = np.zeros_like(position, dtype=float)
+        for i in range(3):
+            shift = np.zeros(3)
+            shift[i] = dx
+            I_plus = laser.get_value(position + shift)
+            I_minus = laser.get_value(position - shift)
+            grad_I[..., i] = (I_plus - I_minus) / (2 * dx)
+
+        dipole_force = -prefactor * grad_I  # F = -grad(U_dip)
+        force = force + dipole_force
+
     # - loop over all forces
     for f in config.get_all_forces():
         force = force + f.get_value(position)
