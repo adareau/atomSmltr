@@ -22,6 +22,7 @@ is setup with the ``add_atomlight_coupling()`` method.
 # % IMPORTS
 import warnings
 import numpy as np
+import scipy.constants as csts
 from copy import copy, deepcopy
 
 # % LOCAL IMPORTS
@@ -83,6 +84,7 @@ class Configuration(object):
         self.__magfields = {}
         self.__forces = {}
         self.__atomlight = {}
+        self.__dipole = {}
         self.__atom = None
 
         self.__implemented_collections = {
@@ -256,6 +258,66 @@ class Configuration(object):
     def reset_atomlight_coupling(self):
         for transition in self.__atomlight:
             self.__atomlight[transition].clear()
+
+    def add_dipole_coupling(
+        self,
+        laser: str | LaserBeam,
+        omega_laser: float,
+    ):
+        """Adds an off-resonant dipole (light shift) coupling.
+
+        Parameters
+        ----------
+        laser : str | LaserBeam
+            either a laser tag or a laser object. This object/tag has to be in the configuration laser list
+        omega_laser : float
+            laser angular frequency in rad/s
+
+        Notes
+        ------
+
+        The dipole potential is summed over all possible transitions:
+
+            U_dip(r) = - ∑_j  (ħ Γ_j²) / (8 δ_j Isat_j)  *  I(r)
+
+        and the dipole force is:
+
+            F = -grad(U_dip).
+        Valid in the far off-resonant limit |delta| >> Gamma.
+        """
+
+        # - validate laser input
+        if not isinstance(laser, (str, LaserBeam)):
+            raise TypeError("'laser' should be a tag (string) or a Laser object")
+        if not isinstance(laser, str):
+            laser = laser.tag
+        if laser not in self.__lasers:
+            raise KeyError(
+                f"No entry for laser tag '{laser}'. Available: {list(self.__lasers)}."
+            )
+
+        # - validate laser pulsation
+        if not isinstance(omega_laser, (int, float)):
+            raise TypeError("Laser frequency must be a float (rad/s).")
+
+        # compute detuning for every transition and store
+        self.__dipole[laser] = {}
+        for tag, trans in self.atom.trans.items():
+            omega_0 = 2 * np.pi * csts.c / trans.wavelength
+            detuning = omega_laser - omega_0
+            self.__dipole[laser][tag] = {"detuning": detuning}
+
+    def get_dipole_couples(self) -> list:
+        """Returns a list of (transition, laser, detuning) tuples for dipole couplings"""
+        out = []
+        for laser_tag, trans_dict in self.__dipole.items():
+            laser = self.__lasers[laser_tag]
+            pairs = []
+            for trans_tag, info in trans_dict.items():
+                transition = self.atom.trans[trans_tag]
+                pairs.append((transition, info["detuning"]))
+            out.append((laser, pairs))
+        return out
 
     # -- GETTING VALUES
     def getB(self, position: np.ndarray) -> np.ndarray:
